@@ -1,53 +1,6 @@
-.evidence-app {
-  grid-template-rows: auto auto minmax(360px, 1fr) auto;
-}
-
-.evidence-filters {
-  display: grid;
-  padding: 8px 18px;
-  border-bottom: 1px solid var(--line);
-  background: rgb(8 20 30 / 92%);
-  grid-template-columns: repeat(4, minmax(100px, 1fr));
-  gap: 7px;
-}
-
-.evidence-filters input,
-.evidence-filters select {
-  min-width: 0;
-  padding: 7px 9px;
-  color: var(--ink);
-  border: 1px solid var(--line);
-  background: #081722;
-}
-
-.card-drag-handle {
-  display: grid;
-  width: 100%;
-  padding: 0 0 7px;
-  color: var(--amber);
-  border: 0;
-  border-bottom: 1px solid var(--line);
-  background: transparent;
-  grid-template-columns: 1fr 1fr auto;
-  font: 10px monospace;
-  text-align: left;
-  touch-action: none;
-  cursor: grab;
-}
-
-.card-drag-handle em {
-  text-align: right;
-}
-
-.card-drag-handle i {
-  margin-left: 8px;
-  color: var(--muted);
-  font-style: normal;
-}
-
-.restored-note {
-  padding: 10px 14px;
-  color: var(--cyan);
-  font-size: 11px;
-}
-
+.evidence-app-v2{display:grid;height:100%;min-width:860px;min-height:0;background:var(--base-2);grid-template-rows:42px minmax(0,1fr) 26px}.evidence-commandbar{display:flex;align-items:center;gap:5px;padding:5px 7px;border-bottom:1px solid var(--line);background:#111e26}.evidence-commandbar>div{display:flex;min-width:170px;flex:1;flex-direction:column}.evidence-commandbar>div strong{font-size:12px}.evidence-commandbar>div span{margin-top:2px;color:var(--ink-3);font:8px var(--font-data);letter-spacing:.08em}.evidence-commandbar button{height:30px;padding:4px 8px;color:var(--ink-1);border:1px solid var(--line);background:#18262e}.evidence-commandbar .primary-button{color:#111518;border-color:var(--amber);background:var(--amber)}
+.evidence-three-pane{display:grid;min-height:0;grid-template-columns:220px minmax(440px,1fr) 250px}.clue-library,.clue-inspector{min-width:0;overflow:auto;border-right:1px solid var(--line);background:#0c151b}.clue-library>header,.clue-inspector>header{display:flex;height:35px;align-items:center;justify-content:space-between;padding:0 10px;border-bottom:1px solid var(--line)}.clue-library>header span,.clue-inspector>header span{color:var(--amber);font:9px var(--font-data)}.evidence-filters{display:grid;padding:7px;border-bottom:1px solid var(--line);grid-template-columns:1fr 1fr;gap:4px}.evidence-filters input,.evidence-filters select{min-width:0;height:27px;padding:3px 6px;color:var(--ink-1);border:1px solid var(--line);background:#121f27;font-size:9px}.clue-list>button{position:relative;display:grid;width:100%;min-height:52px;align-items:center;padding:6px 8px;color:var(--ink-1);border:0;border-bottom:1px solid var(--line-weak);background:transparent;grid-template-columns:34px 1fr;text-align:left}.clue-list>button:hover,.clue-list>button[data-selected=true]{background:#192831}.clue-list>button>span{color:var(--amber);font:10px var(--font-data)}.clue-list>button>div{display:flex;min-width:0;flex-direction:column}.clue-list small{margin-top:3px;color:var(--ink-3);font-size:8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.clue-list>button>b{position:absolute;right:6px;top:5px;color:var(--amber);font-size:8px}
+.evidence-workspace{position:relative;min-width:0;overflow:auto;background-color:#10191e;background-image:radial-gradient(#34454c 1px,transparent 1px);background-size:20px 20px}.evidence-canvas{position:relative;width:880px;height:620px}.relation-lines{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}.relation-lines line{stroke:var(--amber);stroke-width:1;stroke-dasharray:5 4}.relation-lines text{fill:var(--amber);font:8px var(--font-data)}.evidence-card{position:absolute;width:210px;min-height:142px;padding:10px;border:1px solid var(--line);background:#17252d;box-shadow:0 9px 20px rgb(0 0 0 / 24%)}.evidence-card.pinned{border-color:var(--amber)}.card-drag-handle{display:grid;width:100%;padding:0 0 6px;color:var(--amber);border:0;border-bottom:1px solid var(--line);background:transparent;grid-template-columns:1fr 1fr auto;font:9px var(--font-data);text-align:left;touch-action:none;cursor:grab}.card-drag-handle em{text-align:right}.card-drag-handle i{margin-left:6px;color:var(--ink-3);font-style:normal}.evidence-card h4{margin:9px 0 5px;font-size:12px}.evidence-card p{margin:0;color:var(--ink-1);font-size:10px;line-height:1.5}.evidence-card small{display:block;margin-top:7px;color:var(--ink-3);font-size:8px}.card-actions{margin-top:8px}.card-actions button{padding:4px 7px;color:var(--amber);border:1px solid var(--line);background:#101b22;font-size:8px}
+.clue-inspector{border:0}.clue-inspector>h3,.clue-inspector>p,.clue-inspector>button{margin-right:12px;margin-left:12px}.clue-inspector>h3{margin-top:15px;margin-bottom:6px}.clue-inspector>p{color:var(--ink-2);font-size:10px;line-height:1.6}.clue-inspector>dl{display:grid;padding:0 12px;grid-template-columns:52px 1fr}.clue-inspector>button{height:29px;color:var(--ink-1);border:1px solid var(--line);background:#18262e}.relation-builder{margin-top:16px;padding:12px;border-top:1px solid var(--line)}.relation-builder h4{margin:0 0 8px}.relation-builder select,.relation-builder>button{width:100%;height:28px;margin-bottom:5px;padding:4px;color:var(--ink-1);border:1px solid var(--line);background:#121f27;font-size:9px}.relation-builder ul{max-height:110px;margin:6px 0 0;padding:0;overflow:auto;list-style:none}.relation-builder li{display:flex;align-items:center;justify-content:space-between;padding:5px 0;color:var(--ink-2);border-bottom:1px solid var(--line-weak);font-size:8px}.relation-builder li button{border:0;background:transparent}
+.deduction-card{width:min(800px,95vw)}.deduction-card h2{margin:8px 0 18px;font-size:28px}.deduction-card fieldset{margin:12px 0;padding:12px;border:1px solid var(--line)}.deduction-card legend{padding:0 7px;font-weight:600}.deduction-card legend span{margin-right:8px;color:var(--amber);font:10px var(--font-data)}.deduction-card fieldset label{display:inline-flex;align-items:center;gap:5px;margin:6px 12px 2px 0;color:var(--ink-1);font-size:11px}.deduction-evidence{padding:10px;border:1px solid var(--line);background:#0c151b}.deduction-evidence h3{margin:0 0 5px}.deduction-evidence p{margin:0;color:var(--ink-2)}.note-field{display:flex;margin:12px 0;flex-direction:column;gap:6px}.note-field textarea{min-height:65px;padding:8px;color:var(--ink-1);border:1px solid var(--line);background:#081117}
+@media(max-width:1023px){.evidence-app-v2{min-width:760px}.evidence-three-pane{grid-template-columns:180px minmax(410px,1fr) 210px}}

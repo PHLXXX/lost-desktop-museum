@@ -1,0 +1,10 @@
+import { useState } from 'react'
+import { caseDefinition } from '../../cases/case-001/case'
+import { useGameStore } from '../../store/gameStore'
+import { AppStatusBar, AppToolbar, PaneHeader } from './AppChrome'
+
+export function MailApp() {
+  const [folder, setFolder] = useState<'收件箱' | '草稿'>('收件箱'); const [selected, setSelected] = useState(caseDefinition.emails[0]!); const investigate = useGameStore((state) => state.investigate)
+  const messages = caseDefinition.emails.filter((email) => email.folder === folder)
+  return <div className="application mail-app"><AppToolbar><button>刷新</button><button>标记</button><span className="path-field">ZHOU_YU@LOCAL / {folder}</span><input aria-label="搜索邮件" placeholder="搜索发件人或主题" /></AppToolbar><div className="mail-layout"><nav className="mail-folders" aria-label="邮件文件夹"><PaneHeader title="邮箱" /><button data-active={folder === '收件箱'} onClick={() => setFolder('收件箱')}>收件箱 <b>{caseDefinition.emails.filter((email) => email.folder === '收件箱').length}</b></button><button data-active={folder === '草稿'} onClick={() => setFolder('草稿')}>草稿 <b>{caseDefinition.emails.filter((email) => email.folder === '草稿').length}</b></button><button disabled>已发送</button><button disabled>归档</button></nav><section className="mail-list"><PaneHeader title={folder} meta={`${messages.length} 封`} />{messages.map((email) => <button key={email.id} data-selected={selected.id === email.id} onClick={() => { setSelected(email); investigate({ type: 'OPEN_ITEM', itemId: email.id }) }}><span><strong>{email.subject}</strong><small>{email.from}</small></span><time>{email.time}</time></button>)}</section><article className="mail-reader"><header><span className="status-chip">{selected.folder}</span><h3>{selected.subject}</h3><dl><dt>发件人</dt><dd>{selected.from}</dd><dt>收件人</dt><dd>ZHOU_YU@LOCAL</dd><dt>时间</dt><dd>{selected.time}</dd></dl></header><p>{selected.body}</p>{selected.folder === '草稿' && <aside className="draft-warning">这封邮件从未发送。保存的内容可能不完整。</aside>}</article></div><AppStatusBar><span>{folder} · {messages.length} 封</span><span>同步状态：离线快照</span></AppStatusBar></div>
+}

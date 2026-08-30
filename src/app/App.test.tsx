@@ -5,7 +5,7 @@ import { App } from './App'
 describe('App', () => {
   it('renders the museum title', () => {
     render(<App />)
-    expect(screen.getByRole('heading', { name: '遗失电脑博物馆' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /遗失的电脑/ })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: '查看案件' })).toBeInTheDocument()
   })
 })
-

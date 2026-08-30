@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { createFreshSave, loadGameSave, migrateGameSave, saveGameSave } from './persistence'
+import { CORRUPT_PREFIX, createFreshSave, loadGameSave, migrateGameSave, saveGameSave } from './persistence'
 
 class MemoryStorage implements Storage {
   private data = new Map<string, string>()
@@ -20,9 +20,13 @@ describe('persistence', () => {
   })
 
   it('migrates version zero and recovers corrupt data', () => {
-    expect(migrateGameSave({ saveVersion: 0, discoveredClueIds: ['C02'] }).discoveredClueIds).toEqual(['C02'])
+    const migrated = migrateGameSave({ saveVersion: 1, discoveredClueIds: ['C02'], currentWindows: ['mail'] })
+    expect(migrated.saveVersion).toBe(2)
+    expect(migrated.discoveredClueIds).toEqual(['C02'])
+    expect(migrated.currentWindows[0]).toMatchObject({ id: 'mail' })
     const storage = new MemoryStorage()
     storage.setItem('archive-os:case-001', '{broken')
     expect(loadGameSave(storage).status).toBe('corrupt')
+    expect([...Array(storage.length)].map((_, index) => storage.key(index)).some((key) => key?.startsWith(CORRUPT_PREFIX))).toBe(true)
   })
 })
