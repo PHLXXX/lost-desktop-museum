@@ -6,8 +6,26 @@ export const CURRENT_SAVE_VERSION = 2
 
 export function createFreshSave(): GameSave {
   return {
-    saveVersion: CURRENT_SAVE_VERSION, caseId: 'case-001', openedItems: [], discoveredClueIds: [], pinnedClueIds: [], unlockedItemIds: [], triggeredEventIds: [], evidenceCardPositions: {}, evidenceRelations: [], currentWindows: [],
-    settings: { sound: true, anomalies: true, scanlines: 0.28 }, deductionResult: null, onboardingComplete: false, desktopNote: '', playTime: 0, lastSavedAt: new Date().toISOString(),
+    saveVersion: CURRENT_SAVE_VERSION,
+    caseId: 'case-001',
+    caseStarted: false,
+    openedItems: [],
+    discoveredClueIds: [],
+    pinnedClueIds: [],
+    unlockedItemIds: [],
+    restoredItemIds: [],
+    triggeredEventIds: [],
+    evidenceCardPositions: {},
+    evidenceRelations: [],
+    evidenceNotes: {},
+    currentWindows: [],
+    settings: { sound: true, anomalies: true, scanlines: 0.08, safeMode: false },
+    deductionResult: null,
+    bestScore: null,
+    onboardingComplete: false,
+    desktopNote: '',
+    playTime: 0,
+    lastSavedAt: new Date().toISOString(),
   }
 }
 
@@ -21,7 +39,24 @@ export function migrateGameSave(input: unknown): GameSave {
     if (item && typeof item === 'object' && 'id' in item) return [item as GameSave['currentWindows'][number]]
     return []
   })
-  return { ...fresh, ...value, currentWindows, saveVersion: CURRENT_SAVE_VERSION, settings: { ...fresh.settings, ...(value.settings ?? {}) }, lastSavedAt: value.lastSavedAt ?? fresh.lastSavedAt }
+  const caseStarted = value.caseStarted ?? Boolean(
+    value.discoveredClueIds?.length ||
+    value.openedItems?.length ||
+    value.currentWindows?.length ||
+    value.deductionResult,
+  )
+  return {
+    ...fresh,
+    ...value,
+    caseStarted,
+    restoredItemIds: value.restoredItemIds ?? fresh.restoredItemIds,
+    evidenceNotes: value.evidenceNotes ?? fresh.evidenceNotes,
+    bestScore: value.bestScore ?? value.deductionResult?.score ?? fresh.bestScore,
+    currentWindows,
+    saveVersion: CURRENT_SAVE_VERSION,
+    settings: { ...fresh.settings, ...(value.settings ?? {}) },
+    lastSavedAt: value.lastSavedAt ?? fresh.lastSavedAt,
+  }
 }
 
 export function saveGameSave(storage: Storage, save: GameSave): void {

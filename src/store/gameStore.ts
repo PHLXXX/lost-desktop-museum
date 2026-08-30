@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { caseDefinition } from '../cases/case-001/case'
 import type { DeductionResult, EvidenceRelation, InvestigationAction, WindowSnapshot } from '../cases/types'
 import { discoverClues } from '../engine/clueEngine'
+import { playArchiveSound } from '../engine/audioEngine'
 import { clearGameSave, createFreshSave, loadGameSave, saveGameSave } from '../engine/persistence'
 import { scoreDeduction } from '../engine/scoringEngine'
 import { evaluateTriggers } from '../engine/triggerEngine'
@@ -20,6 +21,10 @@ type GameState = ReturnType<typeof createFreshSave> & {
   updateSettings: (settings: Partial<GameState['settings']>) => void
   submit: (answers: string[], note: string) => DeductionResult
   resetCase: () => void
+  markCaseStarted: () => void
+  tickPlayTime: () => void
+  restoreItem: (id: string) => void
+  setEvidenceNote: (id: string, note: string) => void
   dismissNotice: () => void
   saveNow: () => void
   setOnboardingComplete: (complete: boolean) => void
@@ -44,7 +49,7 @@ function persist(state: GameState, setStatus: (status: GameState['saveStatus']) 
 export const useGameStore = create<GameState>((set, get) => ({
   ...loaded.save,
   saveStatus: 'idle',
-  notice: loaded.status === 'corrupt' ? '存档无法读取，已为你创建新的调查进度。' : null,
+  notice: loaded.status === 'corrupt' ? '检测到无法读取的存档，原始数据已备份；你可以开始新的调查。' : null,
   corruptSave: loaded.status === 'corrupt',
   investigate: (action) => {
     const state = get()
@@ -54,7 +59,11 @@ export const useGameStore = create<GameState>((set, get) => ({
     const triggeredEventIds = [...state.triggeredEventIds, ...effects.map((effect) => effect.id)]
     const unlockedItemIds = [...state.unlockedItemIds, ...effects.flatMap((effect) => effect.itemId ? [effect.itemId] : [])]
     const openedItems = state.openedItems.includes(action.itemId) ? state.openedItems : [...state.openedItems, action.itemId]
-    set({ discoveredClueIds, triggeredEventIds, unlockedItemIds, openedItems, notice: effects.at(-1)?.message ?? (newIds.length ? `发现线索：${caseDefinition.clues.find((clue) => clue.id === newIds[0])?.title}` : state.notice) })
+    if (newIds.length) playArchiveSound('clue', state.settings.sound)
+    const clueTitle = newIds.length ? caseDefinition.clues.find((clue) => clue.id === newIds[0])?.title : null
+    const eventMessage = effects.at(-1)?.message
+    const notice = clueTitle ? `发现线索：${clueTitle}${eventMessage ? `｜${eventMessage}` : ''}` : eventMessage ?? state.notice
+    set({ discoveredClueIds, triggeredEventIds, unlockedItemIds, openedItems, notice })
     persist(get(), (saveStatus) => set({ saveStatus }))
   },
   unlockMirror: () => {
@@ -76,14 +85,32 @@ export const useGameStore = create<GameState>((set, get) => ({
     const state = get()
     const contradictionPairs = state.evidenceRelations.filter((relation) => relation.type === '相互矛盾').map((relation) => [relation.from, relation.to] as [string, string])
     const result = scoreDeduction(caseDefinition, { answers, evidenceIds: state.pinnedClueIds, contradictionPairs, note })
-    set({ deductionResult: result, notice: '检测到新的本地会话。用户 LINRAN 登录成功。' })
+    set({
+      deductionResult: result,
+      bestScore: Math.max(state.bestScore ?? 0, result.score),
+      notice: '检测到新的本地会话。用户 LINRAN 登录成功。',
+    })
     persist(get(), (saveStatus) => set({ saveStatus }))
     return result
   },
   resetCase: () => {
     const settings = get().settings
+    const bestScore = get().bestScore
     if (storage) clearGameSave(storage)
-    set({ ...createFreshSave(), settings, notice: '案件已重置。', corruptSave: false })
+    set({ ...createFreshSave(), settings, bestScore, notice: '案件已重置。', corruptSave: false })
+    persist(get(), (saveStatus) => set({ saveStatus }))
+  },
+  markCaseStarted: () => {
+    set({ caseStarted: true })
+    persist(get(), (saveStatus) => set({ saveStatus }))
+  },
+  tickPlayTime: () => set((state) => ({ playTime: state.playTime + 1 })),
+  restoreItem: (id) => {
+    set((state) => ({ restoredItemIds: [...new Set([...state.restoredItemIds, id])] }))
+    persist(get(), (saveStatus) => set({ saveStatus }))
+  },
+  setEvidenceNote: (id, note) => {
+    set((state) => ({ evidenceNotes: { ...state.evidenceNotes, [id]: note } }))
     persist(get(), (saveStatus) => set({ saveStatus }))
   },
   dismissNotice: () => set({ notice: null }),

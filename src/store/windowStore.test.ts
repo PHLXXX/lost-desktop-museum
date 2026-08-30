@@ -13,4 +13,12 @@ describe('window store', () => {
     expect(useWindowStore.getState().activeWindowId).toBe('files')
     expect(useGameStore.getState().currentWindows[0]).toMatchObject({ id: 'files', width: 700, height: 480 })
   })
+
+  it('clears runtime and persisted window state together', () => {
+    useWindowStore.getState().openWindow('mail')
+    useWindowStore.getState().resetWindows()
+    expect(useWindowStore.getState().windows).toEqual([])
+    expect(useWindowStore.getState().activeWindowId).toBeNull()
+    expect(useGameStore.getState().currentWindows).toEqual([])
+  })
 })

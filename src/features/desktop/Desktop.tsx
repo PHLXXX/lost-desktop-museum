@@ -5,12 +5,16 @@ import { caseDefinition } from '../../cases/case-001/case'
 import type { AppId } from '../../cases/types'
 import { AppContent } from '../../app/AppContent'
 import { appRegistry } from '../../app/appRegistry'
+import { playArchiveSound } from '../../engine/audioEngine'
 import { useGameStore } from '../../store/gameStore'
 import { useWindowStore } from '../../store/windowStore'
 import { Onboarding } from '../system/Onboarding'
+import { ArchiveDialog } from '../system/ArchiveDialog'
 import { SaveIndicator } from '../system/SaveIndicator'
 import { SystemMenu } from '../system/SystemMenu'
 import { WindowFrame } from '../window-manager/WindowFrame'
+import { DesktopContextMenu } from './DesktopContextMenu'
+import { isEditableTarget, isSaveShortcut } from './desktopShortcuts'
 
 export function Desktop({
   onReturnMuseum,
@@ -30,11 +34,15 @@ export function Desktop({
     settings,
     desktopNote,
     setDesktopNote,
+    tickPlayTime,
   } = useGameStore()
   const [selected, setSelected] = useState<AppId | null>(null)
   const [systemMenu, setSystemMenu] = useState(false)
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null)
   const [showNote, setShowNote] = useState(Boolean(desktopNote))
+  const [caseInfo, setCaseInfo] = useState(false)
+  const [compactIcons, setCompactIcons] = useState(false)
+  const [sortByName, setSortByName] = useState(false)
   const [clock, setClock] = useState('23:48')
   useEffect(() => {
     const timer = setInterval(
@@ -44,24 +52,54 @@ export function Desktop({
     return () => clearInterval(timer)
   }, [])
   useEffect(() => {
+    const timer = setInterval(tickPlayTime, 1000)
+    return () => clearInterval(timer)
+  }, [tickPlayTime])
+  useEffect(() => {
+    const flushSave = () => useGameStore.getState().saveNow()
+    window.addEventListener('pagehide', flushSave)
+    return () => window.removeEventListener('pagehide', flushSave)
+  }, [])
+  useEffect(() => {
     if (!notice) return
     const timer = setTimeout(dismissNotice, 4000)
     return () => clearTimeout(timer)
   }, [notice, dismissNotice])
   useEffect(() => {
-    const close = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        setContextMenu(null)
-        if (!systemMenu) setSelected(null)
+    const handleKeyboard = (event: KeyboardEvent) => {
+      if (isSaveShortcut(event)) {
+        event.preventDefault()
+        useGameStore.getState().saveNow()
+        return
       }
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'f') {
+        const search = document.querySelector<HTMLElement>('.app-window[data-active="true"] [aria-label*="搜索"]')
+        if (search) { event.preventDefault(); search.focus() }
+        return
+      }
+      if (event.altKey && event.key === 'ArrowLeft') {
+        const back = document.querySelector<HTMLButtonElement>('.app-window[data-active="true"] button[aria-label="后退"]')
+        if (back) { event.preventDefault(); back.click() }
+        return
+      }
+      if (event.key === 'Delete' && showNote && !isEditableTarget(event.target)) {
+        setDesktopNote('')
+        setShowNote(false)
+        return
+      }
+      if (event.key !== 'Escape' || document.querySelector('[aria-modal="true"]')) return
+      if (contextMenu) { setContextMenu(null); return }
+      setSelected(null)
+      setSystemMenu((value) => !value)
     }
-    window.addEventListener('keydown', close)
-    return () => window.removeEventListener('keydown', close)
-  }, [systemMenu])
+    window.addEventListener('keydown', handleKeyboard)
+    return () => window.removeEventListener('keydown', handleKeyboard)
+  }, [contextMenu, setDesktopNote, showNote])
   const displayClock =
     settings.anomalies && triggeredEventIds.includes('event-identity') ? '23:47' : clock
   const lastClue = caseDefinition.clues.find((clue) => clue.id === discoveredClueIds.at(-1))
   const openSelected = (id: AppId) => {
+    playArchiveSound('open', settings.sound)
     openWindow(id)
     setSelected(id)
     setContextMenu(null)
@@ -69,12 +107,13 @@ export function Desktop({
   const openContext = (event: MouseEvent<HTMLElement>) => {
     if ((event.target as HTMLElement).closest('button, textarea, .app-window')) return
     event.preventDefault()
-    setContextMenu({ x: event.clientX, y: event.clientY })
+    setContextMenu({ x: Math.max(8, Math.min(event.clientX, innerWidth - 190)), y: Math.max(40, Math.min(event.clientY, innerHeight - 250)) })
   }
+  const desktopApps = sortByName ? [...appRegistry].sort((a, b) => a.title.localeCompare(b.title, 'zh-CN')) : appRegistry
   return (
     <main
-      className={`desktop ${settings.anomalies ? 'anomalies' : ''}`}
-      style={{ '--scanline': settings.scanlines } as CSSProperties}
+      className={`desktop ${settings.anomalies ? 'anomalies' : ''} ${compactIcons ? 'compact-icons' : ''}`}
+      style={{ '--scanline': settings.safeMode ? 0 : settings.scanlines } as CSSProperties}
       data-testid="desktop"
       onClick={(event) => {
         if (event.target === event.currentTarget) {
@@ -102,7 +141,7 @@ export function Desktop({
         <b>{discoveredClueIds.length.toString().padStart(2, '0')} / 12</b>
       </section>
       <div className="desktop-grid" aria-label="桌面应用">
-        {appRegistry.map((app) => (
+        {desktopApps.map((app) => (
           <button
             className="desktop-icon"
             data-selected={selected === app.id}
@@ -110,6 +149,7 @@ export function Desktop({
             onClick={(event) => {
               event.stopPropagation()
               setSelected(app.id)
+              setContextMenu(null)
             }}
             onDoubleClick={() => openSelected(app.id)}
             onKeyDown={(event) => {
@@ -143,35 +183,7 @@ export function Desktop({
           />
         </aside>
       )}
-      {contextMenu && (
-        <div
-          className="desktop-context-menu"
-          role="menu"
-          aria-label="桌面菜单"
-          style={{ left: contextMenu.x, top: contextMenu.y }}
-        >
-          <button
-            role="menuitem"
-            onClick={() => {
-              setShowNote(true)
-              setContextMenu(null)
-            }}
-          >
-            新建临时便笺
-          </button>
-          <button
-            role="menuitem"
-            onClick={() => {
-              openSelected('evidence')
-            }}
-          >
-            打开证据板
-          </button>
-          <button role="menuitem" onClick={() => setContextMenu(null)}>
-            刷新桌面
-          </button>
-        </div>
-      )}
+      {contextMenu && <DesktopContextMenu position={contextMenu} onClose={() => setContextMenu(null)} onView={() => { setCompactIcons((value) => !value); setContextMenu(null) }} onSort={() => { setSortByName((value) => !value); setContextMenu(null) }} onRefresh={() => { setSelected(null); setContextMenu(null) }} onCreateNote={() => { setShowNote(true); setContextMenu(null) }} onDisplaySettings={() => openSelected('settings')} onCaseInfo={() => { setCaseInfo(true); setContextMenu(null) }} />}
       {windows.map((window) => (
         <WindowFrame
           key={window.id}
@@ -182,13 +194,14 @@ export function Desktop({
         </WindowFrame>
       ))}
       {notice && (
-        <aside className="clue-toast" role="status">
+        <aside className="clue-toast" role="status" aria-label="线索通知">
           <span>
             {lastClue
               ? `${lastClue.id} · ${appRegistry.find((app) => app.id === lastClue.source)?.title}`
               : 'SYSTEM'}
           </span>
-          <strong>{notice}</strong>
+          <strong>{notice.startsWith('发现线索：') ? '新证据已记录' : '系统通知'}</strong>
+          <p>{notice.replace(/^发现线索：/, '')}</p>
           <div>
             {lastClue && <button onClick={() => openSelected(lastClue.source)}>查看线索</button>}
             <button aria-label="关闭通知" onClick={dismissNotice}>
@@ -202,7 +215,7 @@ export function Desktop({
           className="archive-button"
           aria-label="A/OS 系统菜单"
           aria-expanded={systemMenu}
-          onClick={() => setSystemMenu((value) => !value)}
+          onClick={() => { playArchiveSound('click', settings.sound); setSystemMenu((value) => !value) }}
         >
           <span>A</span>A/OS
         </button>
@@ -230,6 +243,8 @@ export function Desktop({
           <span>已记录</span>
           <strong>{discoveredClueIds.length} / 12</strong>
         </button>
+        <span className="taskbar-sound" aria-label={`音效${settings.sound ? '开启' : '关闭'}`}>{settings.sound ? '音效 开' : '音效 关'}</span>
+        <time className="taskbar-clock">{displayClock}</time>
       </footer>
       <SystemMenu
         open={systemMenu}
@@ -238,6 +253,7 @@ export function Desktop({
         onOpenSettings={() => openSelected('settings')}
       />
       <Onboarding />
+      {caseInfo && <ArchiveDialog title="案件信息" onClose={() => setCaseInfo(false)} actions={<button className="primary-button" onClick={() => setCaseInfo(false)}>返回桌面</button>}><p>档案 001：没有出发的旅行</p><p>已记录 {discoveredClueIds.length} / 12。所有调查进度仅保存在当前浏览器。</p></ArchiveDialog>}
       <div className="orientation-notice">当前宽度会限制多窗口操作；应用已优先使用最大化布局。</div>
     </main>
   )
