@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client'
 import { App } from './app/App'
 import './styles/tokens.css'
 import './styles/global.css'
+import './styles/game.css'
 
 const root = document.getElementById('root')
 
@@ -13,4 +14,3 @@ createRoot(root).render(
     <App />
   </StrictMode>,
 )
-
