@@ -6,6 +6,6 @@ describe('App', () => {
   it('renders the museum title', () => {
     render(<App />)
     expect(screen.getByRole('heading', { name: /遗失的电脑/ })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: '查看案件' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: '查看案件简介' })).toBeInTheDocument()
   })
 })

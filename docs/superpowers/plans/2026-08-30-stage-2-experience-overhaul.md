@@ -1,5 +1,7 @@
 # Stage 2 Experience Overhaul Implementation Plan
 
+状态：已于 2026-08-30 交付 `v0.2.0`；下列复选框保留为原始实施模板。2026-08-31 的实测补齐项、红绿测试记录与最终发布门见 [`2026-08-30-stage-2-compliance-follow-up.md`](2026-08-30-stage-2-compliance-follow-up.md)，后者反映当前代码的实际完成状态。
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** 把阶段一单屏虚拟桌面升级为包含博物馆入口、可靠本地存档、持久化窗口和十个真实工具形态的完整阶段二网页游戏。

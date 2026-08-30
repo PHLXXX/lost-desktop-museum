@@ -19,6 +19,7 @@ interface WindowState {
   closeWindow: (id: AppId) => void
   restoreWindow: (id: AppId) => void
   hydrateWindows: () => void
+  resetWindows: () => void
 }
 
 function snapshots(windows: AppWindow[]): WindowSnapshot[] {
@@ -135,4 +136,8 @@ export const useWindowStore = create<WindowState>((set) => ({
         .getState()
         .currentWindows.map((window, index) => ({ ...clampWindow(window), z: 101 + index })),
     }),
+  resetWindows: () => {
+    persistWindows([])
+    set({ windows: [], activeWindowId: null })
+  },
 }))

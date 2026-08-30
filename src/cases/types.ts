@@ -8,11 +8,11 @@ export type InvestigationAction =
   | { type: 'UNLOCK_ITEM'; itemId: string }
   | { type: 'VIEW_LOG'; itemId: string }
 
-export interface VirtualFile { id: string; name: string; folder: string; content: string; locked?: boolean; password?: string; clueAction?: InvestigationAction['type'] }
+export interface VirtualFile { id: string; name: string; folder: string; originalFolder?: string; content: string; locked?: boolean; password?: string; clueAction?: InvestigationAction['type'] }
 export interface VirtualFolder { id: string; name: string }
 export interface ChatMessage { id: string; sender: string; time: string; text: string; attachmentId?: string; unread?: boolean; clueId?: string }
 export interface ChatThread { id: string; title: string; messages: ChatMessage[] }
-export interface EmailMessage { id: string; folder: '收件箱' | '草稿'; from: string; subject: string; time: string; body: string; clueId?: string }
+export interface EmailMessage { id: string; folder: '收件箱' | '草稿'; from: string; subject: string; time: string; body: string; attachmentName?: string; clueId?: string }
 export interface BrowserHistoryEntry { id: string; time: string; title: string; category: string; clueId?: string }
 export interface CalendarEvent { id: string; date: string; title: string; note: string; clueId?: string }
 export interface PhotoMetadata { capturedAt: string; exportedAt: string; camera: string }
@@ -26,6 +26,27 @@ export interface DeductionQuestion { id: string; prompt: string; options: { id: 
 export interface DeductionSubmission { answers: string[]; evidenceIds: string[]; contradictionPairs: [string, string][]; note: string }
 export interface DeductionResult { score: number; level: string; answerScore: number; evidenceScore: number; relationScore: number; note: string }
 export interface WindowSnapshot { id: AppId; x: number; y: number; width: number; height: number; minimized: boolean; maximized: boolean }
-export interface GameSave { saveVersion: number; caseId: string; openedItems: string[]; discoveredClueIds: string[]; pinnedClueIds: string[]; unlockedItemIds: string[]; triggeredEventIds: string[]; evidenceCardPositions: Record<string, { x: number; y: number }>; evidenceRelations: EvidenceRelation[]; currentWindows: WindowSnapshot[]; settings: { sound: boolean; anomalies: boolean; scanlines: number }; deductionResult: DeductionResult | null; onboardingComplete: boolean; desktopNote: string; playTime: number; lastSavedAt: string }
+export interface GameSave {
+  saveVersion: number
+  caseId: string
+  caseStarted: boolean
+  openedItems: string[]
+  discoveredClueIds: string[]
+  pinnedClueIds: string[]
+  unlockedItemIds: string[]
+  restoredItemIds: string[]
+  triggeredEventIds: string[]
+  evidenceCardPositions: Record<string, { x: number; y: number }>
+  evidenceRelations: EvidenceRelation[]
+  evidenceNotes: Record<string, string>
+  currentWindows: WindowSnapshot[]
+  settings: { sound: boolean; anomalies: boolean; scanlines: number; safeMode: boolean }
+  deductionResult: DeductionResult | null
+  bestScore: number | null
+  onboardingComplete: boolean
+  desktopNote: string
+  playTime: number
+  lastSavedAt: string
+}
 export interface TimelineEntry { time: string; text: string }
 export interface CaseDefinition { id: string; title: string; owner: string; timeline: TimelineEntry[]; folders: VirtualFolder[]; files: VirtualFile[]; chats: ChatThread[]; emails: EmailMessage[]; browser: BrowserHistoryEntry[]; calendar: CalendarEvent[]; photos: PhotoAsset[]; logs: SystemLog[]; clues: ClueDefinition[]; triggers: GameTrigger[]; questions: DeductionQuestion[]; coreEvidenceIds: string[]; correctContradictions: [string, string][]; ending: string }

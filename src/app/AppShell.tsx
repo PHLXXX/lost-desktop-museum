@@ -10,9 +10,10 @@ import type { AppPhase } from './appPhase'
 export function AppShell() {
   const [phase, setPhase] = useState<AppPhase>('museum')
   const updateSettings = useGameStore((state) => state.updateSettings)
-  if (phase === 'museum') return <MuseumHome onOpenCase={() => setPhase('case-detail')} />
-  if (phase === 'case-detail') return <CaseDetail onBack={() => setPhase('museum')} onStart={() => setPhase('case-boot')} />
-  if (phase === 'case-boot') return <BootScreen onEnter={(safeMode) => { if (safeMode) updateSettings({ anomalies: false }); setPhase('investigation') }} />
+  const markCaseStarted = useGameStore((state) => state.markCaseStarted)
+  if (phase === 'museum') return <MuseumHome onOpenCase={() => setPhase('case-detail')} onContinue={() => setPhase('investigation')} />
+  if (phase === 'case-detail') return <CaseDetail onBack={() => setPhase('museum')} onStart={() => setPhase('case-boot')} onContinue={() => setPhase('investigation')} />
+  if (phase === 'case-boot') return <BootScreen onEnter={(safeMode) => { markCaseStarted(); updateSettings({ safeMode, anomalies: safeMode ? false : useGameStore.getState().settings.anomalies }); setPhase('investigation') }} />
   if (phase === 'result') return <ResultScreen onReturnMuseum={() => setPhase('museum')} onReviewEvidence={() => setPhase('investigation')} />
   return <Desktop onReturnMuseum={() => setPhase('museum')} onDeduction={() => setPhase('deduction')} onResult={() => setPhase('result')} />
 }

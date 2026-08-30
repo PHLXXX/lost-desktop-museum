@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useGameStore } from '../../store/gameStore'
 
 const steps = [
@@ -11,6 +11,12 @@ export function Onboarding() {
   const complete = useGameStore((state) => state.onboardingComplete)
   const setComplete = useGameStore((state) => state.setOnboardingComplete)
   const [step, setStep] = useState(0)
+  useEffect(() => {
+    if (complete) return
+    const close = (event: KeyboardEvent) => { if (event.key === 'Escape') { event.stopPropagation(); setComplete(true) } }
+    window.addEventListener('keydown', close, true)
+    return () => window.removeEventListener('keydown', close, true)
+  }, [complete, setComplete])
   if (complete) return null
   const current = steps[step] ?? steps[0]!
   return <div className="modal-backdrop onboarding-layer" role="dialog" aria-modal="true" aria-label="调查操作介绍"><section className="onboarding-card"><div className="onboarding-progress">{steps.map((_, index) => <i key={index} data-current={index === step} />)}</div><span>{step + 1} / {steps.length}</span><h2>{current.title}</h2><p>{current.body}</p><div><button onClick={() => setComplete(true)}>跳过介绍</button><button className="primary-button" autoFocus onClick={() => step < steps.length - 1 ? setStep(step + 1) : setComplete(true)}>{step < steps.length - 1 ? '下一步' : '开始调查'}</button></div></section></div>

@@ -8,7 +8,7 @@ export function ResultScreen({
   onReturnMuseum: () => void
   onReviewEvidence: () => void
 }) {
-  const { deductionResult: result, discoveredClueIds, pinnedClueIds } = useGameStore()
+  const { deductionResult: result, discoveredClueIds, pinnedClueIds, saveNow } = useGameStore()
   if (!result) return null
   return (
     <main className="result-screen">
@@ -52,8 +52,8 @@ export function ResultScreen({
           </div>
           <div className="result-actions">
             <button onClick={onReviewEvidence}>返回证据板</button>
-            <button className="primary-button" onClick={onReturnMuseum}>
-              保存并返回展馆
+            <button className="primary-button" onClick={() => { saveNow(); onReturnMuseum() }}>
+              保存并返回档案馆
             </button>
           </div>
         </article>

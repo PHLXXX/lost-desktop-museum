@@ -1,15 +1,22 @@
 import userEvent from '@testing-library/user-event'
 import { render, screen } from '@testing-library/react'
 import { beforeEach, describe, expect, it } from 'vitest'
+import { createFreshSave } from '../engine/persistence'
+import { useGameStore } from '../store/gameStore'
+import { useWindowStore } from '../store/windowStore'
 import { App } from './App'
 
 describe('player shell', () => {
-  beforeEach(() => localStorage.clear())
+  beforeEach(() => {
+    localStorage.clear()
+    useGameStore.setState({ ...createFreshSave(), saveStatus: 'idle', notice: null, corruptSave: false })
+    useWindowStore.setState({ windows: [], activeWindowId: null })
+  })
 
   it('boots, opens mail, discovers a clue and restores a minimized window', async () => {
     const user = userEvent.setup()
     render(<App />)
-    await user.click(screen.getByRole('button', { name: '查看案件' }))
+    await user.click(screen.getByRole('button', { name: '查看案件简介' }))
     await user.click(screen.getByRole('button', { name: '开始调查' }))
     await user.click(screen.getByRole('button', { name: '跳过启动' }))
     await user.click(screen.getByRole('button', { name: '恢复上次会话' }))

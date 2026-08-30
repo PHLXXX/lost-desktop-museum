@@ -26,12 +26,12 @@ export const caseDefinition: CaseDefinition = {
     { id: 'identity-draft', name: '林然_身份草稿.txt', folder: '不要打开', content: '姓名：林然。出生日期：11月19日。旧名字一栏被反复擦除。', locked: true },
     { id: 'linran-config', name: 'account_LINRAN.cfg', folder: '不要打开', content: 'account=LINRAN\nhidden=true\ncreated=2031-10-08 02:14', locked: true },
     { id: 'rename-todo', name: '改名后的待办清单.md', folder: '不要打开', content: '停用旧号码；只带一块硬盘；不要解释；从别处重新开始。', locked: true },
-    { id: 'farewell-v1', name: '告别信_v1.txt', folder: '回收站', content: '我决定去北岸。只是一次短暂旅行。' },
-    { id: 'farewell-v2', name: '告别信_v2.txt', folder: '回收站', content: '我决定离开海津。请不要找我。' },
-    { id: 'farewell-v3', name: '告别信_v3.txt', folder: '回收站', content: '我决定离开周屿。请原谅这句不完整的话。', clueAction: 'COMPARE_ITEMS' },
-    { id: 'shopping', name: '废弃购物清单.txt', folder: '回收站', content: '电池、胶带、咖啡、猫粮（划掉）' },
-    { id: 'broken-thumb', name: 'thumb_044.tmp', folder: '回收站', content: '缩略图数据损坏，无法恢复。' },
-    { id: 'who-file', name: '你正在寻找谁.txt', folder: '回收站', content: '你寻找的是离开的人，还是他留下的名字？', locked: true },
+    { id: 'farewell-v1', name: '告别信_v1.txt', folder: '回收站', originalFolder: '日记', content: '我决定去北岸。只是一次短暂旅行。' },
+    { id: 'farewell-v2', name: '告别信_v2.txt', folder: '回收站', originalFolder: '日记', content: '我决定离开海津。请不要找我。' },
+    { id: 'farewell-v3', name: '告别信_v3.txt', folder: '回收站', originalFolder: '日记', content: '我决定离开周屿。请原谅这句不完整的话。', clueAction: 'COMPARE_ITEMS' },
+    { id: 'shopping', name: '废弃购物清单.txt', folder: '回收站', originalFolder: '文档', content: '电池、胶带、咖啡、猫粮（划掉）' },
+    { id: 'broken-thumb', name: 'thumb_044.tmp', folder: '回收站', originalFolder: '照片', content: '缩略图数据损坏，无法恢复。' },
+    { id: 'who-file', name: '你正在寻找谁.txt', folder: '回收站', originalFolder: '日记', content: '你寻找的是离开的人，还是他留下的名字？', locked: true },
   ],
   chats: [
     { id: 'tang', title: '唐遥', messages: [
@@ -41,7 +41,7 @@ export const caseDefinition: CaseDefinition = {
     { id: 'landlord', title: '房东陈女士', messages: [{ id: 'l1', sender: '陈女士', time: '23:31', text: '你还没走吗？你房间的灯还亮着。', unread: true, clueId: 'C10' }] },
   ],
   emails: [
-    { id: 'flight-cancel', folder: '收件箱', from: '海津航空自动服务', subject: 'HX217 订单取消成功', time: '22:41', body: '您的 HX217 行程已取消，退款将在原渠道处理。', clueId: 'C01' },
+    { id: 'flight-cancel', folder: '收件箱', from: '海津航空自动服务', subject: 'HX217 订单取消成功', time: '22:41', body: '您的 HX217 行程已取消，退款将在原渠道处理。', attachmentName: 'HX217_取消凭证.pdf', clueId: 'C01' },
     { id: 'hotel-mail', folder: '收件箱', from: '潮汐酒店', subject: '北岸酒店预订成功', time: '11-12 10:08', body: '11月18日至21日订单有效，尚未取消。', clueId: 'C11' },
     { id: 'mom-draft', folder: '草稿', from: '周屿', subject: '给妈妈', time: '23:38', body: '这不是一次旅行。〔缺失〕我只是不能再继续作为周屿生活。等你再听到我的消息时，我可能已经换了一个名字。', clueId: 'C09' },
     { id: 'client', folder: '收件箱', from: '远镜工作室', subject: '纪录片第三版还差片尾', time: '18:02', body: '周老师，明天中午前能否补交？' },
