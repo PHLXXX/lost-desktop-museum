@@ -1,0 +1,53 @@
+.evidence-app {
+  grid-template-rows: auto auto minmax(360px, 1fr) auto;
+}
+
+.evidence-filters {
+  display: grid;
+  padding: 8px 18px;
+  border-bottom: 1px solid var(--line);
+  background: rgb(8 20 30 / 92%);
+  grid-template-columns: repeat(4, minmax(100px, 1fr));
+  gap: 7px;
+}
+
+.evidence-filters input,
+.evidence-filters select {
+  min-width: 0;
+  padding: 7px 9px;
+  color: var(--ink);
+  border: 1px solid var(--line);
+  background: #081722;
+}
+
+.card-drag-handle {
+  display: grid;
+  width: 100%;
+  padding: 0 0 7px;
+  color: var(--amber);
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  background: transparent;
+  grid-template-columns: 1fr 1fr auto;
+  font: 10px monospace;
+  text-align: left;
+  touch-action: none;
+  cursor: grab;
+}
+
+.card-drag-handle em {
+  text-align: right;
+}
+
+.card-drag-handle i {
+  margin-left: 8px;
+  color: var(--muted);
+  font-style: normal;
+}
+
+.restored-note {
+  padding: 10px 14px;
+  color: var(--cyan);
+  font-size: 11px;
+}
+

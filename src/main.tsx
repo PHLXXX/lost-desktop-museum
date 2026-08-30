@@ -4,6 +4,7 @@ import { App } from './app/App'
 import './styles/tokens.css'
 import './styles/global.css'
 import './styles/game.css'
+import './styles/evidence.css'
 
 const root = document.getElementById('root')
 
