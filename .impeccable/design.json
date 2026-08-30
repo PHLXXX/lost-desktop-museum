@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-08-30T22:15:00+08:00",
+  "title": "Design System: 遗失电脑博物馆",
+  "extensions": {
+    "colorMeta": {
+      "archive-amber": { "role": "primary", "displayName": "Archive Amber", "canonical": "#d6ad54", "tonalRamp": ["#2a2417", "#4a3e22", "#6c592d", "#8e7539", "#b49347", "#d6ad54", "#e8c776", "#f5e5b7"] },
+      "live-cyan": { "role": "secondary", "displayName": "Live Cyan", "canonical": "#65c2bd", "tonalRamp": ["#102625", "#1c4140", "#285e5b", "#367c78", "#4c9e99", "#65c2bd", "#9bd9d5", "#d4f0ee"] },
+      "night-ground": { "role": "neutral", "displayName": "Night Ground", "canonical": "#05090d", "tonalRamp": ["#05090d", "#0e1820", "#1b2b34", "#3a4d56", "#66767b", "#9ca5a8", "#d4d7d4", "#f1f0ea"] }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Museum Display", "purpose": "馆藏、案件与结果主标题。" },
+      "data": { "displayName": "Archive Data", "purpose": "时间、编号、路径和日志字段。" }
+    },
+    "shadows": [
+      { "name": "window", "value": "0 18px 42px rgb(0 0 0 / 42%)", "purpose": "活动且可移动的应用窗口。" },
+      { "name": "modal", "value": "0 26px 80px rgb(0 0 0 / 58%)", "purpose": "需要保护焦点的对话框与系统菜单。" }
+    ],
+    "breakpoints": [
+      { "name": "desktop-limited", "value": "1024px" },
+      { "name": "single-column", "value": "700px" }
+    ]
+  },
+  "components": [
+    { "name": "Primary Button", "kind": "button", "refersTo": "button-primary", "description": "主流程中唯一的琥珀实底动作。", "html": "<button class=\"ds-primary\">开始调查</button>", "css": ".ds-primary{height:34px;padding:7px 14px;color:#101419;border:1px solid #d6ad54;border-radius:2px;background:#d6ad54;font:700 13px sans-serif}.ds-primary:hover{background:#f0ca72}.ds-primary:focus-visible{outline:2px solid #65c2bd;outline-offset:2px}" },
+    { "name": "Archive Status", "kind": "chip", "description": "档案、调查和保护状态。", "html": "<span class=\"ds-status\">调查中</span>", "css": ".ds-status{display:inline-flex;height:22px;align-items:center;padding:2px 8px;color:#f0ca72;border:1px solid #725f37;background:#241f16;font:10px monospace;letter-spacing:.08em}" },
+    { "name": "Archive Field", "kind": "input", "refersTo": "input", "description": "搜索与筛选字段。", "html": "<input class=\"ds-field\" placeholder=\"搜索当前文件夹\">", "css": ".ds-field{height:28px;padding:4px 9px;color:#f1f0ea;border:1px solid #3a4d56;border-radius:2px;background:#14222b}.ds-field:focus-visible{outline:2px solid #65c2bd;outline-offset:2px}" },
+    { "name": "Taskbar Item", "kind": "nav", "description": "显示运行、活动与最小化应用。", "html": "<button class=\"ds-task\">邮件</button>", "css": ".ds-task{height:34px;padding:0 11px;color:#d4d7d4;border:1px solid #3a4d56;border-bottom-color:#d6ad54;background:#14222b;font:13px sans-serif}.ds-task:hover{background:#1b2b34}.ds-task:focus-visible{outline:2px solid #65c2bd}" },
+    { "name": "Evidence Card", "kind": "custom", "description": "可拖动、可标记的案件线索单元。", "html": "<article class=\"ds-evidence\"><small>C01 · mail</small><h3>被取消的航班</h3><p>航班在出发前一晚取消。</p></article>", "css": ".ds-evidence{width:210px;padding:10px;color:#f1f0ea;border:1px solid #d6ad54;background:#17252d;box-shadow:0 9px 20px rgb(0 0 0 / 24%)}.ds-evidence small{color:#d6ad54;font:9px monospace}.ds-evidence h3{margin:9px 0 5px;font:600 12px sans-serif}.ds-evidence p{margin:0;color:#d4d7d4;font:10px/1.5 sans-serif}"
+  ],
+  "narrative": {
+    "northStar": "封存中的工作站",
+    "overview": "可信工具结构占主导；档案色、异常时钟和轻微扫描线只在边缘提醒玩家这是一份不完全可靠的快照。",
+    "keyCharacteristics": ["不透明墨蓝工作面", "琥珀档案信号与青色在线信号", "真实工具信息架构", "紧凑系统 chrome"],
+    "rules": [
+      { "name": "Sparse Signal", "body": "琥珀和青色不能用于大面积装饰；状态不得只依赖色相。", "section": "colors" },
+      { "name": "Data Has a Shape", "body": "只有编号、日期、路径与日志字段使用等宽字体。", "section": "typography" },
+      { "name": "Flat Until Active", "body": "阴影只表示可移动窗口或临时覆盖层。", "section": "elevation" }
+    ],
+    "dos": ["让每个应用首先像对应工具", "让保存和进度随时可见", "使用本地线性 SVG 图标"],
+    "donts": ["不使用 emoji 或现实产品图标", "不使用霓虹、玻璃或装饰网格", "不在主标题上方添加装饰性 eyebrow"]
+  }
+}

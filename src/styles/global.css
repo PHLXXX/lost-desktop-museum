@@ -1,51 +1,18 @@
-* {
-  box-sizing: border-box;
-}
-
-html,
-body,
-#root {
-  width: 100%;
-  min-width: 0;
-  height: 100%;
-  margin: 0;
-}
-
-body {
-  overflow: hidden;
-  color: var(--ink);
-  background: var(--abyss);
-}
-
-button,
-input,
-textarea,
-select {
-  font: inherit;
-}
-
-button:focus-visible,
-input:focus-visible,
-textarea:focus-visible,
-select:focus-visible {
-  outline: 2px solid var(--cyan);
-  outline-offset: 2px;
-}
-
-.app-placeholder {
-  display: grid;
-  height: 100%;
-  place-content: center;
-  text-align: center;
-  background: radial-gradient(circle at 50% 40%, #16334b 0, var(--abyss) 60%);
-}
-
-.app-placeholder h1 {
-  margin: 0;
-  font-size: clamp(2.2rem, 6vw, 5.5rem);
-}
-
-.eyebrow {
-  color: var(--amber);
-  letter-spacing: 0.24em;
-}
+* { box-sizing: border-box; }
+html, body, #root { width: 100%; min-width: 0; height: 100%; margin: 0; }
+body { overflow: hidden; color: var(--ink-0); background: var(--base-0); font-size: 13px; }
+button, input, textarea, select { color: inherit; font: inherit; }
+button { cursor: pointer; }
+button:disabled { cursor: not-allowed; opacity: .42; }
+button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
+::selection { color: var(--base-0); background: var(--amber-bright); }
+.primary-button, .secondary-button, .danger-button, .text-button { min-height: 34px; padding: 7px 14px; border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--base-3); }
+.primary-button { color: #101419; border-color: var(--amber); background: var(--amber); font-weight: 700; }
+.primary-button:hover { background: var(--amber-bright); }
+.secondary-button:hover { border-color: var(--line-strong); background: var(--base-4); }
+.danger-button { color: #f8e6e6; border-color: #8b4c50; background: #5f3035; }
+.text-button { border-color: transparent; color: var(--ink-2); background: transparent; }
+.archive-code, .document-meta { color: var(--amber); font: 11px/1.4 var(--font-data); letter-spacing: .12em; }
+.status-chip { display: inline-flex; min-height: 22px; align-items: center; padding: 2px 8px; color: var(--amber-bright); border: 1px solid #725f37; background: #241f16; font: 10px var(--font-data); letter-spacing: .08em; }
+.empty-state { display: grid; min-height: 140px; height: 100%; place-content: center; color: var(--ink-2); text-align: center; }
+.empty-state p { max-width: 40ch; margin: 6px auto; }

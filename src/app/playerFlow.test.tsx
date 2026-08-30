@@ -9,8 +9,11 @@ describe('player shell', () => {
   it('boots, opens mail, discovers a clue and restores a minimized window', async () => {
     const user = userEvent.setup()
     render(<App />)
+    await user.click(screen.getByRole('button', { name: '查看案件' }))
+    await user.click(screen.getByRole('button', { name: '开始调查' }))
     await user.click(screen.getByRole('button', { name: '跳过启动' }))
     await user.click(screen.getByRole('button', { name: '恢复上次会话' }))
+    await user.click(screen.getByRole('button', { name: '跳过介绍' }))
     await user.dblClick(screen.getByRole('button', { name: '邮件' }))
     await user.click(screen.getByRole('button', { name: /HX217 订单取消成功/ }))
     expect(screen.getByText('1 / 12')).toBeInTheDocument()

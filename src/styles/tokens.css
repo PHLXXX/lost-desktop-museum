@@ -1,15 +1,29 @@
 :root {
   color-scheme: dark;
-  --ink: #e5eef2;
-  --muted: #8fa4ad;
-  --abyss: #050b12;
-  --navy: #081627;
-  --panel: rgb(22 39 55 / 88%);
-  --line: rgb(133 164 175 / 28%);
-  --amber: #f3c969;
-  --cyan: #70d5d1;
-  --danger: #c05c61;
-  --shadow: 0 24px 60px rgb(0 0 0 / 42%);
-  font-family: Inter, "Segoe UI", "Microsoft YaHei UI", sans-serif;
+  --ink-0: #f1f0ea;
+  --ink-1: #d4d7d4;
+  --ink-2: #9ca5a8;
+  --ink-3: #6e7a7f;
+  --base-0: #05090d;
+  --base-1: #091118;
+  --base-2: #0e1820;
+  --base-3: #14222b;
+  --base-4: #1b2b34;
+  --paper: #d7d2c5;
+  --paper-ink: #202729;
+  --line-weak: #243640;
+  --line: #3a4d56;
+  --line-strong: #66767b;
+  --amber: #d6ad54;
+  --amber-bright: #f0ca72;
+  --cyan: #65c2bd;
+  --danger: #c96e70;
+  --success: #77b996;
+  --shadow-window: 0 18px 42px rgb(0 0 0 / 42%);
+  --shadow-modal: 0 26px 80px rgb(0 0 0 / 58%);
+  --radius-sm: 2px;
+  --radius-md: 4px;
+  --font-ui: "Microsoft YaHei UI", "PingFang SC", "Noto Sans CJK SC", sans-serif;
+  --font-data: Consolas, "Cascadia Mono", "Courier New", monospace;
+  font-family: var(--font-ui);
 }
-
