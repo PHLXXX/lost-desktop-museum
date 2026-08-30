@@ -98,8 +98,8 @@
 - [x] Add exact E2E flows for exit/resume, reset cancel/confirm with settings preservation, window move/resize/minimize/maximize persistence, and all 12 clues plus `1119` plus result.
 - [x] Run the final `npm run lint`, `npm run test`, `npm run test:coverage`, `npm run build`, `npm run e2e`, and `npm run check` after documentation/version updates.
 - [x] Verify 1440x900, 1366x768, 1280x720, a sub-1024 viewport, reduced motion, anomaly-off behavior, no console errors, and no resource failures in the final build.
-- [ ] Commit focused changes, push the follow-up branch, open a PR, wait for CI, squash merge, wait for Pages, and verify the public URL.
-- [ ] Keep the existing immutable `v0.2.0` tag intact and publish the completed follow-up as the `v0.2.1` patch release.
+- [x] Commit focused changes, push the follow-up branch, open a PR, wait for CI, squash merge, wait for Pages, and verify the public URL.
+- [x] Keep the existing immutable `v0.2.0` tag intact and publish the completed follow-up as the `v0.2.1` patch release.
 
 ## Self-review
 
