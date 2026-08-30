@@ -2,7 +2,7 @@
 
 > 一款通过遗失电脑中的文件、消息与系统痕迹展开的网页悬疑调查游戏。
 
-**在线演示：部署验证中。** GitHub Pages 工作流将在仓库首次推送后执行；只有真实地址通过浏览器检查后才会写入此处。
+**在线演示：[https://phlxxx.github.io/lost-desktop-museum/](https://phlxxx.github.io/lost-desktop-museum/)**
 
 ![虚拟桌面](docs/images/desktop.png)
 
@@ -108,4 +108,3 @@ Vite 本地 `base` 为 `/`；Actions 环境根据 `GITHUB_REPOSITORY` 自动推�
 ## English
 
 **Lost Desktop Museum: Last Login** is a browser-based mystery told through the files, messages, photos, logs, and contradictions left on an abandoned computer. Reconstruct one complete case, connect twelve clues on an evidence board, and submit a deterministic final deduction. The game runs entirely as a static site and keeps all progress locally.
-

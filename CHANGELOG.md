@@ -10,4 +10,4 @@
 - 证据板、四种关系和最终推理评分
 - 本地自动存档、迁移、损坏恢复与案件重置
 - Vitest、Testing Library、Playwright、CI 与 GitHub Pages 工作流
-
+- 已验证的 GitHub Pages 在线演示
