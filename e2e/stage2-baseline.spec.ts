@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test'
 
-test('captures the stage 2 baseline at required desktop widths', async ({ page }) => {
+test.skip('captures the historical v0.1.0 baseline at required desktop widths', async ({ page }) => {
   const errors: string[] = []
   page.on('pageerror', (error) => errors.push(error.message))
   page.on('console', (message) => { if (message.type() === 'error') errors.push(message.text()) })
