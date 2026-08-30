@@ -1,0 +1,51 @@
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  width: 100%;
+  min-width: 0;
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  overflow: hidden;
+  color: var(--ink);
+  background: var(--abyss);
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: 2px solid var(--cyan);
+  outline-offset: 2px;
+}
+
+.app-placeholder {
+  display: grid;
+  height: 100%;
+  place-content: center;
+  text-align: center;
+  background: radial-gradient(circle at 50% 40%, #16334b 0, var(--abyss) 60%);
+}
+
+.app-placeholder h1 {
+  margin: 0;
+  font-size: clamp(2.2rem, 6vw, 5.5rem);
+}
+
+.eyebrow {
+  color: var(--amber);
+  letter-spacing: 0.24em;
+}

@@ -72,11 +72,11 @@ docs/images/                      Screenshots captured from the running applicat
 - Produces: `App(): JSX.Element`, npm scripts `dev`, `typecheck`, `lint`, `test`, `test:coverage`, `build`, `preview`, `e2e`, `check`.
 - Produces: `resolveBase(repository?: string): string` exported from `vite.config.ts` for direct base-path testing.
 
-- [ ] **Step 1: Create project rules before application code**
+- [x] **Step 1: Create project rules before application code**
 
 Write `AGENTS.md` with the exact long-lived rules from the user request: Chinese UI/English code names, data-driven cases, focused files, no external AI/backend/secrets/hotlinks, tests with features, lint/test/build per phase, no completion claims without evidence, small commits, original icons, and local production resources.
 
-- [ ] **Step 2: Scaffold Vite and install pinned compatible dependencies**
+- [x] **Step 2: Scaffold Vite and install pinned compatible dependencies**
 
 Run:
 
@@ -102,7 +102,7 @@ Set scripts to:
 }
 ```
 
-- [ ] **Step 3: Write the first component and base-path tests**
+- [x] **Step 3: Write the first component and base-path tests**
 
 `src/app/App.test.tsx` must assert the product title renders. Add a configuration test that evaluates these exact cases:
 
@@ -111,7 +111,7 @@ expect(resolveBase()).toBe('/')
 expect(resolveBase('PHLXXX/lost-desktop-museum')).toBe('/lost-desktop-museum/')
 ```
 
-- [ ] **Step 4: Run the tests and establish a clean build**
+- [x] **Step 4: Run the tests and establish a clean build**
 
 Run:
 
@@ -123,7 +123,7 @@ npm run build
 
 Expected: ESLint exits 0, Vitest reports all tests passed, and Vite writes `dist/index.html` without an absolute local path.
 
-- [ ] **Step 5: Commit the foundation**
+- [x] **Step 5: Commit the foundation**
 
 ```powershell
 git add AGENTS.md package.json package-lock.json index.html tsconfig*.json vite.config.ts eslint.config.js .prettierrc.json .editorconfig .gitignore src

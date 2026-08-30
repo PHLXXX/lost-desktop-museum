@@ -1,0 +1,15 @@
+:root {
+  color-scheme: dark;
+  --ink: #e5eef2;
+  --muted: #8fa4ad;
+  --abyss: #050b12;
+  --navy: #081627;
+  --panel: rgb(22 39 55 / 88%);
+  --line: rgb(133 164 175 / 28%);
+  --amber: #f3c969;
+  --cyan: #70d5d1;
+  --danger: #c05c61;
+  --shadow: 0 24px 60px rgb(0 0 0 / 42%);
+  font-family: Inter, "Segoe UI", "Microsoft YaHei UI", sans-serif;
+}
+
