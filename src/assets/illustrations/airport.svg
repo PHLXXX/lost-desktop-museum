@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 560" role="img" aria-label="虚构的海津机场候机区">
+  <defs><linearGradient id="sky" x2="0" y2="1"><stop stop-color="#31566f"/><stop offset="1" stop-color="#9ab0ad"/></linearGradient></defs>
+  <rect width="960" height="560" fill="#172938"/><rect x="36" y="42" width="888" height="300" rx="4" fill="url(#sky)"/>
+  <path d="M36 300h888v42H36zM210 42h18v300h-18zm260 0h18v300h-18zm260 0h18v300h-18z" fill="#243b4b"/>
+  <path d="M560 218l176-28 78 22-78 18-176-6-90 38 18-45z" fill="#e2e6df" opacity=".9"/>
+  <rect x="88" y="92" width="250" height="92" rx="5" fill="#e0b65f"/><text x="112" y="130" fill="#172938" font-size="24" font-family="sans-serif">海津夏日影像季</text><text x="112" y="158" fill="#172938" font-size="14" font-family="sans-serif">08.01 — 08.31</text>
+  <path d="M0 342h960v218H0z" fill="#263744"/><path d="M0 435h960" stroke="#52636b" stroke-width="4"/>
+  <g fill="#4d626d"><rect x="118" y="382" width="180" height="34" rx="12"/><rect x="340" y="382" width="180" height="34" rx="12"/><rect x="562" y="382" width="180" height="34" rx="12"/></g>
+</svg>
+
