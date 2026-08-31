@@ -14,7 +14,7 @@ function minimalCase() {
 
 async function packageFixture() {
   const definition = minimalCase()
-  const cover = strToU8('small-png-package-fixture')
+  const cover = new Uint8Array([137, 80, 78, 71, 13, 10, 26, 10, 0])
   const digest = await crypto.subtle.digest('SHA-256', cover.slice().buffer)
   const ref = definition.assets[0]!
   ref.size = cover.length
@@ -74,6 +74,15 @@ describe('safe .ldmcase packages', () => {
   it('rejects asset bytes that do not match the declared hash', async () => {
     const { definition } = await packageFixture()
     await expect(exportCasePackage(definition, new Map([['asset-spare-key-cover', strToU8('not-the-cover')]]))).rejects.toThrow(/大小|哈希/)
+  })
+
+  it('rejects an asset whose bytes do not match its declared media type', async () => {
+    const { definition } = await packageFixture()
+    const disguised = strToU8('MZ executable data')
+    const digest = await crypto.subtle.digest('SHA-256', disguised.slice().buffer)
+    definition.assets[0]!.size = disguised.length
+    definition.assets[0]!.sha256 = [...new Uint8Array(digest)].map((value) => value.toString(16).padStart(2, '0')).join('')
+    await expect(exportCasePackage(definition, new Map([['asset-spare-key-cover', disguised]]))).rejects.toThrow(/文件签名/)
   })
 
   it('installs and removes user cases without allowing built-in replacement', async () => {

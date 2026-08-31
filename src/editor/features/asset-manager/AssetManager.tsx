@@ -54,11 +54,13 @@ export function AssetManager() {
 
   const importFiles = async (files: FileList | null) => {
     if (!files) return
+    const existingHashes = new Set(assets.map((asset) => asset.sha256))
     for (const file of [...files]) {
       try {
         const sha256 = await prepareFile(file)
         const duplicate = assets.find((asset) => asset.sha256 === sha256)
-        if (duplicate) { setNotice(`检测到重复资源：${duplicate.path}`); continue }
+        if (existingHashes.has(sha256)) { setNotice(`检测到重复资源：${duplicate?.path ?? file.name}`); continue }
+        existingHashes.add(sha256)
         const id = `asset-${sha256.slice(0, 12)}`
         const extension = file.name.split('.').pop()?.toLowerCase() ?? 'bin'
         const filename = cleanName(file.name, `${id}.${extension}`)

@@ -2,6 +2,7 @@ import { strFromU8, unzipSync, zipSync } from 'fflate'
 import { caseDefinitionSchema } from '../cases/schema'
 import type { CaseDefinition } from '../cases/types'
 import { validateCaseDefinition } from '../engine/validation'
+import { validateAssetBytes } from './assetContentValidation'
 import { inspectZipCentralDirectory, validatePackageEntries } from './packageSecurity'
 
 interface CasePackageManifest { packageFormatVersion: 1; kind: 'ldmcase'; caseId: string; version: string; title: string; createdAt: string; assetCount: number }
@@ -35,6 +36,8 @@ export async function exportCasePackage(definition: CaseDefinition, assetData: M
     if (bytes.length !== asset.size) throw new Error(`资源大小与声明不一致：${asset.id}`)
     if (await sha256(bytes) !== asset.sha256.toLowerCase()) throw new Error(`资源哈希与声明不一致：${asset.id}`)
     const path = asset.path.startsWith('assets/') ? asset.path : `assets/${asset.path}`
+    const content = validateAssetBytes(path, asset.mime, bytes)
+    if (!content.valid) throw new Error(content.message)
     entries.set(path, bytes)
   }
   const checksums: Record<string, string> = {}
@@ -79,11 +82,15 @@ export async function importCasePackage(bytes: Uint8Array, filename: string): Pr
   const caseDefinition: CaseDefinition = caseDefinitionSchema.parse(definition)
   if (caseDefinition.id !== manifest.caseId) throw new Error('案件包manifest与案件ID不一致。')
   const assets = new Map(Object.entries(unpacked).filter(([path]) => path.startsWith('assets/')))
+  const referencedPaths = new Set(caseDefinition.assets.map((asset) => asset.path.startsWith('assets/') ? asset.path : `assets/${asset.path}`))
+  if (assets.size !== referencedPaths.size || [...assets.keys()].some((path) => !referencedPaths.has(path))) throw new Error('正式案件包包含未引用资源。')
   for (const asset of caseDefinition.assets) {
     const path = asset.path.startsWith('assets/') ? asset.path : `assets/${asset.path}`
     const bytes = assets.get(path)
     if (!bytes) throw new Error(`案件包缺少已引用资源：${asset.id}`)
     if (bytes.length !== asset.size || await sha256(bytes) !== asset.sha256.toLowerCase()) throw new Error(`案件资源完整性不匹配：${asset.id}`)
+    const content = validateAssetBytes(path, asset.mime, bytes)
+    if (!content.valid) throw new Error(content.message)
   }
   const warnings = filename.toLowerCase().endsWith('.lmdcase') ? ['旧扩展名.lmdcase已兼容导入；再次导出将统一使用.ldmcase。'] : []
   return { caseDefinition, manifest, assets, warnings }

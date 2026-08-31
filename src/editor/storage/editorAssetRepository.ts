@@ -16,14 +16,14 @@ export async function hashBlob(blob: Blob) {
   if (blob.size > 1024 * 1024 && typeof Worker !== 'undefined') {
     try {
       return await new Promise<string>((resolve, reject) => {
-        const worker = new Worker(new URL('./assetHash.worker.ts', import.meta.url), { type: 'module' })
+        const worker = new Worker(new URL('../../workers/assetHash.worker.ts', import.meta.url), { type: 'module' })
         worker.onmessage = (event: MessageEvent<{ hash?: string; error?: string }>) => {
           worker.terminate()
           if (event.data.hash) resolve(event.data.hash)
           else reject(new Error(event.data.error ?? 'HASH_FAILED'))
         }
         worker.onerror = () => { worker.terminate(); reject(new Error('HASH_WORKER_FAILED')) }
-        worker.postMessage(buffer, [buffer])
+        worker.postMessage(buffer)
       })
     } catch {
       // 浏览器不支持模块Worker时安全退回主线程，导入不会因此丢失。

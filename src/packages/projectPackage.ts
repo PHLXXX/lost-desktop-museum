@@ -1,6 +1,7 @@
 import { strFromU8, unzipSync, zipSync } from 'fflate'
 import type { AuthoringProject } from '../editor/model/authoringProject'
 import { migrateAuthoringProject } from '../editor/model/projectMigrations'
+import { inferAssetMime, validateAssetBytes } from './assetContentValidation'
 import { inspectZipCentralDirectory, validatePackageEntries } from './packageSecurity'
 
 const fixedDate = new Date('1980-01-01T00:00:00Z')
@@ -13,7 +14,24 @@ export async function exportProjectPackage(project: AuthoringProject, assets = n
   entries.set('manifest.json', bytes({ projectFormatVersion: 1, projectId: project.projectId, name: project.name, caseId: project.caseId, createdAt: project.createdAt, updatedAt: project.updatedAt, editorVersion: '0.4.0', assetCount: assets.size }))
   entries.set('project.json', bytes(project))
   entries.set('draft.json', bytes(project.draft))
-  assets.forEach((value, path) => entries.set(path.startsWith('assets/') ? path : `assets/${path}`, value))
+  for (const ref of project.draft.assets) {
+    const path = ref.path.startsWith('assets/') ? ref.path : `assets/${ref.path}`
+    const value = assets.get(ref.id) ?? assets.get(path) ?? assets.get(path.replace(/^assets\//, ''))
+    if (!value) throw new Error(`工程备份缺少已引用资源：${ref.id}`)
+    if (value.length !== ref.size || await sha256(value) !== ref.sha256.toLowerCase()) throw new Error(`工程资源完整性不匹配：${ref.id}`)
+    const content = validateAssetBytes(path, ref.mime, value)
+    if (!content.valid) throw new Error(content.message)
+    entries.set(path, value)
+  }
+  for (const [sourcePath, value] of assets) {
+    const path = sourcePath.startsWith('assets/') ? sourcePath : `assets/${sourcePath}`
+    if (entries.has(path)) continue
+    const mime = inferAssetMime(path)
+    if (!mime) throw new Error(`${path} 的扩展名不在安全白名单中。`)
+    const content = validateAssetBytes(path, mime, value)
+    if (!content.valid) throw new Error(content.message)
+    entries.set(path, value)
+  }
   const checksums: Record<string, string> = {}
   for (const path of [...entries.keys()].sort()) checksums[path] = await sha256(entries.get(path)!)
   entries.set('checksums.json', bytes(checksums))
@@ -35,5 +53,20 @@ export async function importProjectPackage(packageBytes: Uint8Array, filename: s
   const raw = JSON.parse(strFromU8(projectBytes)) as unknown
   const migrated = migrateAuthoringProject(raw)
   if (!migrated.ok) throw new Error(`工程数据无法迁移：${migrated.error}`)
-  return { project: migrated.project, assets: new Map(Object.entries(entries).filter(([path]) => path.startsWith('assets/'))) }
+  const assets = new Map(Object.entries(entries).filter(([path]) => path.startsWith('assets/')))
+  for (const [path, value] of assets) {
+    const mime = inferAssetMime(path)
+    if (!mime) throw new Error(`${path} 的扩展名不在安全白名单中。`)
+    const content = validateAssetBytes(path, mime, value)
+    if (!content.valid) throw new Error(content.message)
+  }
+  for (const ref of migrated.project.draft.assets) {
+    const path = ref.path.startsWith('assets/') ? ref.path : `assets/${ref.path}`
+    const value = assets.get(path)
+    if (!value) throw new Error(`工程备份缺少已引用资源：${ref.id}`)
+    if (value.length !== ref.size || await sha256(value) !== ref.sha256.toLowerCase()) throw new Error(`工程资源完整性不匹配：${ref.id}`)
+    const content = validateAssetBytes(path, ref.mime, value)
+    if (!content.valid) throw new Error(content.message)
+  }
+  return { project: migrated.project, assets }
 }
