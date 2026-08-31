@@ -1,16 +1,16 @@
 # 遗失电脑博物馆
 
-> 从数字遗物中重新拼出一个人的最后轨迹，也可以在本地档案工坊创作自己的案件。
+> 从数字遗物中重新拼出一个人的最后轨迹，也可以在本地档案工坊创作并通过静态社区交换案件。
 
-当前版本：**v0.4.0 — Archive Workshop**
+当前版本：**v0.5.0 — Archive Exchange**
 
 **在线演示：[https://phlxxx.github.io/lost-desktop-museum/](https://phlxxx.github.io/lost-desktop-museum/)**
 
-![档案工坊首页](docs/images/stage4-workshop-home.png)
+![档案交换站](docs/images/stage5-community-home.png)
 
-![案件工程编辑器](docs/images/stage4-editor-overview.png)
+![社区案件详情](docs/images/stage5-community-case-detail.png)
 
-![隔离试玩](docs/images/stage4-live-preview.png)
+![社区安装校验](docs/images/stage5-install-validation.png)
 
 ## 当前内容
 
@@ -19,6 +19,9 @@
 - `ARCHIVE/OS 3.1` 桌面、窗口系统、证据板和 16 类可注册应用
 - 每案件独立存档、`.ldmsave` 进度导入/导出及旧存档迁移
 - 本地“档案工坊”：从工程创建到 `.ldmcase` 发布的完整闭环
+- 静态“档案交换站”：社区目录、搜索筛选、详情、SHA-256 安装、更新、回滚与卸载
+- 收藏、私人评分、私人备注及 IndexedDB 离线社区缓存；无公开评分或下载统计
+- 档案工坊社区投稿 ZIP 与 GitHub Pull Request 审核流程
 - 空白工程、最小可玩模板和两宗内置案件副本起点
 - 人物、时间线、桌面、文件、聊天、邮件、线索、条件、触发器、推理与资源编辑
 - 800ms IndexedDB 自动保存、80 步撤销/重做、20 个恢复快照、多标签只读保护
@@ -28,14 +31,14 @@
 ## 档案工坊闭环
 
 ```text
-创建工程 → 编辑内容 → 配置线索/触发器/推理
-        → 校验 → 隔离试玩 → 导出 .ldmcase
-        → 档案馆安装 → 开始调查
+创建工程 → 编辑内容 → 校验/试玩 → 导出 .ldmcase
+        → 准备社区投稿 → GitHub PR → 静态 Registry
+        → 下载 → SHA-256/包复验 → 安装 → 离线调查
 ```
 
 工程备份使用 `.ldmproject`，可继续编辑但不能直接游玩；`.ldmcase` 是通过严格校验的正式案件包；`.ldmsave` 只保存玩家进度。旧 `.lmdcase` 仅兼容导入，之后统一导出为 `.ldmcase`。
 
-完整操作见 [档案工坊使用指南](docs/EDITOR_GUIDE.md)。数据与安全细节见 [工程包格式](docs/PROJECT_FORMAT.md) 和 [案件格式](docs/CASE_FORMAT.md)。
+完整操作见 [档案工坊使用指南](docs/EDITOR_GUIDE.md) 与 [社区指南](docs/COMMUNITY_GUIDE.md)。社区源仓库为 [lost-desktop-museum-community](https://github.com/PHLXXX/lost-desktop-museum-community)，[静态社区目录](https://phlxxx.github.io/lost-desktop-museum-community/) 和 [Registry v1 索引](https://phlxxx.github.io/lost-desktop-museum-community/registry/v1/index.json) 已上线；数据与安全细节见 [安装安全](docs/COMMUNITY_INSTALL_SECURITY.md)。
 
 ## 本地运行
 
@@ -61,13 +64,17 @@ npm run lint
 npm run test
 npm run test:coverage
 npm run test:editor
+npm run test:community
 npm run validate:cases
 npm run validate:editor-examples
 npm run package:editor-examples
+npm run generate:community-fixtures
 npm run build
 npm run e2e
 npm run check
 ```
+
+投稿 CLI 的完整参数与 `--dry-run` 示例见 [社区投稿指南](docs/COMMUNITY_PUBLISHING.md)。
 
 `npm run check` 顺序执行 TypeScript、ESLint、全部 Vitest、内置案件、编辑器模板和生产构建。CI 另外执行编辑器测试、模板打包往返、依赖审计与 Chromium E2E。
 
@@ -82,6 +89,8 @@ flowchart LR
   A <--> F[IndexedDB 工程 / 资源 / 快照]
   C --> G[隔离 PreviewSession]
   C --> H[安全 .ldmcase]
+  H --> K[静态 Registry / SHA-256]
+  K --> L[社区安装 / 更新 / 回滚]
   F --> I[.ldmproject]
   E <--> J[per-case GameSave / .ldmsave]
 ```
@@ -92,6 +101,7 @@ flowchart LR
 - `src/editor/`：草稿编译、存储、历史、注册表和可视化编辑模块
 - `src/preview/`：隔离试玩与调试
 - `src/packages/`：工程、案件、存档包与 ZIP 安全
+- `src/community/`：固定源客户端、缓存、搜索、安装、更新、偏好和社区界面
 - `examples/editor/`：可验证、可打包的最小案件模板
 - `e2e/`：玩家回归、编辑器闭环、响应式与多标签保护
 
@@ -102,11 +112,11 @@ flowchart LR
 - 双击桌面图标或按 `Enter` 打开应用；拖动标题栏移动，拖动边角缩放。
 - 点击左下角 `A/OS` 或按 `Esc` 打开系统菜单并保存返回档案馆。
 - 任务栏显示运行应用、保存状态和线索数；证据板用于建立关系并提交推理。
-- 档案馆可安装 `.ldmcase`、导出或恢复 `.ldmsave`，也可进入档案工坊。
+- 档案馆可区分内置、社区安装与本地导入案件；社区详情链接不会自动下载或安装。
 
 ## 隐私与安全
 
-游戏不会上传案件、资源、进度或推理。玩家存档使用 localStorage；工程、快照与 Blob 资源使用 IndexedDB。第三方案件不能执行代码、加载远程资源或携带 SVG；ZIP 在解压前检查路径、重复条目、大小、压缩比、加密和符号链接，所有文件再验证 SHA-256。
+社区浏览需要联网，案件安装后可离线游玩。收藏、评分、备注和调查进度只保存在本设备；不会上传存档、推理、工程、设备标识或行为分析。社区源在构建时固定，不能由 URL 参数或设置替换。第三方案件不能执行代码、加载远程资源或携带 SVG；ZIP 在解压前检查路径、重复条目、大小、压缩比、加密和符号链接，所有文件再验证 SHA-256。自动校验降低格式与执行风险，但不代表内容、版权或主题绝对安全；当前 Registry 没有独立数字签名。
 
 ## 文档
 
@@ -116,6 +126,11 @@ flowchart LR
 - [校验中心](docs/EDITOR_VALIDATION.md)
 - [试玩会话隔离](docs/PREVIEW_SESSIONS.md)
 - [第四阶段架构审计](docs/audits/stage-4-editor-architecture-audit.md)
+- [第五阶段社区架构审计](docs/audits/stage-5-community-architecture-audit.md)
+- [社区架构](docs/COMMUNITY_ARCHITECTURE.md)
+- [社区更新模型](docs/COMMUNITY_UPDATE_MODEL.md)
+- [社区投稿](docs/COMMUNITY_PUBLISHING.md)
+- [离线社区行为](docs/OFFLINE_COMMUNITY_BEHAVIOR.md)
 
 ## GitHub Pages 部署
 
@@ -134,4 +149,4 @@ Vite 本地 `base` 为 `/`；Actions 根据 `GITHUB_REPOSITORY` 自动推导仓�
 
 ## English
 
-**Lost Desktop Museum** is a static browser mystery anthology with two built-in cases and a local visual case-authoring workshop. Create a draft, validate it, test it in the real ARCHIVE/OS runtime, export a secure `.ldmcase`, install it, and play—without a server or direct JSON editing.
+**Lost Desktop Museum** is a static browser mystery anthology with two built-in cases, a local visual workshop, and a GitHub-backed static community registry. Browse, verify, install, update, roll back, and play community `.ldmcase` packages without accounts, telemetry, or a centralized server.

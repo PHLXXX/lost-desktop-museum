@@ -8,6 +8,15 @@
 
 **Tech Stack:** React 19, TypeScript 6, Zustand, Zod, IndexedDB, fflate, Web Crypto/Workers, Vitest, Testing Library, Playwright, Node 24, GitHub Actions and GitHub Pages.
 
+## 执行记录（2026-08-31）
+
+- 主项目已完成固定源registry客户端、IndexedDB离线缓存、目录/详情/搜索筛选、双确认安装、Worker SHA-256、完整包复验、兼容性分析、两份回滚包、进度快照恢复、卸载选项、本地收藏/评分/备注和投稿ZIP/CLI。
+- 社区仓库已独立创建并上线；catalog、publisher、entry、包、截图、路径、符号链接、未登记文件、完整checksums、资源签名、可达性与确定性输出均由CI校验，静态Pages与registry v1已部署。
+- 状态管理按实际规模保留在懒加载的`CommunityEntry`中，没有创建空壳Zustand store；包Blob和registry仍分别保存在IndexedDB仓储中。
+- publisher与案件详情均缓存；生产构建不复制测试fixture，只有Vite开发服务器暴露本地fixture中间件。
+- “启动检查”在实际实现中由严格包导入、Definition注册和资源写入验证承担，没有模拟额外加载过程。
+- 同ID本地导入案件当前采取安全拒绝并提示先移除；没有自动重写第三方案件内部ID生成副本。
+
 ## Global Constraints
 
 - No account, OAuth, backend server, cloud database, analytics, telemetry, public rating, download count or arbitrary registry URL.
@@ -135,7 +144,7 @@
 **Interfaces:** Produces `compareVersions`, `analyzeUpdateCompatibility`, `CaseUpdateManager.update/rollback`, two-version backup retention and explicit reset choices.
 
 - [ ] Write failing tests for every GameSave reference class and all three compatibility results.
-- [ ] Implement update checks without automatic network-on-start, backup package/progress, startup check, restore-on-failure and maximum two rollback versions.
+- [ ] Implement update checks without automatic network-on-start, backup package/progress, strict import/registration check, restore-on-failure and maximum two rollback versions.
 - [ ] Add management dialogs for update history, package/progress export, clear progress and uninstall resource/progress choices.
 - [ ] Commit with `feat: add community case update and rollback`.
 
