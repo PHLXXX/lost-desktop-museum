@@ -33,7 +33,7 @@
       "version": "1.0.0",
       "packagePath": "packages/hash-mismatch.ldmcase",
       "packageSha256": "0000000000000000000000000000000000000000000000000000000000000000",
-      "packageByteSize": 3829,
+      "packageByteSize": 3823,
       "engineCompatibility": {
         "minimum": "0.5.0"
       },

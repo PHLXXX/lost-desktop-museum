@@ -31,6 +31,20 @@ describe('stage two desktop interactions', () => {
     expect(screen.getByRole('menuitem', { name: '查看' })).toHaveFocus()
   })
 
+  it('closes an open application without restoring it from the saved snapshot', async () => {
+    const user = userEvent.setup()
+    render(<Desktop onReturnMuseum={vi.fn()} />)
+
+    await user.dblClick(screen.getByRole('button', { name: '我的文件' }))
+    expect(screen.getByRole('dialog', { name: '我的文件' })).toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: '关闭 我的文件' }))
+
+    expect(screen.queryByRole('dialog', { name: '我的文件' })).not.toBeInTheDocument()
+    expect(useWindowStore.getState().windows).toEqual([])
+    expect(useGameStore.getState().currentWindows).toEqual([])
+  })
+
   it('opens and closes the system menu with Escape and exposes every safe exit action', async () => {
     const user = userEvent.setup()
     render(<Desktop onReturnMuseum={vi.fn()} />)
@@ -108,5 +122,19 @@ describe('stage two desktop interactions', () => {
     render(<Desktop onReturnMuseum={vi.fn()} />)
     expect(screen.getByRole('status', { name: '线索通知' })).toHaveTextContent('新证据已记录')
     expect(screen.getByRole('status', { name: '线索通知' })).toHaveTextContent('被取消的航班')
+  })
+
+  it('uses the active case identity in the desktop status and system menu', async () => {
+    const user = userEvent.setup()
+    useGameStore.setState({ ...createFreshSave('case-002'), onboardingComplete: true, notice: null, saveStatus: 'idle', corruptSave: false })
+
+    const desktop = render(<Desktop onReturnMuseum={vi.fn()} />)
+
+    expect(desktop.container).toHaveTextContent('2032.04.09')
+    expect(screen.getByText('00:17', { selector: '.taskbar-clock' })).toBeInTheDocument()
+    expect(desktop.container).not.toHaveTextContent('2031.11.17')
+    await user.click(screen.getByRole('button', { name: 'A/OS 系统菜单' }))
+    expect(screen.getByRole('menu', { name: 'A/OS 系统菜单' })).toHaveTextContent('案件快照 002')
+    expect(screen.getByRole('menu', { name: 'A/OS 系统菜单' })).not.toHaveTextContent('LD-001')
   })
 })

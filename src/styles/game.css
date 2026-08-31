@@ -2112,6 +2112,7 @@
     border: 1px solid var(--amber);
     background: var(--amber);
     font-size: 10px;
+    pointer-events: none;
     text-align: center;
   }
   .desktop-case-strip {
@@ -2119,7 +2120,14 @@
     height: 66px;
   }
   .app-window {
-    min-width: calc(100vw - 16px);
+    top: 72px !important;
+    right: 8px !important;
+    bottom: 52px !important;
+    left: 8px !important;
+    width: auto !important;
+    height: auto !important;
+    min-width: 0;
+    min-height: 0;
   }
   .museum-intro {
     grid-template-columns: 1fr;
@@ -2139,16 +2147,41 @@
   .messages-layout,
   .mail-layout,
   .photo-layout {
-    grid-template-columns: 150px minmax(420px, 1fr);
+    overflow: auto;
   }
-  .file-preview,
-  .conversation-info,
-  .photo-info,
-  .mail-reader {
-    display: none;
+  .file-layout {
+    grid-template-columns: 135px minmax(240px, 0.9fr) minmax(260px, 1.1fr);
+  }
+  .messages-layout,
+  .mail-layout {
+    grid-template-columns: 130px minmax(230px, 0.9fr) minmax(260px, 1.1fr);
+  }
+  .photo-layout {
+    grid-template-columns: 130px minmax(260px, 1fr) minmax(220px, 0.8fr);
   }
 }
 @media (max-width: 700px) {
+  .file-layout,
+  .messages-layout,
+  .mail-layout,
+  .photo-layout {
+    grid-template-columns: minmax(0, 1fr);
+    align-content: start;
+    overflow-y: auto;
+  }
+  .tree-pane,
+  .contact-list,
+  .mail-folders,
+  .mail-list,
+  .photo-library {
+    max-height: 180px;
+  }
+  .file-preview,
+  .conversation-info,
+  .mail-reader,
+  .photo-info {
+    min-height: 180px;
+  }
   .museum-header,
   .detail-header {
     padding: 0 20px;

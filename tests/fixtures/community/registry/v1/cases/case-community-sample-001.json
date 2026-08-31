@@ -32,8 +32,8 @@
     {
       "version": "1.0.0",
       "packagePath": "packages/valid-1.0.0.ldmcase",
-      "packageSha256": "c9a00d8bd7fa63246bae5e7cd4c2d65369ad2844f74cbef14359a8cfff3c1977",
-      "packageByteSize": 3829,
+      "packageSha256": "2b27f28b67f93e7f4476208419e4ef37ed96bf1be4872725f5e1b13fa89de4d8",
+      "packageByteSize": 3823,
       "engineCompatibility": {
         "minimum": "0.5.0"
       },

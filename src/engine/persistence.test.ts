@@ -21,11 +21,12 @@ describe('persistence', () => {
 
   it('migrates version zero and recovers corrupt data', () => {
     const migrated = migrateGameSave({ saveVersion: 1, discoveredClueIds: ['C02'], currentWindows: ['mail'] })
-    expect(migrated.saveVersion).toBe(2)
+    expect(migrated.saveVersion).toBe(3)
     expect(migrated.discoveredClueIds).toEqual(['C02'])
     expect(migrated.currentWindows[0]).toMatchObject({ id: 'mail' })
     expect(migrated.restoredItemIds).toEqual([])
     expect(migrated.evidenceNotes).toEqual({})
+    expect(migrated.deductionDraft).toEqual({ answers: {}, note: '' })
     expect(migrated.bestScore).toBeNull()
     expect(migrated.caseStarted).toBe(true)
     const storage = new MemoryStorage()

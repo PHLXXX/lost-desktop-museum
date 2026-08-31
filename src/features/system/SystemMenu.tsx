@@ -1,4 +1,6 @@
 import { useState } from 'react'
+import { caseDisplayId } from '../../cases/casePresentation'
+import { useActiveCaseDefinition } from '../../cases/useActiveCase'
 import { useGameStore } from '../../store/gameStore'
 import { useWindowStore } from '../../store/windowStore'
 import { playArchiveSound } from '../../engine/audioEngine'
@@ -6,6 +8,7 @@ import { ArchiveDialog } from './ArchiveDialog'
 import { SaveIndicator } from './SaveIndicator'
 
 export function SystemMenu({ open, onClose, onReturnMuseum, onOpenSettings }: { open: boolean; onClose: () => void; onReturnMuseum: () => void; onOpenSettings: () => void }) {
+  const caseDefinition = useActiveCaseDefinition()
   const { saveNow, resetCase, settings } = useGameStore()
   const [confirmRestart, setConfirmRestart] = useState(false)
   const [help, setHelp] = useState(false)
@@ -30,7 +33,7 @@ export function SystemMenu({ open, onClose, onReturnMuseum, onOpenSettings }: { 
   return (
     <>
       <aside className="system-menu" role="menu" aria-label="A/OS 系统菜单" onClickCapture={() => playArchiveSound('click', settings.sound)}>
-        <header><strong>ARCHIVE/OS</strong><span>案件快照 LD-001</span></header>
+        <header><strong>ARCHIVE/OS</strong><span>案件快照 {caseDisplayId(caseDefinition)}</span></header>
         <button role="menuitem" onClick={onClose}><span>继续调查</span><small>返回当前应用与窗口</small></button>
         <button role="menuitem" onClick={() => { saveNow(); onClose() }}><span>保存进度</span><SaveIndicator /></button>
         <button role="menuitem" onClick={saveAndReturn}><span>保存并返回档案馆</span><small>案件进度不会重置</small></button>

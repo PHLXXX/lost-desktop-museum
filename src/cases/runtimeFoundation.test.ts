@@ -4,6 +4,7 @@ import { evaluateCondition } from '../engine/conditionEngine'
 import { validateCaseDefinition } from '../engine/validation'
 import { builtInCaseIds, getCaseDefinition } from './registry'
 import { createFreshSave, loadGameSave, saveGameSave } from '../engine/persistence'
+import type { CaseDefinition } from './types'
 
 class MemoryStorage implements Storage {
   private data = new Map<string, string>()
@@ -48,6 +49,22 @@ describe('strict multi-case runtime foundation', () => {
     const executable = structuredClone(case001) as unknown as Record<string, unknown>
     executable.triggers = [{ id: 'unsafe', name: 'unsafe', once: true, condition: { type: 'clue-count', count: 1 }, effects: [{ type: 'javascript', code: 'alert(1)' }] }]
     expect(validateCaseDefinition(executable).some((issue) => issue.category === 'security' || issue.category === 'schema')).toBe(true)
+  })
+
+  it.each([
+    ['message', (definition: CaseDefinition) => { definition.chats[0]!.messages[0]!.clueId = 'missing-clue' }],
+    ['mail', (definition: CaseDefinition) => { definition.emails[0]!.clueId = 'missing-clue' }],
+    ['browser', (definition: CaseDefinition) => { definition.browser[0]!.clueId = 'missing-clue' }],
+    ['calendar', (definition: CaseDefinition) => { definition.calendar[0]!.clueId = 'missing-clue' }],
+    ['photo', (definition: CaseDefinition) => { definition.photos[0]!.clueId = 'missing-clue' }],
+    ['log', (definition: CaseDefinition) => { definition.logs[0]!.clueId = 'missing-clue' }],
+  ] as const)('rejects dangling clue references in %s records', (_recordType, mutate) => {
+    const definition = structuredClone(case001)
+    mutate(definition)
+
+    expect(validateCaseDefinition(definition)).toEqual(expect.arrayContaining([
+      expect.objectContaining({ code: 'MISSING_CLUE_REFERENCE', entityId: 'missing-clue' }),
+    ]))
   })
 
   it('keeps case saves independent and preserves the legacy key', () => {

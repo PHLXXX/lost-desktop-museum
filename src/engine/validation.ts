@@ -57,6 +57,26 @@ export function validateCaseDefinition(input: unknown): ValidationIssue[] {
   const duplicates = allIds.filter((id, index) => allIds.indexOf(id) !== index)
   if (duplicates.length) issues.push({ id: 'duplicate-id', severity: 'error', category: 'reference', code: 'DUPLICATE_ID', message: `存在重复 ID：${[...new Set(duplicates)].join('、')}`, path: '$' })
   const clueIds = new Set(definition.clues.map((clue) => clue.id))
+  const recordClueReferences = [
+    ...definition.chats.flatMap((thread, threadIndex) => thread.messages.map((message, messageIndex) => ({ clueId: message.clueId, path: `chats.${threadIndex}.messages.${messageIndex}.clueId` }))),
+    ...definition.emails.map((email, index) => ({ clueId: email.clueId, path: `emails.${index}.clueId` })),
+    ...definition.browser.map((entry, index) => ({ clueId: entry.clueId, path: `browser.${index}.clueId` })),
+    ...definition.calendar.map((event, index) => ({ clueId: event.clueId, path: `calendar.${index}.clueId` })),
+    ...definition.photos.map((photo, index) => ({ clueId: photo.clueId, path: `photos.${index}.clueId` })),
+    ...definition.logs.map((log, index) => ({ clueId: log.clueId, path: `logs.${index}.clueId` })),
+  ]
+  recordClueReferences.forEach(({ clueId, path }) => {
+    if (clueId && !clueIds.has(clueId)) issues.push({
+      id: `missing-clue-reference-${path}`,
+      severity: 'error',
+      category: 'reference',
+      code: 'MISSING_CLUE_REFERENCE',
+      message: `记录引用的线索 ${clueId} 不存在。`,
+      path,
+      entityId: clueId,
+      fixHint: '创建对应线索，或从记录中移除无效的 clueId。',
+    })
+  })
   const itemIds = new Set([
     ...definition.files.map((item) => item.id), ...definition.chats.flatMap((thread) => thread.messages.map((item) => item.id)), ...definition.emails.map((item) => item.id),
     ...definition.browser.map((item) => item.id), ...definition.calendar.map((item) => item.id), ...definition.photos.map((item) => item.id), ...definition.logs.map((item) => item.id),

@@ -134,6 +134,7 @@ export interface DeductionQuestion { id: string; prompt: string; options: { id: 
 export interface DeductionResultLevel { id: string; label: string; minScore: number; maxScore: number; description: string }
 export interface DeductionSubmission { answers: string[]; evidenceIds: string[]; contradictionPairs: [string, string][]; note: string }
 export interface DeductionResult { score: number; level: string; answerScore: number; evidenceScore: number; relationScore: number; note: string }
+export interface DeductionDraft { answers: Record<string, string>; note: string }
 export interface WindowSnapshot { id: AppId; x: number; y: number; width: number; height: number; minimized: boolean; maximized: boolean }
 export interface GameSave {
   saveVersion: number
@@ -151,6 +152,7 @@ export interface GameSave {
   evidenceNotes: Record<string, string>
   currentWindows: WindowSnapshot[]
   settings: { sound: boolean; anomalies: boolean; scanlines: number; safeMode: boolean }
+  deductionDraft: DeductionDraft
   deductionResult: DeductionResult | null
   bestScore: number | null
   onboardingComplete: boolean

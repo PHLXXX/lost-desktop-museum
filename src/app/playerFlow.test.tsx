@@ -19,7 +19,7 @@ describe('player shell', () => {
     await user.click(screen.getByRole('button', { name: '查看案件简介' }))
     await user.click(screen.getByRole('button', { name: '开始调查' }))
     await user.click(screen.getByRole('button', { name: '跳过启动' }))
-    await user.click(screen.getByRole('button', { name: '恢复上次会话' }))
+    await user.click(screen.getByRole('button', { name: '进入调查桌面' }))
     await user.click(screen.getByRole('button', { name: '跳过介绍' }))
     await user.dblClick(screen.getByRole('button', { name: '邮件' }))
     await user.click(screen.getByRole('button', { name: /HX217 订单取消成功/ }))

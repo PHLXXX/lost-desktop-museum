@@ -1,5 +1,6 @@
-import { useMemo, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { useActiveCaseDefinition } from '../../cases/useActiveCase'
+import { caseDisplayId } from '../../cases/casePresentation'
 import { useGameStore } from '../../store/gameStore'
 import { DeductionDialog } from './DeductionDialog'
 import { EvidenceCanvas } from './EvidenceCanvas'
@@ -16,16 +17,21 @@ export function EvidenceBoardApp({ onDeduction, onResult }: { onDeduction?: () =
     pinnedClueIds,
     evidenceRelations,
     evidenceCardPositions: positions,
+    deductionDraft,
     togglePinned,
     setCardPosition,
+    updateDeductionDraft,
   } = useGameStore()
   const [filters, setFilters] = useState<EvidenceFilters>({ source: '', person: '', time: '', place: '' })
   const [selectedId, setSelectedId] = useState(discoveredClueIds[0] ?? '')
   const [deducing, setDeducing] = useState(false)
   const [zoom, setZoom] = useState(1)
   const [history, setHistory] = useState<Record<string, { x: number; y: number }>[]>([])
+  const closeDeduction = useCallback(() => setDeducing(false), [])
   const clues = useMemo(() => filterEvidenceClues(caseDefinition.clues.filter((clue) => discoveredClueIds.includes(clue.id)), filters), [caseDefinition.clues, discoveredClueIds, filters])
   const selected = caseDefinition.clues.find((clue) => clue.id === selectedId)
+  const requiredClueCount = Math.min(6, caseDefinition.clues.length)
+  const keyEvidenceTarget = Math.min(6, caseDefinition.coreEvidenceIds.length)
 
   const autoLayout = () => {
     setHistory((items) => [...items.slice(-9), { ...positions }])
@@ -42,6 +48,8 @@ export function EvidenceBoardApp({ onDeduction, onResult }: { onDeduction?: () =
     <div className="evidence-app-v2" data-testid="evidence-board">
       <EvidenceToolbar
         discoveredCount={discoveredClueIds.length}
+        caseLabel={caseDisplayId(caseDefinition)}
+        requiredClueCount={requiredClueCount}
         historyCount={history.length}
         zoom={zoom}
         onAutoLayout={autoLayout}
@@ -73,9 +81,9 @@ export function EvidenceBoardApp({ onDeduction, onResult }: { onDeduction?: () =
         <EvidenceInspector selected={selected} discoveredClueIds={discoveredClueIds} />
       </div>
       <footer className="app-statusbar">
-        <span>已发现 {discoveredClueIds.length} / 12</span><span>关键证据 {pinnedClueIds.length} / 6</span><span>关系 {evidenceRelations.length}</span>
+        <span>已发现 {discoveredClueIds.length} / {caseDefinition.clues.length}</span><span>关键证据 {pinnedClueIds.length} / {keyEvidenceTarget}</span><span>关系 {evidenceRelations.length}</span>
       </footer>
-      {deducing && <DeductionDialog onClose={() => setDeducing(false)} onResult={onResult} />}
+      {deducing && <DeductionDialog answers={deductionDraft.answers} note={deductionDraft.note} onAnswersChange={(answers) => updateDeductionDraft({ answers })} onNoteChange={(note) => updateDeductionDraft({ note })} onClose={closeDeduction} onResult={onResult} />}
     </div>
   )
 }

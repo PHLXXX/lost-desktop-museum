@@ -1,5 +1,7 @@
 export function EvidenceToolbar({
   discoveredCount,
+  caseLabel,
+  requiredClueCount,
   historyCount,
   zoom,
   onAutoLayout,
@@ -9,6 +11,8 @@ export function EvidenceToolbar({
   onDeduction,
 }: {
   discoveredCount: number
+  caseLabel: string
+  requiredClueCount: number
   historyCount: number
   zoom: number
   onAutoLayout: () => void
@@ -19,15 +23,15 @@ export function EvidenceToolbar({
 }) {
   return (
     <header className="evidence-commandbar">
-      <div><strong>证据板</strong><span>CASE LD-001 / RELATION WORKSPACE</span></div>
+      <div><strong>证据板</strong><span>CASE {caseLabel} / RELATION WORKSPACE</span></div>
       <button onClick={onAutoLayout}>自动布局</button>
       <button disabled={!historyCount} onClick={onUndoLayout}>撤销布局</button>
       <button aria-label="缩小证据画布" onClick={() => onZoom(zoom - 0.1)}>−</button>
       <span>{Math.round(zoom * 100)}%</span>
       <button aria-label="放大证据画布" onClick={() => onZoom(zoom + 0.1)}>＋</button>
       <button onClick={onResetView}>重置视图</button>
-      <button className="primary-button" disabled={discoveredCount < 6} onClick={onDeduction}>
-        {discoveredCount < 6 ? `还需 ${6 - discoveredCount} 条线索` : '打开最终推理'}
+      <button className="primary-button" disabled={discoveredCount < requiredClueCount} onClick={onDeduction}>
+        {discoveredCount < requiredClueCount ? `还需 ${requiredClueCount - discoveredCount} 条线索` : '打开最终推理'}
       </button>
     </header>
   )

@@ -30,6 +30,13 @@ describe('community registry client', () => {
     expect(result.offline).toBe(true)
   })
 
+  it('does not expose a raw browser fetch error when no cache exists', async () => {
+    const cache = new RegistryCacheRepository(new InMemoryKeyValueRepository<CommunityRegistryCacheRecord>())
+    const client = new CommunityRegistryClient(indexUrl, cache, vi.fn(async () => { throw new TypeError('Failed to fetch') }) as unknown as typeof fetch)
+
+    await expect(client.load({ force: true })).rejects.toThrow('社区目录暂时不可用：网络连接失败，请检查连接后重试。已安装案件仍可正常使用。')
+  })
+
   it('rejects an index that requires a newer client', async () => {
     const future = { ...fixtureIndex, engineCompatibility: { minimumClientVersion: '9.0.0' } }
     const client = new CommunityRegistryClient(indexUrl, new RegistryCacheRepository(new InMemoryKeyValueRepository<CommunityRegistryCacheRecord>()), vi.fn(async () => response(future)) as unknown as typeof fetch)

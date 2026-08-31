@@ -7,6 +7,7 @@ import { clearGameSave, createFreshSave, loadGameSave, saveGameSave } from '../e
 import { scoreDeduction } from '../engine/scoringEngine'
 import { evaluateTriggers } from '../engine/triggerEngine'
 import { eventKey } from '../engine/conditionEngine'
+import { loadGlobalPreferences, saveGlobalOnboardingPreference } from '../engine/globalPreferences'
 
 type GameState = ReturnType<typeof createFreshSave> & {
   saveStatus: 'idle' | 'saving' | 'saved' | 'error'
@@ -26,6 +27,7 @@ type GameState = ReturnType<typeof createFreshSave> & {
   tickPlayTime: () => void
   restoreItem: (id: string) => void
   setEvidenceNote: (id: string, note: string) => void
+  updateDeductionDraft: (draft: Partial<GameState['deductionDraft']>) => void
   dismissNotice: () => void
   saveNow: () => void
   setOnboardingComplete: (complete: boolean) => void
@@ -36,6 +38,8 @@ type GameState = ReturnType<typeof createFreshSave> & {
 
 const storage = typeof window === 'undefined' ? undefined : window.localStorage
 const loaded = storage ? loadGameSave(storage) : { status: 'fresh' as const, save: createFreshSave() }
+const onboardingComplete = loaded.save.onboardingComplete || Boolean(storage && loadGlobalPreferences(storage).onboardingComplete)
+if (storage && loaded.save.onboardingComplete) saveGlobalOnboardingPreference(storage, true)
 
 let saveTimer: ReturnType<typeof setTimeout> | undefined
 export function cancelPendingGameSave() { clearTimeout(saveTimer); saveTimer = undefined }
@@ -51,6 +55,7 @@ function persist(state: GameState, setStatus: (status: GameState['saveStatus']) 
 
 export const useGameStore = create<GameState>((set, get) => ({
   ...loaded.save,
+  onboardingComplete,
   saveStatus: 'idle',
   notice: loaded.status === 'corrupt' ? '检测到无法读取的存档，原始数据已备份；你可以开始新的调查。' : null,
   corruptSave: loaded.status === 'corrupt',
@@ -95,7 +100,7 @@ export const useGameStore = create<GameState>((set, get) => ({
     set({
       deductionResult: result,
       bestScore: Math.max(state.bestScore ?? 0, result.score),
-      notice: '检测到新的本地会话。用户 LINRAN 登录成功。',
+      notice: null,
     })
     persist(get(), (saveStatus) => set({ saveStatus }))
     return result
@@ -104,8 +109,9 @@ export const useGameStore = create<GameState>((set, get) => ({
     const caseId = get().caseId
     const settings = get().settings
     const bestScore = get().bestScore
+    const onboardingComplete = get().onboardingComplete || Boolean(storage && loadGlobalPreferences(storage).onboardingComplete)
     if (storage) clearGameSave(storage, caseId)
-    set({ ...createFreshSave(caseId), settings, bestScore, notice: '案件已重置。', corruptSave: false })
+    set({ ...createFreshSave(caseId), settings, bestScore, onboardingComplete, notice: '案件已重置。', corruptSave: false })
     persist(get(), (saveStatus) => set({ saveStatus }))
   },
   markCaseStarted: () => {
@@ -121,18 +127,28 @@ export const useGameStore = create<GameState>((set, get) => ({
     set((state) => ({ evidenceNotes: { ...state.evidenceNotes, [id]: note } }))
     persist(get(), (saveStatus) => set({ saveStatus }))
   },
+  updateDeductionDraft: (draft) => {
+    set((state) => ({ deductionDraft: { ...state.deductionDraft, ...draft } }))
+    persist(get(), (saveStatus) => set({ saveStatus }))
+  },
   dismissNotice: () => set({ notice: null }),
   saveNow: () => {
     clearTimeout(saveTimer)
     set({ saveStatus: 'saving' })
     saveImmediately(get(), (saveStatus) => set({ saveStatus, lastSavedAt: new Date().toISOString() }))
   },
-  setOnboardingComplete: (onboardingComplete) => { set({ onboardingComplete }); persist(get(), (saveStatus) => set({ saveStatus })) },
+  setOnboardingComplete: (onboardingComplete) => {
+    if (storage) saveGlobalOnboardingPreference(storage, onboardingComplete)
+    set({ onboardingComplete })
+    persist(get(), (saveStatus) => set({ saveStatus }))
+  },
   setDesktopNote: (desktopNote) => { set({ desktopNote }); persist(get(), (saveStatus) => set({ saveStatus })) },
   updateWindowSnapshots: (currentWindows) => { set({ currentWindows }); persist(get(), (saveStatus) => set({ saveStatus })) },
   activateCase: (caseId) => {
     clearTimeout(saveTimer)
     const next = storage ? loadGameSave(storage, caseId) : { status: 'fresh' as const, save: createFreshSave(caseId) }
-    set({ ...next.save, saveStatus: 'idle', notice: next.status === 'corrupt' ? '检测到无法读取的存档，原始数据已备份；你可以开始新的调查。' : null, corruptSave: next.status === 'corrupt' })
+    const globalOnboardingComplete = Boolean(storage && loadGlobalPreferences(storage).onboardingComplete)
+    if (storage && next.save.onboardingComplete) saveGlobalOnboardingPreference(storage, true)
+    set({ ...next.save, onboardingComplete: next.save.onboardingComplete || globalOnboardingComplete, saveStatus: 'idle', notice: next.status === 'corrupt' ? '检测到无法读取的存档，原始数据已备份；你可以开始新的调查。' : null, corruptSave: next.status === 'corrupt' })
   },
 }))

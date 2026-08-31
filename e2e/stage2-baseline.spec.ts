@@ -11,7 +11,7 @@ test.skip('captures the historical v0.1.0 baseline at required desktop widths', 
   await page.screenshot({ path: 'docs/images/stage2-before-home.png', fullPage: true })
 
   await page.getByRole('button', { name: '跳过启动' }).click()
-  await page.getByRole('button', { name: '恢复上次会话' }).click()
+  await page.getByRole('button', { name: '进入调查桌面' }).click()
   await expect(page.getByTestId('desktop')).toBeVisible()
   await page.screenshot({ path: 'docs/images/stage2-before-desktop.png', fullPage: true })
 

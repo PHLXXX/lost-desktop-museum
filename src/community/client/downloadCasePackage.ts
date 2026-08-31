@@ -1,8 +1,15 @@
 import { fetchWithTimeout } from './fetchWithTimeout'
+import { communityErrorMessage } from './communityErrorMessage'
 
 export interface DownloadProgress { downloadedBytes: number; totalBytes: number | null; percent: number | null }
 export async function downloadCasePackage(url: string, options: { signal: AbortSignal; expectedBytes: number; onProgress?: (value: DownloadProgress) => void; fetcher?: typeof fetch }): Promise<Uint8Array> {
-  const response = await fetchWithTimeout(url, { signal: options.signal, timeoutMs: 30_000 }, options.fetcher)
+  let response: Response
+  try {
+    response = await fetchWithTimeout(url, { signal: options.signal, timeoutMs: 30_000 }, options.fetcher)
+  } catch (error) {
+    if (options.signal.aborted || error instanceof DOMException && error.name === 'AbortError') throw new DOMException('下载已取消。', 'AbortError')
+    throw new Error(communityErrorMessage(error), { cause: error })
+  }
   if (!response.ok) throw new Error(`案件包下载失败（HTTP ${response.status}）。`)
   const headerSize = Number(response.headers.get('content-length')); const totalBytes = Number.isFinite(headerSize) && headerSize > 0 ? headerSize : null
   if (!response.body) {
