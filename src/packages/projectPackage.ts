@@ -5,7 +5,8 @@ import { validateContentSecurity } from '../engine/validation'
 import { inferAssetMime, validateAssetBytes } from './assetContentValidation'
 import { inspectZipCentralDirectory, validatePackageEntries } from './packageSecurity'
 
-const fixedDate = new Date('1980-01-01T00:00:00Z')
+// ZIP stores local date fields, so use the same wall-clock value everywhere.
+const fixedDate = new Date(1980, 0, 1, 0, 0, 0)
 const encoder = new TextEncoder()
 async function sha256(bytes: Uint8Array) { const digest = await crypto.subtle.digest('SHA-256', bytes.slice().buffer); return [...new Uint8Array(digest)].map((value) => value.toString(16).padStart(2, '0')).join('') }
 function bytes(value: unknown) { return encoder.encode(`${JSON.stringify(value, null, 2)}\n`) }

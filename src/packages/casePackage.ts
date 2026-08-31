@@ -1,4 +1,5 @@
 import { strFromU8, unzipSync, zipSync } from 'fflate'
+import { z } from 'zod'
 import { caseDefinitionSchema } from '../cases/schema'
 import type { CaseDefinition } from '../cases/types'
 import { validateCaseDefinition } from '../engine/validation'
@@ -6,10 +7,13 @@ import { validateAssetBytes } from './assetContentValidation'
 import { inspectZipCentralDirectory, validatePackageEntries } from './packageSecurity'
 
 interface CasePackageManifest { packageFormatVersion: 1; kind: 'ldmcase'; caseId: string; version: string; title: string; createdAt: string; assetCount: number }
+const casePackageManifestSchema = z.object({ packageFormatVersion: z.literal(1), kind: z.literal('ldmcase'), caseId: z.string().min(1), version: z.string().min(1), title: z.string().min(1), createdAt: z.string().datetime({ offset: true }), assetCount: z.number().int().nonnegative() }).strict()
 export interface ExportedPackage { filename: string; bytes: Uint8Array }
 export interface ImportedCasePackage { caseDefinition: CaseDefinition; manifest: CasePackageManifest; assets: Map<string, Uint8Array>; warnings: string[] }
 
-const fixedDate = new Date('1980-01-01T00:00:00Z')
+// fflate serializes local date fields into the ZIP header. Constructing the
+// epoch in local time keeps those fields identical in every runner timezone.
+const fixedDate = new Date(1980, 0, 1, 0, 0, 0)
 const encoder = new TextEncoder()
 
 function jsonBytes(value: unknown) { return encoder.encode(`${JSON.stringify(value, null, 2)}\n`) }
@@ -68,11 +72,13 @@ export async function importCasePackage(bytes: Uint8Array, filename: string): Pr
   let definition: unknown
   let checksums: Record<string, string>
   try {
-    manifest = JSON.parse(strFromU8(manifestBytes)) as CasePackageManifest
+    manifest = casePackageManifestSchema.parse(JSON.parse(strFromU8(manifestBytes)))
     definition = JSON.parse(strFromU8(caseBytes)) as unknown
     checksums = JSON.parse(strFromU8(checksumBytes)) as Record<string, string>
   } catch { throw new Error('案件包JSON数据损坏。') }
-  if (manifest.kind !== 'ldmcase' || manifest.packageFormatVersion !== 1) throw new Error('不支持的案件包版本。')
+  const expectedChecksumPaths = Object.keys(unpacked).filter((path) => path !== 'checksums.json').sort()
+  const declaredChecksumPaths = Object.keys(checksums).sort()
+  if (expectedChecksumPaths.length !== declaredChecksumPaths.length || expectedChecksumPaths.some((path, index) => path !== declaredChecksumPaths[index])) throw new Error('案件包校验和清单不完整或包含未知条目。')
   for (const [path, expected] of Object.entries(checksums)) {
     const entry = unpacked[path]
     if (!entry || await sha256(entry) !== expected) throw new Error(`案件包校验和不匹配：${path}`)
@@ -81,8 +87,11 @@ export async function importCasePackage(bytes: Uint8Array, filename: string): Pr
   if (validation.length) throwIssues('案件数据校验失败', validation.map((issue) => issue.message))
   const caseDefinition: CaseDefinition = caseDefinitionSchema.parse(definition)
   if (caseDefinition.id !== manifest.caseId) throw new Error('案件包manifest与案件ID不一致。')
+  if (caseDefinition.manifest.version !== manifest.version) throw new Error('案件包manifest与案件版本不一致。')
+  if (caseDefinition.title !== manifest.title) throw new Error('案件包manifest与案件标题不一致。')
   const assets = new Map(Object.entries(unpacked).filter(([path]) => path.startsWith('assets/')))
   const referencedPaths = new Set(caseDefinition.assets.map((asset) => asset.path.startsWith('assets/') ? asset.path : `assets/${asset.path}`))
+  if (manifest.assetCount !== referencedPaths.size) throw new Error('案件包manifest与资源数量不一致。')
   if (assets.size !== referencedPaths.size || [...assets.keys()].some((path) => !referencedPaths.has(path))) throw new Error('正式案件包包含未引用资源。')
   for (const asset of caseDefinition.assets) {
     const path = asset.path.startsWith('assets/') ? asset.path : `assets/${asset.path}`

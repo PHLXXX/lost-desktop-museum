@@ -21,6 +21,9 @@ jobs:
       - run: npm ci
       - run: npm run check
       - run: npm run test:editor
+      - run: npm run test:community
+      - name: Verify deterministic community fixtures
+        run: npm run generate:community-fixtures && git diff --exit-code -- tests/fixtures/community
       - run: npm run package:editor-examples
       - run: npm audit --omit=dev --audit-level=high
 
@@ -36,6 +39,8 @@ jobs:
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
       - run: npm run e2e
+        env:
+          VITE_COMMUNITY_REGISTRY_URL: http://127.0.0.1:4173/community-fixture/registry/v1/index.json
       - uses: actions/upload-artifact@v4
         if: failure()
         with:

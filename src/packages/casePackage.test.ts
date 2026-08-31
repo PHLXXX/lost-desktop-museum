@@ -63,6 +63,15 @@ describe('safe .ldmcase packages', () => {
     await expect(importCasePackage(tampered, 'tampered.ldmcase')).rejects.toThrow(/校验和/)
   })
 
+  it('requires complete checksums and consistent manifest metadata', async () => {
+    const { definition, assets } = await packageFixture(); const exported = await exportCasePackage(definition, assets); const entries = unzipSync(exported.bytes)
+    const checksums = JSON.parse(strFromU8(entries['checksums.json']!)) as Record<string, string>; delete checksums['case.json']; entries['checksums.json'] = strToU8(JSON.stringify(checksums))
+    await expect(importCasePackage(zipSync(entries, { mtime: new Date('1980-01-01T00:00:00Z') }), 'missing-checksum.ldmcase')).rejects.toThrow(/清单/)
+    const clean = unzipSync(exported.bytes); const manifest = JSON.parse(strFromU8(clean['manifest.json']!)) as Record<string, unknown>; manifest.version = '9.9.9'; clean['manifest.json'] = strToU8(JSON.stringify(manifest))
+    const cleanChecksums = JSON.parse(strFromU8(clean['checksums.json']!)) as Record<string, string>; const digest = await crypto.subtle.digest('SHA-256', clean['manifest.json']!.slice().buffer); cleanChecksums['manifest.json'] = [...new Uint8Array(digest)].map((value) => value.toString(16).padStart(2, '0')).join(''); clean['checksums.json'] = strToU8(JSON.stringify(cleanChecksums))
+    await expect(importCasePackage(zipSync(clean, { mtime: new Date('1980-01-01T00:00:00Z') }), 'wrong-manifest.ldmcase')).rejects.toThrow(/案件版本/)
+  })
+
   it('rejects executable and remote case content before export', async () => {
     const remote = minimalCase()
     remote.assets = [{ id: 'bad', kind: 'image', mime: 'image/png', path: 'https://example.com/a.png', size: 1, sha256: '0'.repeat(64), alt: 'bad' }]

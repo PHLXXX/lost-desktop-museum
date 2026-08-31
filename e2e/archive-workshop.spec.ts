@@ -106,7 +106,7 @@ test('template edit, autosave, reload, undo, snapshot restore and publish round 
   await page.getByRole('button', { name: '关闭快照' }).click()
   await expect(name).toHaveValue('周岚·测试')
   await page.reload()
-  await page.getByRole('button', { name: '档案工坊' }).click()
+  await expect(page.getByRole('heading', { name: '档案工坊' })).toBeVisible()
   await page.getByRole('button', { name: '打开' }).click()
   await page.getByRole('button', { name: '基本信息' }).click()
   await expect(page.getByLabel('案件标题')).toHaveValue('备用钥匙：修订版')

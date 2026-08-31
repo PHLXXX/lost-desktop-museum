@@ -1,0 +1,8 @@
+{
+  "packages/blocked.ldmcase": "c9a00d8bd7fa63246bae5e7cd4c2d65369ad2844f74cbef14359a8cfff3c1977",
+  "packages/hash-mismatch.ldmcase": "c9a00d8bd7fa63246bae5e7cd4c2d65369ad2844f74cbef14359a8cfff3c1977",
+  "packages/incompatible-2.0.0.ldmcase": "c971c29a5d2a5919a54688bb1f14cb6570e728ba80f2fca3baf3c64711f61f19",
+  "packages/valid-1.0.0.ldmcase": "c9a00d8bd7fa63246bae5e7cd4c2d65369ad2844f74cbef14359a8cfff3c1977",
+  "packages/valid-1.1.0.ldmcase": "76751a2700df4f884e476d010bc478a4beb1333afea0a89f7de49f90b998dacc",
+  "screenshots/cover.png": "385ebbbeeca083c78aa7dc81221164e679ca66700afec1c00209404cdcf708cc"
+}

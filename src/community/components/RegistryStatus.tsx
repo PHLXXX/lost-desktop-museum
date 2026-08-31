@@ -1,0 +1,3 @@
+export function RegistryStatus({ loading, offline, source, fetchedAt, version, onRefresh }: { loading: boolean; offline: boolean; source?: 'network' | 'cache'; fetchedAt?: string; version?: string; onRefresh: () => void }) {
+  return <section className="registry-status" aria-live="polite"><div><span className={`registry-dot ${offline ? 'offline' : ''}`} aria-hidden="true" /><div><strong>{loading ? '正在同步社区目录' : offline ? '正在使用上次同步的社区目录' : '社区目录可用'}</strong><small>{source === 'cache' ? '本地缓存' : '静态 Registry'} · {fetchedAt ? new Date(fetchedAt).toLocaleString('zh-CN', { hour12: false }) : '尚未同步'} · {version ? `v${version}` : '—'}</small></div></div><button onClick={onRefresh} disabled={loading}>{loading ? '同步中…' : '手动刷新'}</button></section>
+}

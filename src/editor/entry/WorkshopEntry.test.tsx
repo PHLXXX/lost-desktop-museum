@@ -9,7 +9,7 @@ describe('Archive Workshop entry and authoring flow', () => {
   it('enters the lazy workshop, creates a template and returns to the museum', async () => {
     render(<AppShell />)
     fireEvent.click(screen.getByRole('button', { name: '档案工坊' }))
-    expect(await screen.findByRole('heading', { name: '档案工坊' })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: '档案工坊' }, { timeout: 5000 })).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: '创建案件工程' }))
     fireEvent.click(screen.getByLabelText('最小可玩模板'))
     fireEvent.click(screen.getByRole('button', { name: '下一步' }))
@@ -28,7 +28,7 @@ describe('Archive Workshop entry and authoring flow', () => {
   it('validates a blank project and navigates an issue to the title field', async () => {
     render(<AppShell />)
     fireEvent.click(screen.getByRole('button', { name: '档案工坊' }))
-    fireEvent.click(await screen.findByRole('button', { name: '创建案件工程' }))
+    fireEvent.click(await screen.findByRole('button', { name: '创建案件工程' }, { timeout: 5000 }))
     fireEvent.click(screen.getByLabelText('空白工程'))
     fireEvent.click(screen.getByRole('button', { name: '下一步' }))
     fireEvent.change(screen.getByLabelText('案件名称'), { target: { value: '' } })

@@ -8,17 +8,21 @@ interface SavePackageEnvelope {
   caseVersion: string
   exportedAt: string
   save: GameSave
+  communityPreference?: SavePackageCommunityPreference
 }
+
+export interface SavePackageCommunityPreference { favorite: boolean; rating: 1 | 2 | 3 | 4 | 5 | null; note: string }
 
 const encoder = new TextEncoder()
 const decoder = new TextDecoder()
 
-export function exportSavePackage(save: GameSave, caseVersion: string, now = new Date().toISOString()) {
-  const envelope: SavePackageEnvelope = { kind: 'ldmsave', formatVersion: 1, caseId: save.caseId, caseVersion, exportedAt: now, save: migrateGameSave(save, save.caseId) }
+export function exportSavePackage(save: GameSave, caseVersion: string, now = new Date().toISOString(), communityPreference?: SavePackageCommunityPreference) {
+  if (communityPreference && (communityPreference.note.length > 5000 || (communityPreference.rating !== null && ![1, 2, 3, 4, 5].includes(communityPreference.rating)))) throw new Error('社区私人记录格式无效。')
+  const envelope: SavePackageEnvelope = { kind: 'ldmsave', formatVersion: 1, caseId: save.caseId, caseVersion, exportedAt: now, save: migrateGameSave(save, save.caseId), ...(communityPreference ? { communityPreference: { ...communityPreference, note: communityPreference.note.replaceAll('\u0000', '') } } : {}) }
   return { filename: `${save.caseId}-progress.ldmsave`, bytes: encoder.encode(`${JSON.stringify(envelope, null, 2)}\n`) }
 }
 
-export function importSavePackage(bytes: Uint8Array, filename: string): { save: GameSave; caseVersion: string; exportedAt: string } {
+export function importSavePackage(bytes: Uint8Array, filename: string): { save: GameSave; caseVersion: string; exportedAt: string; communityPreference?: SavePackageCommunityPreference } {
   if (!filename.toLowerCase().endsWith('.ldmsave')) throw new Error('请选择.ldmsave玩家进度备份。')
   if (bytes.length > 5 * 1024 * 1024) throw new Error('玩家进度备份超过5MB限制。')
   let raw: unknown
@@ -29,5 +33,7 @@ export function importSavePackage(bytes: Uint8Array, filename: string): { save: 
   if ((value.save as Partial<GameSave>).caseId !== value.caseId) throw new Error('玩家进度与案件ID不一致。')
   const save = migrateGameSave(value.save, value.caseId)
   if (save.saveVersion !== CURRENT_SAVE_VERSION) throw new Error('玩家进度迁移失败。')
-  return { save, caseVersion: value.caseVersion, exportedAt: value.exportedAt }
+  const preference = value.communityPreference
+  if (preference && (typeof preference.favorite !== 'boolean' || (preference.rating !== null && ![1, 2, 3, 4, 5].includes(preference.rating)) || typeof preference.note !== 'string' || preference.note.length > 5000)) throw new Error('社区私人记录格式无效。')
+  return { save, caseVersion: value.caseVersion, exportedAt: value.exportedAt, ...(preference ? { communityPreference: preference } : {}) }
 }

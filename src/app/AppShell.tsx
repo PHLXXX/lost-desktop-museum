@@ -1,4 +1,4 @@
-import { lazy, Suspense, useState } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import { BootScreen } from '../features/boot/BootScreen'
 import { Desktop } from '../features/desktop/Desktop'
 import { CaseDetail } from '../features/museum/CaseDetail'
@@ -9,9 +9,22 @@ import { useWindowStore } from '../store/windowStore'
 import type { AppPhase } from './appPhase'
 
 const WorkshopEntry = lazy(() => import('../editor/entry/WorkshopEntry'))
+const CommunityEntry = lazy(() => import('../community/features/CommunityEntry'))
+
+function routeFromHash(): { phase: AppPhase; communityCaseId: string | null; localCaseId: string | null } {
+  if (typeof window === 'undefined') return { phase: 'museum', communityCaseId: null, localCaseId: null }
+  const community = window.location.hash.match(/^#\/community\/cases\/([a-z0-9-]+)$/)
+  if (community) return { phase: 'community', communityCaseId: community[1]!, localCaseId: null }
+  if (window.location.hash === '#/community') return { phase: 'community', communityCaseId: null, localCaseId: null }
+  if (window.location.hash === '#/workshop') return { phase: 'workshop', communityCaseId: null, localCaseId: null }
+  const local = window.location.hash.match(/^#\/cases\/([a-z0-9-]+)$/)
+  return local ? { phase: 'museum', communityCaseId: null, localCaseId: local[1]! } : { phase: 'museum', communityCaseId: null, localCaseId: null }
+}
 
 export function AppShell() {
-  const [phase, setPhase] = useState<AppPhase>('museum')
+  const initial = routeFromHash()
+  const [phase, setPhase] = useState<AppPhase>(initial.phase)
+  const [communityCaseId, setCommunityCaseId] = useState<string | null>(initial.communityCaseId)
   const updateSettings = useGameStore((state) => state.updateSettings)
   const markCaseStarted = useGameStore((state) => state.markCaseStarted)
   const activateCase = useGameStore((state) => state.activateCase)
@@ -20,10 +33,31 @@ export function AppShell() {
     useWindowStore.getState().hydrateWindows()
     setPhase(nextPhase)
   }
-  if (phase === 'museum') return <MuseumHome onOpenCase={(caseId) => selectCase(caseId, 'case-detail')} onContinue={(caseId) => selectCase(caseId, 'investigation')} onOpenWorkshop={() => setPhase('workshop')} />
-  if (phase === 'workshop') return <Suspense fallback={<main className="workshop-loading" aria-busy="true">正在挂载档案工坊…</main>}><WorkshopEntry onReturnMuseum={() => setPhase('museum')} /></Suspense>
-  if (phase === 'case-detail') return <CaseDetail onBack={() => setPhase('museum')} onStart={() => setPhase('case-boot')} onContinue={() => setPhase('investigation')} />
+  const navigate = (next: AppPhase, hash: string) => { window.location.hash = hash; setPhase(next) }
+  useEffect(() => {
+    let active = true
+    const applyRoute = () => {
+      const route = routeFromHash()
+      if (route.phase === 'community') { setCommunityCaseId(route.communityCaseId); setPhase('community'); return }
+      if (route.phase === 'workshop') { setPhase('workshop'); return }
+      if (!route.localCaseId) { if (window.location.hash === '#/museum') setPhase('museum'); return }
+      void import('../storage/caseRepository').then(async ({ caseRepository }) => {
+        const definition = await caseRepository.get(route.localCaseId!); if (definition) (await import('../cases/registry')).registerInstalledCase(definition)
+        if (!active) return
+        try { if (useGameStore.getState().caseId !== route.localCaseId) activateCase(route.localCaseId!); useWindowStore.getState().hydrateWindows(); setPhase('case-detail') } catch { setPhase('museum') }
+      })
+    }
+    void Promise.resolve().then(applyRoute)
+    window.addEventListener('hashchange', applyRoute)
+    return () => { active = false; window.removeEventListener('hashchange', applyRoute) }
+  // Hash navigation is an external browser subscription; store actions are stable.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+  if (phase === 'museum') return <MuseumHome onOpenCase={(caseId) => { window.location.hash = `#/cases/${caseId}`; selectCase(caseId, 'case-detail') }} onContinue={(caseId) => selectCase(caseId, 'investigation')} onOpenCommunity={(caseId) => { setCommunityCaseId(caseId ?? null); navigate('community', caseId ? `#/community/cases/${caseId}` : '#/community') }} onOpenWorkshop={() => navigate('workshop', '#/workshop')} />
+  if (phase === 'community') return <Suspense fallback={<main className="workshop-loading" aria-busy="true">正在挂载社区档案…</main>}><CommunityEntry initialCaseId={communityCaseId} onReturnMuseum={() => navigate('museum', '#/museum')} onStartCase={(caseId) => { window.location.hash = `#/cases/${caseId}`; selectCase(caseId, 'case-detail') }} /></Suspense>
+  if (phase === 'workshop') return <Suspense fallback={<main className="workshop-loading" aria-busy="true">正在挂载档案工坊…</main>}><WorkshopEntry onReturnMuseum={() => navigate('museum', '#/museum')} /></Suspense>
+  if (phase === 'case-detail') return <CaseDetail onBack={() => navigate('museum', '#/museum')} onStart={() => setPhase('case-boot')} onContinue={() => setPhase('investigation')} />
   if (phase === 'case-boot') return <BootScreen onEnter={(safeMode) => { markCaseStarted(); updateSettings({ safeMode, anomalies: safeMode ? false : useGameStore.getState().settings.anomalies }); setPhase('investigation') }} />
-  if (phase === 'result') return <ResultScreen onReturnMuseum={() => setPhase('museum')} onReviewEvidence={() => setPhase('investigation')} />
-  return <Desktop onReturnMuseum={() => setPhase('museum')} onDeduction={() => setPhase('deduction')} onResult={() => setPhase('result')} />
+  if (phase === 'result') return <ResultScreen onReturnMuseum={() => navigate('museum', '#/museum')} onReviewEvidence={() => setPhase('investigation')} />
+  return <Desktop onReturnMuseum={() => navigate('museum', '#/museum')} onDeduction={() => setPhase('deduction')} onResult={() => setPhase('result')} />
 }
