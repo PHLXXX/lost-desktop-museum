@@ -6,7 +6,9 @@
 
 **Architecture:** Preserve the current React/Zustand runtime and add a strict multi-case registry beneath an independently lazy-loaded authoring layer. CaseDraft compiles through shared normalization, validation, reference and package services into CaseDefinition; IndexedDB stores projects/assets while PreviewSession uses a separate save namespace.
 
-**Tech Stack:** React 19, TypeScript 6 strict, Zustand 5, Zod 4, native IndexedDB/Web Crypto/BroadcastChannel, fflate ZIP, Vite 8, Vitest/Testing Library, Playwright.
+**Tech Stack:** React 19, TypeScript 6 strict, Zustand 5, Zod 4, native IndexedDB/Web Crypto/localStorage heartbeat locks, fflate ZIP, Vite 8, Vitest/Testing Library, Playwright.
+
+**实施状态（2026-08-31）：** Tasks 1—14 已完成并由 93 个 Vitest、34 个编辑器专项测试与 15 个通过的 Playwright 流程验证；Task 15 的本地质量门已通过，PR、Pages 与 Release 状态在发布步骤完成后记录。
 
 ## Global Constraints
 
@@ -187,4 +189,3 @@
 ## Self-review
 
 The plan explicitly covers every audit blocker and all requested product boundaries. There are no alternate runtime schemas, empty editor modules, arbitrary code paths, preview/formal save overlap, remote assets or placeholder tasks. Interface names are stable across tasks; package and preview work both depend on the same compiler and validator established first.
-
