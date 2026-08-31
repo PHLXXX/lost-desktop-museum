@@ -1,4 +1,5 @@
 import { caseDefinitionSchema } from '../cases/schema'
+import { supportedAppComponentKeys } from '../app/supportedAppKeys'
 
 export interface ValidationIssue {
   id: string
@@ -71,6 +72,7 @@ export function validateCaseDefinition(input: unknown): ValidationIssue[] {
   })
   definition.coreEvidenceIds.forEach((id) => { if (!clueIds.has(id)) issues.push({ id: `missing-core-${id}`, severity: 'error', category: 'reference', code: 'MISSING_CLUE', message: `核心证据 ${id} 不存在。`, path: 'coreEvidenceIds', entityId: id }) })
   if (!definition.applications.some((app) => app.id === 'evidence' && app.enabled)) issues.push({ id: 'missing-evidence-app', severity: 'error', category: 'runtime', code: 'MISSING_EVIDENCE_APP', message: '案件必须启用证据板。', path: 'applications' })
+  definition.applications.forEach((app, index) => { if (!supportedAppComponentKeys.has(app.componentKey)) issues.push({ id: `unsupported-app-${app.id}`, severity: 'error', category: 'runtime', code: 'UNSUPPORTED_APP_COMPONENT', message: `不支持的应用类型：${app.componentKey}。请升级引擎或改用已注册组件。`, path: `applications.${index}.componentKey`, entityId: app.id }) })
   if (!definition.manifest.builtIn && definition.questions.reduce((sum, question) => sum + question.points, 0) !== 100) issues.push({ id: 'deduction-points', severity: 'error', category: 'deduction', code: 'POINTS_NOT_100', message: '用户案件的推理题分值总计必须为100。', path: 'questions' })
   const levels = [...definition.resultLevels].sort((a, b) => a.minScore - b.minScore)
   if (levels[0]?.minScore !== 0 || levels.at(-1)?.maxScore !== 100 || levels.some((level, index) => level.minScore > level.maxScore || (index > 0 && levels[index - 1]!.maxScore + 1 !== level.minScore))) issues.push({ id: 'result-level-coverage', severity: 'error', category: 'deduction', code: 'RESULT_LEVEL_COVERAGE', message: '结果等级必须无重叠、无缺口地覆盖0至100分。', path: 'resultLevels' })

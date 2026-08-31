@@ -92,7 +92,8 @@ export function createMinimalTemplateDraft(): CaseDraft {
     { time: '2032-06-17 17:20', text: '孟佳归还工具柜钥匙' }, { time: '2032-06-17 18:10', text: '周岚记录备用钥匙交接' },
     { time: '2032-06-17 18:42', text: '罗宇进入办公室' }, { time: '2032-06-17 19:05', text: '清洁记录显示抽屉未锁' },
   ]
-  draft.desktop = { systemName: 'ARCHIVE/OS 3.1', bootMessage: '正在挂载东区管理员终端', lastLoginMessage: '2032.06.17 19:42', themeColor: '#557b78' }
+  draft.desktop = { systemName: 'ARCHIVE/OS 3.1', bootMessage: '正在挂载东区管理员终端', lastLoginMessage: '2032.06.17 19:42', themeColor: '#557b78', wallpaperAssetId: 'asset-spare-key-cover' }
+  draft.assets = [{ id: 'asset-spare-key-cover', kind: 'image', mime: 'image/png', path: 'assets/spare-key-cover.png', size: 2334337, sha256: 'e33e1587058f4efd6847a5bb167245f85e0bc38ed1da3cad531488f2ea319d46', alt: '夜间档案办公室中打开的抽屉、空钥匙托盘与交接记录' }]
   draft.folders = [{ id: 'folder-handover', name: '交接记录' }, { id: 'folder-notes', name: '便笺' }]
   draft.files = [
     { id: 'file-handover', name: '钥匙交接.txt', folder: '交接记录', content: '18:10 备用钥匙仍在右侧抽屉。', clueAction: 'OPEN_ITEM' },

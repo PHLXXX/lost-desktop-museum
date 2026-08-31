@@ -20,6 +20,8 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run check
+      - run: npm run test:editor
+      - run: npm run package:editor-examples
       - run: npm audit --omit=dev --audit-level=high
 
   e2e:

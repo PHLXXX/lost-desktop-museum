@@ -15,11 +15,7 @@ export function WorkshopHome({ onReturnMuseum }: { onReturnMuseum: () => void })
     try {
       const { importProjectPackage } = await import('../../../packages/projectPackage')
       const imported = await importProjectPackage(new Uint8Array(await file.arrayBuffer()), file.name)
-      await importProject(imported.project)
-      for (const [path, bytes] of imported.assets) {
-        const ref = imported.project.draft.assets.find((asset) => asset.path === path)
-        if (ref) await editorAssetRepository.put({ id: ref.id, projectId: imported.project.projectId, filename: path.replace(/^assets\//, ''), mime: ref.mime, size: bytes.length, sha256: ref.sha256, alt: ref.alt, transcript: '' }, new Blob([bytes.slice().buffer], { type: ref.mime }))
-      }
+      await importProject(imported.project, imported.assets)
       setNotice(`已导入工程备份：${file.name}`)
     } catch (error) { setNotice(error instanceof Error ? error.message : '工程导入失败。') }
   }
@@ -28,7 +24,7 @@ export function WorkshopHome({ onReturnMuseum }: { onReturnMuseum: () => void })
     try {
       const { importCasePackage } = await import('../../../packages/casePackage')
       const imported = await importCasePackage(new Uint8Array(await file.arrayBuffer()), file.name)
-      await importCaseDefinition(imported.caseDefinition)
+      await importCaseDefinition(imported.caseDefinition, imported.assets)
       setNotice(imported.warnings[0] ?? `已将 ${file.name} 转换为可编辑工程。`)
     } catch (error) { setNotice(error instanceof Error ? error.message : '案件包导入失败。') }
   }

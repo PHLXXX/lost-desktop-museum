@@ -1,5 +1,5 @@
 import type { CaseDefinition } from '../../cases/types'
-import { builtInCaseIds } from '../../cases/registry'
+import { isBuiltInCaseId } from '../../cases/builtInIds'
 import { validateCaseDefinition, type ValidationIssue } from '../../engine/validation'
 import type { CaseDraft } from '../model/caseDraft'
 import { normalizeCaseDraft } from './normalizeCaseDraft'
@@ -35,7 +35,7 @@ export function compileCaseDraft(source: CaseDraft, assets: EditorAssetMetadata[
   if (!draft.deduction.questions?.length) issues.push({ id: 'required-questions', severity: 'error', category: 'deduction', code: 'NO_QUESTIONS', message: '至少需要一道推理题。', path: 'deduction.questions' })
   const points = draft.deduction.questions?.reduce((sum, question) => sum + question.points, 0) ?? 0
   if (points !== 100 && draft.manifest.builtIn !== true) issues.push({ id: 'deduction-points', severity: 'error', category: 'deduction', code: 'POINTS_NOT_100', message: `推理题总分必须为100，当前为${points}。`, path: 'deduction.questions' })
-  if (caseId && builtInCaseIds.includes(caseId) && draft.manifest.builtIn !== true) issues.push({ id: 'built-in-case-id', severity: 'error', category: 'security', code: 'BUILT_IN_CASE_ID', message: '用户案件不能覆盖内置案件ID。', path: 'manifest.caseId' })
+  if (caseId && isBuiltInCaseId(caseId) && draft.manifest.builtIn !== true) issues.push({ id: 'built-in-case-id', severity: 'error', category: 'security', code: 'BUILT_IN_CASE_ID', message: '用户案件不能覆盖内置案件ID。', path: 'manifest.caseId' })
   const availableAssets = new Set(assets.map((asset) => asset.id))
   draft.assets.forEach((asset, index) => { if (assets.length && !availableAssets.has(asset.id)) issues.push({ id: `asset-${asset.id}`, severity: 'error', category: 'resource', code: 'ASSET_MISSING', message: `资源 ${asset.id} 不存在。`, path: `assets.${index}` }) })
   if (issues.length) return { ok: false, issues }

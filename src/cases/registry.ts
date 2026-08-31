@@ -1,6 +1,7 @@
 import type { CaseDefinition } from './types'
 import { caseDefinition as case001 } from './case-001/case'
 import { caseDefinition as case002 } from './case-002/case'
+import { builtInCaseIds } from './builtInIds'
 
 const builtIns = new Map<string, CaseDefinition>([
   [case001.id, case001],
@@ -9,7 +10,7 @@ const builtIns = new Map<string, CaseDefinition>([
 const installed = new Map<string, CaseDefinition>()
 const previews = new Map<string, CaseDefinition>()
 
-export const builtInCaseIds = [...builtIns.keys()]
+export { builtInCaseIds }
 
 export function listBuiltInCases(): CaseDefinition[] {
   return [...builtIns.values()]

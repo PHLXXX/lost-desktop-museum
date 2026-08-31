@@ -1,4 +1,4 @@
-import { builtInCaseIds } from '../cases/registry'
+import { isBuiltInCaseId } from '../cases/builtInIds'
 import type { CaseDefinition } from '../cases/types'
 import { validateCaseDefinition } from '../engine/validation'
 import { IndexedDbRepository, type KeyValueRepository } from './indexedDb'
@@ -9,7 +9,7 @@ export interface CaseRepository { install(definition: CaseDefinition): Promise<v
 export class InMemoryCaseRepository implements CaseRepository {
   private cases = new Map<string, CaseDefinition>()
   async install(definition: CaseDefinition) {
-    if (builtInCaseIds.includes(definition.id)) throw new Error('不能覆盖内置案件。')
+    if (isBuiltInCaseId(definition.id)) throw new Error('不能覆盖内置案件。')
     const errors = validateCaseDefinition(definition).filter((issue) => issue.severity === 'error')
     if (errors.length) throw new Error(`案件校验失败：${errors.map((issue) => issue.message).join('；')}`)
     this.cases.set(definition.id, structuredClone(definition))
@@ -22,7 +22,7 @@ export class InMemoryCaseRepository implements CaseRepository {
 export class BrowserCaseRepository implements CaseRepository {
   constructor(private adapter: KeyValueRepository<InstalledCaseRecord> = new IndexedDbRepository('lost-desktop-museum-v4-cases', 'installed-cases', 'id')) {}
   async install(definition: CaseDefinition) {
-    if (builtInCaseIds.includes(definition.id)) throw new Error('不能覆盖内置案件。')
+    if (isBuiltInCaseId(definition.id)) throw new Error('不能覆盖内置案件。')
     const errors = validateCaseDefinition(definition).filter((issue) => issue.severity === 'error')
     if (errors.length) throw new Error(`案件校验失败：${errors.map((issue) => issue.message).join('；')}`)
     await this.adapter.set(definition.id, { id: definition.id, installedAt: new Date().toISOString(), definition })

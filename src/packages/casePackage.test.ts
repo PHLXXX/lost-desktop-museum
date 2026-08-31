@@ -12,6 +12,16 @@ function minimalCase() {
   return result.caseDefinition
 }
 
+async function packageFixture() {
+  const definition = minimalCase()
+  const cover = strToU8('small-png-package-fixture')
+  const digest = await crypto.subtle.digest('SHA-256', cover.slice().buffer)
+  const ref = definition.assets[0]!
+  ref.size = cover.length
+  ref.sha256 = [...new Uint8Array(digest)].map((value) => value.toString(16).padStart(2, '0')).join('')
+  return { definition, assets: new Map([['asset-spare-key-cover', cover]]) }
+}
+
 describe('safe .ldmcase packages', () => {
   it('rejects traversal, duplicate, oversized, remote and SVG entries', () => {
     expect(validatePackageEntries([{ path: '../case.json', compressedSize: 1, size: 1 }]).some((issue) => issue.code === 'PATH_TRAVERSAL')).toBe(true)
@@ -22,9 +32,9 @@ describe('safe .ldmcase packages', () => {
   })
 
   it('exports a deterministic .ldmcase name and round trips the strict case', async () => {
-    const definition = minimalCase()
-    const first = await exportCasePackage(definition, new Map())
-    const second = await exportCasePackage(definition, new Map())
+    const { definition, assets } = await packageFixture()
+    const first = await exportCasePackage(definition, assets)
+    const second = await exportCasePackage(definition, assets)
     expect(first.filename).toBe('case-spare-key-1.0.0.ldmcase')
     expect(first.bytes).toEqual(second.bytes)
     const imported = await importCasePackage(first.bytes, first.filename)
@@ -34,7 +44,8 @@ describe('safe .ldmcase packages', () => {
   })
 
   it('warns for legacy .lmdcase but always exports .ldmcase', async () => {
-    const exported = await exportCasePackage(minimalCase(), new Map())
+    const { definition, assets } = await packageFixture()
+    const exported = await exportCasePackage(definition, assets)
     const imported = await importCasePackage(exported.bytes, 'legacy.lmdcase')
     expect(imported.warnings.some((warning) => warning.includes('.ldmcase'))).toBe(true)
     expect(exported.filename.endsWith('.ldmcase')).toBe(true)
@@ -42,7 +53,8 @@ describe('safe .ldmcase packages', () => {
 
   it('rejects invalid signatures and checksum tampering', async () => {
     await expect(importCasePackage(strToU8('not-a-zip'), 'broken.ldmcase')).rejects.toThrow()
-    const exported = await exportCasePackage(minimalCase(), new Map())
+    const { definition, assets } = await packageFixture()
+    const exported = await exportCasePackage(definition, assets)
     const entries = unzipSync(exported.bytes)
     const parsed = JSON.parse(strFromU8(entries['case.json']!)) as Record<string, unknown>
     parsed.title = '被篡改'
@@ -57,6 +69,11 @@ describe('safe .ldmcase packages', () => {
     await expect(exportCasePackage(remote, new Map())).rejects.toThrow(/远程|校验/)
     const scripted = { ...minimalCase(), script: 'globalThis.pwned=true' }
     await expect(exportCasePackage(scripted, new Map())).rejects.toThrow(/可执行|校验/)
+  })
+
+  it('rejects asset bytes that do not match the declared hash', async () => {
+    const { definition } = await packageFixture()
+    await expect(exportCasePackage(definition, new Map([['asset-spare-key-cover', strToU8('not-the-cover')]]))).rejects.toThrow(/大小|哈希/)
   })
 
   it('installs and removes user cases without allowing built-in replacement', async () => {

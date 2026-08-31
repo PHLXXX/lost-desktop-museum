@@ -1,33 +1,12 @@
 import type { AppId } from '../cases/types'
-import { CalendarApp } from '../features/apps/CalendarApp'
-import { FilesApp } from '../features/apps/FilesApp'
-import { HistoryApp } from '../features/apps/HistoryApp'
-import { LogsApp } from '../features/apps/LogsApp'
-import { MailApp } from '../features/apps/MailApp'
-import { MessagesApp } from '../features/apps/MessagesApp'
-import { PhotosApp } from '../features/apps/PhotosApp'
-import { RecycleApp } from '../features/apps/RecycleApp'
-import { SettingsApp } from '../features/apps/SettingsApp'
-import { EvidenceBoardApp } from '../features/evidence-board/EvidenceBoardApp'
-import { AudioWorkbenchApp, BroadcastConsoleApp, DataDeskApp, SitemapApp, TerminalApp, VersionDiffApp } from '../features/apps/ExtendedApps'
+import { getCaseDefinition } from '../cases/registry'
+import { useGameStore } from '../store/gameStore'
+import { appComponentRegistry } from './appComponentRegistry'
 
 export function AppContent({ appId, onDeduction, onResult }: { appId: AppId; onDeduction?: () => void; onResult?: () => void }) {
-  switch (appId) {
-    case 'files': return <FilesApp />
-    case 'messages': return <MessagesApp />
-    case 'mail': return <MailApp />
-    case 'photos': return <PhotosApp />
-    case 'browser': return <HistoryApp />
-    case 'calendar': return <CalendarApp />
-    case 'recycle': return <RecycleApp />
-    case 'logs': return <LogsApp />
-    case 'evidence': return <EvidenceBoardApp onDeduction={onDeduction} onResult={onResult} />
-    case 'settings': return <SettingsApp />
-    case 'audio': return <AudioWorkbenchApp />
-    case 'broadcast': return <BroadcastConsoleApp />
-    case 'data': return <DataDeskApp />
-    case 'terminal': return <TerminalApp />
-    case 'versions': return <VersionDiffApp />
-    case 'sitemap': return <SitemapApp />
-  }
+  const caseId = useGameStore((state) => state.caseId)
+  const componentKey = getCaseDefinition(caseId).applications.find((app) => app.id === appId)?.componentKey ?? appId
+  const module = appComponentRegistry.get(componentKey)
+  if (!module) return <section className="unsupported-app"><h2>不支持的应用类型</h2><p>当前引擎无法加载组件“{componentKey}”。案件数据仍保留，请升级后重试。</p></section>
+  return module.render({ onDeduction, onResult })
 }

@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react'
 import { listAvailableCases, registerInstalledCase, unregisterInstalledCase } from '../../cases/registry'
 import type { CaseDefinition, GameSave } from '../../cases/types'
-import { createFreshSave, loadGameSave } from '../../engine/persistence'
+import { createFreshSave, loadGameSave, saveGameSave } from '../../engine/persistence'
 import { useGameStore } from '../../store/gameStore'
 import { useWindowStore } from '../../store/windowStore'
 import { ArchiveDialog } from '../system/ArchiveDialog'
 import { caseRepository } from '../../storage/caseRepository'
 import { assetRepository } from '../../storage/assetRepository'
+import { downloadFile } from '../../editor/utils/downloadFile'
 
 type MuseumDialog = 'about' | 'credits' | 'settings' | null
 
@@ -76,6 +77,25 @@ export function MuseumHome({ onOpenCase, onContinue, onOpenWorkshop }: { onOpenC
     } catch (error) { setImportNotice(error instanceof Error ? error.message : '案件导入失败。') }
   }
   const removeCase = async (caseId: string) => { await caseRepository.remove(caseId); await assetRepository.deleteOwner(caseId); unregisterInstalledCase(caseId); setCases(listAvailableCases()); setImportNotice('已移除导入案件；本地正式存档仍保留。') }
+  const exportProgress = async () => {
+    const definition = cases.find((item) => item.id === gameState.caseId)
+    if (!definition) return
+    const { exportSavePackage } = await import('../../packages/savePackage')
+    const exported = exportSavePackage(readSave(definition.id), definition.manifest.version)
+    downloadFile(exported.filename, exported.bytes, 'application/json')
+    setImportNotice(`已导出玩家进度：${exported.filename}`)
+  }
+  const importProgress = async (file: File | undefined) => {
+    if (!file) return
+    try {
+      const { importSavePackage } = await import('../../packages/savePackage')
+      const imported = importSavePackage(new Uint8Array(await file.arrayBuffer()), file.name)
+      if (!cases.some((item) => item.id === imported.save.caseId)) throw new Error(`尚未安装对应案件：${imported.save.caseId}`)
+      saveGameSave(window.localStorage, imported.save)
+      if (gameState.caseId === imported.save.caseId) activateCase(imported.save.caseId)
+      setImportNotice(`已恢复 ${imported.save.caseId} 的玩家进度。`)
+    } catch (error) { setImportNotice(error instanceof Error ? error.message : '玩家进度导入失败。') }
+  }
   return (
     <main className="museum-shell">
       <header className="museum-header">
@@ -91,7 +111,7 @@ export function MuseumHome({ onOpenCase, onContinue, onOpenWorkshop }: { onOpenC
       <div className="museum-cases">
         {cases.map((definition) => <ExhibitRow key={definition.id} definition={definition} saveOverride={definition.id === gameState.caseId ? gameState : undefined} onOpen={() => onOpenCase(definition.id)} onContinue={() => onContinue(definition.id)} onRestart={() => setRestartCaseId(definition.id)} onRemove={definition.manifest.builtIn ? undefined : () => void removeCase(definition.id)} />)}
       </div>
-      <div className="museum-utility-actions"><label className="museum-import-button">安装.ldmcase<input type="file" accept=".ldmcase,.lmdcase" onChange={(event) => { void importCase(event.target.files?.[0]); event.target.value = '' }} /></label><button onClick={() => setDialog('settings')}>设置</button><button onClick={() => setDialog('credits')}>制作人员</button></div>
+      <div className="museum-utility-actions"><label className="museum-import-button">安装.ldmcase<input type="file" accept=".ldmcase,.lmdcase" onChange={(event) => { void importCase(event.target.files?.[0]); event.target.value = '' }} /></label><button onClick={() => void exportProgress()}>导出.ldmsave</button><label className="museum-import-button">恢复.ldmsave<input type="file" accept=".ldmsave" onChange={(event) => { void importProgress(event.target.files?.[0]); event.target.value = '' }} /></label><button onClick={() => setDialog('settings')}>设置</button><button onClick={() => setDialog('credits')}>制作人员</button></div>
       <footer className="museum-footer"><span>本地展馆 · 无账户 · 无数据上传</span><span>ARCHIVE/OS COLLECTION 2032</span></footer>
 
       {dialog === 'about' && <ArchiveDialog title="关于本馆" onClose={() => setDialog(null)} actions={<button className="primary-button" onClick={() => setDialog(null)}>知道了</button>}><p>馆藏调查完全在当前浏览器中运行。我们不会上传存档、推理或玩家便笺。</p></ArchiveDialog>}

@@ -18,7 +18,9 @@ export async function exportProjectPackage(project: AuthoringProject, assets = n
   for (const path of [...entries.keys()].sort()) checksums[path] = await sha256(entries.get(path)!)
   entries.set('checksums.json', bytes(checksums))
   const ordered = Object.fromEntries([...entries.entries()].sort(([a], [b]) => a.localeCompare(b)))
-  return { filename: `${project.caseId || 'untitled'}.ldmproject`, bytes: zipSync(ordered, { level: 6, mtime: fixedDate }) }
+  const result = { filename: `${project.caseId || 'untitled'}.ldmproject`, bytes: zipSync(ordered, { level: 6, mtime: fixedDate }) }
+  await importProjectPackage(result.bytes, result.filename)
+  return result
 }
 
 export async function importProjectPackage(packageBytes: Uint8Array, filename: string) {
@@ -35,4 +37,3 @@ export async function importProjectPackage(packageBytes: Uint8Array, filename: s
   if (!migrated.ok) throw new Error(`工程数据无法迁移：${migrated.error}`)
   return { project: migrated.project, assets: new Map(Object.entries(entries).filter(([path]) => path.startsWith('assets/'))) }
 }
-
