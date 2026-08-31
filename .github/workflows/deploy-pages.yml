@@ -26,6 +26,8 @@ jobs:
       - uses: actions/configure-pages@v6
       - run: npm ci
       - run: npm run build
+        env:
+          VITE_COMMUNITY_REGISTRY_URL: ${{ vars.COMMUNITY_REGISTRY_URL || format('https://{0}.github.io/lost-desktop-museum-community/registry/v1/index.json', github.repository_owner) }}
       - uses: actions/upload-pages-artifact@v5
         with:
           path: dist
