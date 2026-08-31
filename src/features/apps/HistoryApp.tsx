@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { caseDefinition } from '../../cases/case-001/case'
+import { useActiveCaseDefinition } from '../../cases/useActiveCase'
 import type { BrowserHistoryEntry } from '../../cases/types'
 import { useGameStore } from '../../store/gameStore'
 import { AppStatusBar, AppToolbar, PaneHeader } from './AppChrome'
@@ -7,6 +7,7 @@ import { AppStatusBar, AppToolbar, PaneHeader } from './AppChrome'
 const domain = (category: string) => ({ 旅行: 'travel.local', 隐私: 'privacy.local', 生活: 'life.local', 工作: 'studio.local', 其他: 'archive.local' }[category] ?? 'archive.local')
 
 export function HistoryApp() {
+  const caseDefinition = useActiveCaseDefinition()
   const [query, setQuery] = useState('')
   const [date, setDate] = useState('全部日期')
   const [descending, setDescending] = useState(true)
@@ -15,7 +16,7 @@ export function HistoryApp() {
   const entries = useMemo(() => caseDefinition.browser.filter((entry) => {
     const haystack = `${entry.title} ${domain(entry.category)} ${entry.category} 本机浏览器`.toLowerCase()
     return (date === '全部日期' || date === '2031-11-17') && haystack.includes(query.toLowerCase())
-  }).sort((a, b) => descending ? b.time.localeCompare(a.time) : a.time.localeCompare(b.time)), [query, date, descending])
+  }).sort((a, b) => descending ? b.time.localeCompare(a.time) : a.time.localeCompare(b.time)), [caseDefinition.browser, query, date, descending])
 
   const openEntry = (entry: BrowserHistoryEntry) => { setSelected(entry); investigate({ type: 'OPEN_ITEM', itemId: entry.id }) }
   const clueId = selected?.clueId

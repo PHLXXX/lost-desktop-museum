@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react'
 import type { CSSProperties, MouseEvent } from 'react'
 import { ArchiveIcon } from '../../components/icons/ArchiveIcon'
-import { caseDefinition } from '../../cases/case-001/case'
+import { useActiveCaseDefinition } from '../../cases/useActiveCase'
 import type { AppId } from '../../cases/types'
 import { AppContent } from '../../app/AppContent'
-import { appRegistry } from '../../app/appRegistry'
+import { getRuntimeAppRegistry } from '../../app/appRegistry'
 import { playArchiveSound } from '../../engine/audioEngine'
 import { useGameStore } from '../../store/gameStore'
 import { useWindowStore } from '../../store/windowStore'
@@ -25,6 +25,8 @@ export function Desktop({
   onDeduction?: () => void
   onResult?: () => void
 }) {
+  const caseDefinition = useActiveCaseDefinition()
+  const runtimeApps = getRuntimeAppRegistry(caseDefinition)
   const { windows, activeWindowId, openWindow, restoreWindow, minimizeWindow } = useWindowStore()
   const {
     discoveredClueIds,
@@ -109,7 +111,7 @@ export function Desktop({
     event.preventDefault()
     setContextMenu({ x: Math.max(8, Math.min(event.clientX, innerWidth - 190)), y: Math.max(40, Math.min(event.clientY, innerHeight - 250)) })
   }
-  const desktopApps = sortByName ? [...appRegistry].sort((a, b) => a.title.localeCompare(b.title, 'zh-CN')) : appRegistry
+  const desktopApps = sortByName ? [...runtimeApps].sort((a, b) => a.title.localeCompare(b.title, 'zh-CN')) : runtimeApps
   return (
     <main
       className={`desktop ${settings.anomalies ? 'anomalies' : ''} ${compactIcons ? 'compact-icons' : ''}`}
@@ -125,7 +127,7 @@ export function Desktop({
     >
       <header className="desktop-status">
         <div>
-          <span className="live-dot" /> ARCHIVE/OS 3.1 <b>案件 LD-001</b>
+          <span className="live-dot" /> {caseDefinition.desktop.systemName} <b>案件 {caseDefinition.id}</b>
         </div>
         <div>
           <SaveIndicator />
@@ -135,10 +137,10 @@ export function Desktop({
       <section className="desktop-case-strip">
         <div>
           <span>正在调查</span>
-          <strong>没有出发的旅行</strong>
+          <strong>{caseDefinition.title}</strong>
         </div>
         <p>检查具体记录，系统会把可验证的矛盾写入证据板。</p>
-        <b>{discoveredClueIds.length.toString().padStart(2, '0')} / 12</b>
+        <b>{discoveredClueIds.length.toString().padStart(2, '0')} / {caseDefinition.clues.length}</b>
       </section>
       <div className="desktop-grid" aria-label="桌面应用">
         {desktopApps.map((app) => (
@@ -188,7 +190,7 @@ export function Desktop({
         <WindowFrame
           key={window.id}
           window={window}
-          title={appRegistry.find((app) => app.id === window.id)?.title ?? window.id}
+          title={runtimeApps.find((app) => app.id === window.id)?.title ?? window.id}
         >
           <AppContent appId={window.id} onDeduction={onDeduction} onResult={onResult} />
         </WindowFrame>
@@ -197,7 +199,7 @@ export function Desktop({
         <aside className="clue-toast" role="status" aria-label="线索通知">
           <span>
             {lastClue
-              ? `${lastClue.id} · ${appRegistry.find((app) => app.id === lastClue.source)?.title}`
+              ? `${lastClue.id} · ${runtimeApps.find((app) => app.id === lastClue.source)?.title}`
               : 'SYSTEM'}
           </span>
           <strong>{notice.startsWith('发现线索：') ? '新证据已记录' : '系统通知'}</strong>
@@ -221,7 +223,7 @@ export function Desktop({
         </button>
         <div className="running-apps">
           {windows.map((window) => {
-            const title = appRegistry.find((app) => app.id === window.id)?.title ?? window.id
+            const title = runtimeApps.find((app) => app.id === window.id)?.title ?? window.id
             return (
               <button
                 key={window.id}
@@ -241,7 +243,7 @@ export function Desktop({
         </div>
         <button className="progress-button" onClick={() => openSelected('evidence')}>
           <span>已记录</span>
-          <strong>{discoveredClueIds.length} / 12</strong>
+          <strong>{discoveredClueIds.length} / {caseDefinition.clues.length}</strong>
         </button>
         <span className="taskbar-sound" aria-label={`音效${settings.sound ? '开启' : '关闭'}`}>{settings.sound ? '音效 开' : '音效 关'}</span>
         <time className="taskbar-clock">{displayClock}</time>
@@ -253,7 +255,7 @@ export function Desktop({
         onOpenSettings={() => openSelected('settings')}
       />
       <Onboarding />
-      {caseInfo && <ArchiveDialog title="案件信息" onClose={() => setCaseInfo(false)} actions={<button className="primary-button" onClick={() => setCaseInfo(false)}>返回桌面</button>}><p>档案 001：没有出发的旅行</p><p>已记录 {discoveredClueIds.length} / 12。所有调查进度仅保存在当前浏览器。</p></ArchiveDialog>}
+      {caseInfo && <ArchiveDialog title="案件信息" onClose={() => setCaseInfo(false)} actions={<button className="primary-button" onClick={() => setCaseInfo(false)}>返回桌面</button>}><p>{caseDefinition.id}：{caseDefinition.title}</p><p>已记录 {discoveredClueIds.length} / {caseDefinition.clues.length}。所有调查进度仅保存在当前浏览器。</p></ArchiveDialog>}
       <div className="orientation-notice">当前宽度会限制多窗口操作；应用已优先使用最大化布局。</div>
     </main>
   )

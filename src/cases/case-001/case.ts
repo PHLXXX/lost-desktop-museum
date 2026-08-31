@@ -1,10 +1,29 @@
 import airportImage from '../../assets/illustrations/airport.svg'
 import type { CaseDefinition, ClueDefinition } from '../types'
 
-const clue = (id: string, title: string, summary: string, explanation: string, source: ClueDefinition['source'], type: ClueDefinition['discovery']['type'], itemId: string, people: string[], times: string[], places: string[], isCore = true, isRedHerring = false): ClueDefinition => ({ id, title, summary, explanation, source, discovery: { type, itemId }, people, times, places, isCore, isRedHerring })
+const clue = (id: string, title: string, summary: string, explanation: string, source: ClueDefinition['source'], type: ClueDefinition['discovery']['type'], itemId: string, people: string[], times: string[], places: string[], isCore = true, isRedHerring = false): ClueDefinition => ({ id, title, summary, explanation, source, discovery: { type, itemId }, condition: { type: 'event', eventType: type, targetId: itemId }, people, times, places, isCore, isRedHerring })
+
+const applications = ([
+  ['files', '我的文件'], ['messages', '讯息'], ['mail', '邮件'], ['photos', '照片'], ['browser', '浏览记录'],
+  ['calendar', '日历'], ['recycle', '回收站'], ['logs', '系统日志'], ['evidence', '证据板'], ['settings', '设置'],
+] as const).map(([id, title], index) => ({ id, componentKey: id, title, enabled: true, desktopX: 32 + (index % 2) * 210, desktopY: 84 + Math.floor(index / 2) * 74 }))
 
 export const caseDefinition: CaseDefinition = {
+  formatVersion: 1,
   id: 'case-001', title: '没有出发的旅行', owner: '周屿',
+  manifest: {
+    caseId: 'case-001', version: '1.0.0', title: '没有出发的旅行', subtitle: '最后一次登录', author: 'Lost Desktop Museum', language: 'zh-CN',
+    summary: '从航班取消、旧照片与本地登录记录中还原周屿的最后轨迹。', estimatedMinutes: 25, difficulty: '普通', tags: ['身份', '旅行', '数字遗物'], contentWarnings: ['失踪主题'], builtIn: true, archivedAt: '2031-11-18T00:00:00+08:00',
+  },
+  subject: { name: '周屿', age: 29, occupation: '纪录片剪辑师', location: '海津', lastLoginAt: '2031-11-17T23:48:00+08:00' },
+  entities: [
+    { id: 'person-zhou-yu', type: 'person', name: '周屿', summary: '电脑主人', description: '自由纪录片剪辑师。', aliases: [], tags: ['主人'] },
+    { id: 'person-lin-ran', type: 'person', name: '林然', summary: '隐藏账户名称', description: '与周屿身份计划有关的名字。', aliases: ['LINRAN'], tags: ['账户'] },
+    { id: 'location-haijin', type: 'location', name: '海津', summary: '最后活动城市', description: '周屿居住与工作的城市。', aliases: [], tags: [] },
+  ],
+  desktop: { systemName: 'ARCHIVE/OS 3.1', bootMessage: '正在恢复最后一次会话', lastLoginMessage: '2031.11.17 23:48', themeColor: '#d9ad45', wallpaperAssetId: 'airport-illustration' },
+  applications,
+  assets: [{ id: 'airport-illustration', kind: 'image', mime: 'image/svg+xml', path: airportImage, size: 0, sha256: '0'.repeat(64), alt: '海津机场候机区插图' }],
   timeline: ([
     ['2031-08-03 18:46', '在海津机场拍摄照片'], ['2031-10-08 02:14', '创建隐藏账户 LINRAN'],
     ['2031-11-17 21:54', '搜索更改照片时间'], ['2031-11-17 22:06', '搜索未登机通知'], ['2031-11-17 22:41', 'HX217 订单取消'],
@@ -67,6 +86,12 @@ export const caseDefinition: CaseDefinition = {
     ['log-mirror', '2031-11-17 23:43', 'ZHOU_YU', '文件', 'mirror.lock 被访问', ''], ['log-flight', '2031-11-17 22:45', 'ZHOU_YU', '文件', 'HX217 文件被删除又恢复', ''],
     ['log-linran', '2031-11-17 23:48', 'LINRAN', '登录', '从 HOME-NET-5G 本地网络登录', 'C08'], ['log-crash', '2031-11-17 23:50', 'SYSTEM', '异常', '系统异常中断', ''],
   ] satisfies [string, string, string, string, string, string][]).map(([id, time, user, eventType, detail, clueId]) => ({ id, time, user, eventType, detail, clueId: clueId || undefined })),
+  audioTracks: [],
+  broadcastEvents: [],
+  dataTables: [],
+  terminalEntries: [],
+  versionDiffs: [],
+  sitemap: [],
   clues: [
     clue('C01', '被取消的航班', '航班在出发前一晚取消。', '22:41 的邮件确认 HX217 已取消。', 'mail', 'OPEN_ITEM', 'flight-cancel', ['周屿'], ['2031-11-17 22:41'], ['海津']),
     clue('C02', '机场谎言', '取消后仍声称已经到机场。', '周屿在航班取消后对唐遥称已到机场。', 'messages', 'OPEN_ITEM', 't2', ['周屿', '唐遥'], ['2031-11-17 23:12'], ['海津机场']),
@@ -90,6 +115,12 @@ export const caseDefinition: CaseDefinition = {
     { id: 'what', prompt: '周屿最可能做了什么？', options: [{ id: 'normal-trip', label: '正常前往北岸市' }, { id: 'forced', label: '被人强迫带走' }, { id: 'fabricated-departure', label: '主动制造已经离开的假象' }, { id: 'unknown', label: '证据不足' }], correctId: 'fabricated-departure', points: 25 },
     { id: 'where', prompt: '23:48时周屿或LINRAN最可能在哪里？', options: [{ id: 'airport', label: '海津机场' }, { id: 'north', label: '北岸市' }, { id: 'home', label: '周屿的住所' }, { id: 'unknown', label: '无法判断' }], correctId: 'home', points: 20 },
     { id: 'who', prompt: '林然最可能是谁？', options: [{ id: 'new-identity', label: '周屿准备使用的新身份' }, { id: 'friend', label: '周屿的朋友' }, { id: 'relative', label: '房东的亲属' }, { id: 'airline', label: '航空公司工作人员' }], correctId: 'new-identity', points: 20 },
+  ],
+  resultLevels: [
+    { id: 'archive-chaotic', label: '档案仍然混乱', minScore: 0, maxScore: 49, description: '关键矛盾仍未解释。' },
+    { id: 'archive-partial', label: '推理存在未解释矛盾', minScore: 50, maxScore: 69, description: '部分事实已经恢复。' },
+    { id: 'archive-main', label: '主要事实已还原', minScore: 70, maxScore: 89, description: '主要轨迹已经闭合。' },
+    { id: 'archive-complete', label: '档案重建完成', minScore: 90, maxScore: 100, description: '证据关系完整。' },
   ],
   coreEvidenceIds: ['C01', 'C02', 'C03', 'C05', 'C08', 'C09'], correctContradictions: [['C01', 'C02'], ['C03', 'C04']],
   ending: '你找到的不是答案，只是一种能让这些文件说得通的顺序。',

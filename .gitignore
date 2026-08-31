@@ -3,6 +3,7 @@ dist/
 coverage/
 playwright-report/
 test-results/
+release-assets/
 .env
 .env.*
 !.env.example
@@ -10,4 +11,3 @@ test-results/
 *.tsbuildinfo
 .DS_Store
 Thumbs.db
-

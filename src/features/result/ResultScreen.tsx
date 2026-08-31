@@ -1,4 +1,4 @@
-import { caseDefinition } from '../../cases/case-001/case'
+import { useActiveCaseDefinition } from '../../cases/useActiveCase'
 import { useGameStore } from '../../store/gameStore'
 
 export function ResultScreen({
@@ -8,6 +8,7 @@ export function ResultScreen({
   onReturnMuseum: () => void
   onReviewEvidence: () => void
 }) {
+  const caseDefinition = useActiveCaseDefinition()
   const { deductionResult: result, discoveredClueIds, pinnedClueIds, saveNow } = useGameStore()
   if (!result) return null
   return (

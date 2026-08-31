@@ -1,42 +1,39 @@
 # 案件数据格式
 
-新案件应位于 `src/cases/<case-id>/`，通过 `CaseDefinition` 描述内容，不修改窗口管理器、线索引擎或存档内核。
+v0.4.0 使用严格 `CaseDefinition` 作为所有内置和已安装案件的运行时合同。内置案件位于 `src/cases/`；用户案件由档案工坊编译并以 `.ldmcase` 安装，不需要修改 React 组件。
 
-## 必填域
+## 顶层结构
 
-- `id`、`title`、`owner`
-- 已按 ISO 风格本地时间排序的 `timeline`
-- `folders`、`files`、`chats`、`emails`、`browser`、`calendar`、`photos`、`logs`
-- `clues`、`triggers`、三个或更多 `questions`
-- `coreEvidenceIds`、`correctContradictions`、`ending`
+- `formatVersion`、`id`、`title`、`owner`。
+- `manifest`、`subject`、`entities`、`timeline`。
+- `desktop`、`applications`、`assets`。
+- 文件、聊天、邮件、浏览记录、日历、照片和系统日志。
+- 音频、广播、数据表、模拟终端、版本差异和站点地图。
+- `clues`、`triggers`、`questions`、`resultLevels`、核心证据、正确关系和结局。
 
-每个内容条目使用案件内唯一的稳定 ID。正式资源放在 `src/assets` 并通过模块导入；不得使用远程 URL。
+每个内容条目使用案件内稳定 ID。组件通过 `componentKey` 注册表加载；未知组件会阻止第三方案件发布，而不是运行任意代码。
 
-## 发现动作
+## 发现事件与条件
 
-线索必须绑定一个明确玩家动作：
+事件包括打开条目、查看元数据、比较条目、查看转写、解锁、查看日志、邮件头、恢复文件、运行模拟命令、查看音频标记、地图位置、版本差异和建立证据关系。仅打开应用不会自动获得全部线索。
 
-- `OPEN_ITEM`：打开具体邮件、消息、历史或日历事件
-- `VIEW_METADATA`：主动展开照片元数据
-- `COMPARE_ITEMS`：检查需要比较的文件版本
-- `VIEW_TRANSCRIPT`：主动打开辅助转写
-- `UNLOCK_ITEM`：完成模拟密码解锁
-- `VIEW_LOG`：查看具体日志详情
+条件支持 `event`、`all`、`any`、`clue`、`clue-count`、`relation` 和 `trigger`，最多 5 层、30 节点，并禁止循环线索依赖。
 
-仅打开应用不能自动获得其全部线索。`discoverClues` 必须能从动作稳定得到线索，重复动作不能重复发现。
+## 资源
 
-## 触发器
-
-一次性事件使用稳定 `id`，条件可依据线索数量或首次打开项目。触发后 ID 写入 `triggeredEventIds`，刷新与重复操作不得再次执行。
+正式用户资源只能使用 PNG、JPEG、WebP、WAV、OGG、TXT 与 Markdown，并通过 `assetId` 或正式资源路径引用。包内资源必须与声明的大小和 SHA-256 一致，不允许远程 URL；第三方案件禁止 SVG。内置案件可以继续使用经过仓库审查的本地 SVG。
 
 ## 验证清单
 
-1. `caseDefinitionSchema.parse(caseDefinition)` 成功。
-2. 时间线按时间升序。
-3. 线索 ID 唯一且连续。
-4. 每条线索有合法来源、发现动作、人物、时间和地点。
-5. 每条线索可由正常 UI 操作到达。
-6. 所有答案、核心证据和正确矛盾关系引用有效 ID。
-7. 所有正式资源本地化。
-8. 新案件拥有完整玩家旅程测试。
+1. `caseDefinitionSchema.parse` 成功，ID 唯一且引用有效。
+2. `manifest.caseId` 与顶层 ID 一致，用户案件不覆盖内置 ID。
+3. 每条线索可由已启用应用中的真实动作到达。
+4. 条件目标、前置线索和触发器存在且无循环。
+5. 推理题总分 100，结果等级无重叠、无缺口覆盖 0—100。
+6. 核心证据、正确关系和答案引用现有 ID。
+7. 触发器只使用白名单效果，并提供必要的安全模式/减弱动画替代。
+8. 所有资源本地化、类型允许、哈希匹配。
+9. `.ldmcase` 导出后可以重新导入并开始真实调查。
+
+编辑器草稿和编译细节见 [CASE_DRAFT_MODEL.md](CASE_DRAFT_MODEL.md)，包格式见 [PROJECT_FORMAT.md](PROJECT_FORMAT.md)。
 

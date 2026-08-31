@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { caseDefinition } from '../../cases/case-001/case'
+import { useActiveCaseDefinition } from '../../cases/useActiveCase'
 import type { EmailMessage } from '../../cases/types'
 import { useGameStore } from '../../store/gameStore'
 import { AppStatusBar, AppToolbar, PaneHeader } from './AppChrome'
@@ -8,11 +8,12 @@ type MailFolder = EmailMessage['folder'] | '已发送' | '垃圾邮件' | '已�
 const folders: MailFolder[] = ['收件箱', '已发送', '草稿', '垃圾邮件', '已删除']
 
 export function MailApp() {
+  const caseDefinition = useActiveCaseDefinition()
   const [folder, setFolder] = useState<MailFolder>('收件箱')
   const [query, setQuery] = useState('')
   const [selected, setSelected] = useState<EmailMessage | null>(caseDefinition.emails[0] ?? null)
   const { investigate, discoveredClueIds, pinnedClueIds, togglePinned } = useGameStore()
-  const messages = useMemo(() => caseDefinition.emails.filter((email) => email.folder === folder && `${email.from} ${email.subject} ${email.body}`.toLowerCase().includes(query.toLowerCase())), [folder, query])
+  const messages = useMemo(() => caseDefinition.emails.filter((email) => email.folder === folder && `${email.from} ${email.subject} ${email.body}`.toLowerCase().includes(query.toLowerCase())), [caseDefinition.emails, folder, query])
 
   const changeFolder = (nextFolder: MailFolder) => {
     setFolder(nextFolder)

@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
-import { caseDefinition } from '../../cases/case-001/case'
+import { useActiveCaseDefinition } from '../../cases/useActiveCase'
 import { useGameStore } from '../../store/gameStore'
 
 export function DeductionDialog({ onClose, onResult }: { onClose: () => void; onResult?: () => void }) {
+  const caseDefinition = useActiveCaseDefinition()
   const { pinnedClueIds, evidenceRelations, submit } = useGameStore()
   const [answers, setAnswers] = useState<Record<string, string>>({})
   const [note, setNote] = useState('')

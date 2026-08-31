@@ -1,18 +1,18 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { caseDefinition } from '../../cases/case-001/case'
+import { useActiveCaseDefinition } from '../../cases/useActiveCase'
 import type { VirtualFile } from '../../cases/types'
 import { verifyItemPassword } from '../../engine/clueEngine'
 import { playArchiveSound } from '../../engine/audioEngine'
 import { useGameStore } from '../../store/gameStore'
 import { AppStatusBar, AppToolbar, PaneHeader } from './AppChrome'
 
-const sidebarFolders = ['全部档案', '桌面', '文档', '照片', '旅行计划', '工作', '日记', '录音', '不要打开', '回收站']
-
 function fileType(file: VirtualFile) { return file.locked ? '受保护档案' : (file.name.split('.').at(-1)?.toUpperCase() ?? '文件') }
 function fileSize(file: VirtualFile) { return `${Math.max(2, Math.ceil(file.content.length / 12))} KB` }
 function modifiedAt(file: VirtualFile) { return file.id === 'farewell-v3' ? '2031.11.17 23:07' : `2031.11.${String(12 + (file.name.length % 6)).padStart(2, '0')} 22:${String(file.content.length % 60).padStart(2, '0')}` }
+function systemUser(owner: string) { return owner.replace(/\s+/g, '_').toUpperCase() }
 
 function FilePreview({ file }: { file: VirtualFile }) {
+  const caseDefinition = useActiveCaseDefinition()
   const { investigate, unlockedItemIds, unlockMirror, openIdentityDraft } = useGameStore()
   const [password, setPassword] = useState('')
   const [error, setError] = useState(false)
@@ -23,9 +23,13 @@ function FilePreview({ file }: { file: VirtualFile }) {
 }
 
 export function FilesApp() {
+  const caseDefinition = useActiveCaseDefinition()
   const { investigate, openIdentityDraft, restoredItemIds, discoveredClueIds, pinnedClueIds, togglePinned } = useGameStore()
-  const [folder, setFolder] = useState('旅行计划')
-  const [history, setHistory] = useState(['旅行计划'])
+  const initialFolder = caseDefinition.folders[0]?.name ?? caseDefinition.files[0]?.folder ?? '全部档案'
+  const sidebarFolders = useMemo(() => ['全部档案', ...new Set([...caseDefinition.folders.map((item) => item.name), ...caseDefinition.files.map((item) => item.folder), '回收站'])], [caseDefinition.files, caseDefinition.folders])
+  const username = systemUser(caseDefinition.owner)
+  const [folder, setFolder] = useState(initialFolder)
+  const [history, setHistory] = useState([initialFolder])
   const [historyIndex, setHistoryIndex] = useState(0)
   const [query, setQuery] = useState('')
   const [descending, setDescending] = useState(false)
@@ -55,7 +59,7 @@ export function FilesApp() {
       return folder === '回收站' || folder === '全部档案'
     }
     return folder === '全部档案' || file.folder === folder
-  }), [folder, restoredItemIds])
+  }), [caseDefinition.files, folder, restoredItemIds])
   const visible = useMemo(() => filesWithRestores.filter((file) => file.name.toLowerCase().includes(query.toLowerCase())).sort((a, b) => {
     const comparison = sort === 'name' ? a.name.localeCompare(b.name) : modifiedAt(a).localeCompare(modifiedAt(b))
     return descending ? -comparison : comparison
@@ -78,7 +82,7 @@ export function FilesApp() {
         <button aria-label="后退" disabled={historyIndex === 0} onClick={() => { const index = historyIndex - 1; setHistoryIndex(index); setFolder(history[index]!); setSelected(null) }}>←</button>
         <button aria-label="前进" disabled={historyIndex >= history.length - 1} onClick={() => { const index = historyIndex + 1; setHistoryIndex(index); setFolder(history[index]!); setSelected(null) }}>→</button>
         <button aria-label="上一级" disabled={folder === '全部档案'} onClick={() => navigate('全部档案')}>↑</button>
-        <span className="path-field">本机 / 用户 / ZHOU_YU / {folder}</span>
+        <span className="path-field">本机 / 用户 / {username} / {folder}</span>
         <input type="search" aria-label="搜索文件" placeholder="搜索当前文件夹" value={query} onChange={(event) => setQuery(event.target.value)} />
         <button onClick={() => { setSort(sort === 'name' ? 'modified' : 'name'); setDescending(false) }}>{sort === 'name' ? '按名称' : '按修改时间'}</button>
         <button onClick={() => setDescending(!descending)} aria-label="切换排序方向">{descending ? '↓' : '↑'}</button>
@@ -95,7 +99,7 @@ export function FilesApp() {
         </section>
         <section className="file-preview" aria-label="文件详情">
           <PaneHeader title={properties ? '属性' : '预览'} meta={selected?.name} />
-          {selected ? properties ? <dl className="property-list"><dt>文件名</dt><dd>{selected.name}</dd><dt>文件类型</dt><dd>{fileType(selected)}</dd><dt>路径</dt><dd>ZHOU_YU/{restoredItemIds.includes(selected.id) ? selected.originalFolder : selected.folder}</dd><dt>大小</dt><dd>{fileSize(selected)}</dd><dt>创建时间</dt><dd>2031.10.08 02:14</dd><dt>修改时间</dt><dd>{modifiedAt(selected)}</dd><dt>是否隐藏</dt><dd>{selected.locked ? '是' : '否'}</dd><dt>所属用户</dt><dd>ZHOU_YU</dd></dl> : <FilePreview file={selected} /> : <div className="empty-state">选择一个项目以查看内容</div>}
+          {selected ? properties ? <dl className="property-list"><dt>文件名</dt><dd>{selected.name}</dd><dt>文件类型</dt><dd>{fileType(selected)}</dd><dt>路径</dt><dd>{username}/{restoredItemIds.includes(selected.id) ? selected.originalFolder : selected.folder}</dd><dt>大小</dt><dd>{selected.size ? `${selected.size} bytes` : fileSize(selected)}</dd><dt>创建时间</dt><dd>{selected.createdAt ?? '未记录'}</dd><dt>修改时间</dt><dd>{selected.modifiedAt ?? modifiedAt(selected)}</dd><dt>是否隐藏</dt><dd>{selected.hidden || selected.locked ? '是' : '否'}</dd><dt>所属用户</dt><dd>{selected.owner ?? username}</dd></dl> : <FilePreview file={selected} /> : <div className="empty-state">选择一个项目以查看内容</div>}
         </section>
       </div>
       <AppStatusBar><span>{visible.length} 个项目</span><span>{selected ? `已选择 1 个 · ${selected.name}` : '未选择项目'}</span><span>{folder}</span></AppStatusBar>
