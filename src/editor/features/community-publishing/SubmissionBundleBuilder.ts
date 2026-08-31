@@ -14,7 +14,8 @@ export interface SubmissionMetadata {
 export interface BuildSubmissionInput { packageBytes: Uint8Array; packageFilename: string; publisher: CommunityPublisher; metadata: SubmissionMetadata; screenshots: SubmissionScreenshot[]; generatedAt?: string }
 export interface BuiltSubmissionBundle { filename: string; bytes: Uint8Array; suggestedDirectory: string; suggestedPullRequestTitle: string; suggestedPullRequestBody: string; entry: CommunityCatalogEntry }
 
-const fixedDate = new Date('1980-01-01T00:00:00.000Z')
+// ZIP stores local date fields, so use the same wall-clock value everywhere.
+const fixedDate = new Date(1980, 0, 1, 0, 0, 0)
 const encoder = new TextEncoder()
 function jsonBytes(value: unknown) { return encoder.encode(`${JSON.stringify(value, null, 2)}\n`) }
 async function sha256(bytes: Uint8Array) {

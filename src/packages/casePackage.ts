@@ -11,7 +11,9 @@ const casePackageManifestSchema = z.object({ packageFormatVersion: z.literal(1),
 export interface ExportedPackage { filename: string; bytes: Uint8Array }
 export interface ImportedCasePackage { caseDefinition: CaseDefinition; manifest: CasePackageManifest; assets: Map<string, Uint8Array>; warnings: string[] }
 
-const fixedDate = new Date('1980-01-01T00:00:00Z')
+// fflate serializes local date fields into the ZIP header. Constructing the
+// epoch in local time keeps those fields identical in every runner timezone.
+const fixedDate = new Date(1980, 0, 1, 0, 0, 0)
 const encoder = new TextEncoder()
 
 function jsonBytes(value: unknown) { return encoder.encode(`${JSON.stringify(value, null, 2)}\n`) }
