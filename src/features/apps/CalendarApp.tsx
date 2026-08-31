@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { caseDefinition } from '../../cases/case-001/case'
+import { useActiveCaseDefinition } from '../../cases/useActiveCase'
 import type { CalendarEvent } from '../../cases/types'
 import { useGameStore } from '../../store/gameStore'
 import { AppStatusBar, AppToolbar, PaneHeader } from './AppChrome'
@@ -7,6 +7,7 @@ import { AppStatusBar, AppToolbar, PaneHeader } from './AppChrome'
 const monthLabel = (month: number) => `2031 年 ${month} 月`
 
 export function CalendarApp() {
+  const caseDefinition = useActiveCaseDefinition()
   const [mode, setMode] = useState<'month' | 'list'>('month')
   const [month, setMonth] = useState(11)
   const [selected, setSelected] = useState<CalendarEvent | null>(caseDefinition.calendar[0] ?? null)

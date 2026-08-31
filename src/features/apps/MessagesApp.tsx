@@ -1,14 +1,15 @@
 import { useMemo, useState } from 'react'
-import { caseDefinition } from '../../cases/case-001/case'
+import { useActiveCaseDefinition } from '../../cases/useActiveCase'
 import { useGameStore } from '../../store/gameStore'
 import { useWindowStore } from '../../store/windowStore'
 import { AppStatusBar, AppToolbar, PaneHeader } from './AppChrome'
 
 export function MessagesApp() {
+  const caseDefinition = useActiveCaseDefinition()
   const [thread, setThread] = useState(caseDefinition.chats[0]!)
   const [query, setQuery] = useState('')
   const { investigate, discoveredClueIds, pinnedClueIds, togglePinned } = useGameStore()
-  const visibleThreads = useMemo(() => caseDefinition.chats.filter((item) => `${item.title} ${item.messages.map((message) => message.text).join(' ')}`.includes(query)), [query])
+  const visibleThreads = useMemo(() => caseDefinition.chats.filter((item) => `${item.title} ${item.messages.map((message) => message.text).join(' ')}`.includes(query)), [caseDefinition.chats, query])
   const activeThread = visibleThreads.find((item) => item.id === thread.id) ?? visibleThreads[0] ?? thread
   const threadClues = activeThread.messages.flatMap((message) => message.clueId ? [message.clueId] : []).filter((id) => discoveredClueIds.includes(id))
 

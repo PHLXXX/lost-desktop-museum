@@ -1,11 +1,12 @@
 import { create } from 'zustand'
-import { caseDefinition } from '../cases/case-001/case'
+import { getCaseDefinition } from '../cases/registry'
 import type { DeductionResult, EvidenceRelation, InvestigationAction, WindowSnapshot } from '../cases/types'
 import { discoverClues } from '../engine/clueEngine'
 import { playArchiveSound } from '../engine/audioEngine'
 import { clearGameSave, createFreshSave, loadGameSave, saveGameSave } from '../engine/persistence'
 import { scoreDeduction } from '../engine/scoringEngine'
 import { evaluateTriggers } from '../engine/triggerEngine'
+import { eventKey } from '../engine/conditionEngine'
 
 type GameState = ReturnType<typeof createFreshSave> & {
   saveStatus: 'idle' | 'saving' | 'saved' | 'error'
@@ -30,6 +31,7 @@ type GameState = ReturnType<typeof createFreshSave> & {
   setOnboardingComplete: (complete: boolean) => void
   setDesktopNote: (note: string) => void
   updateWindowSnapshots: (windows: WindowSnapshot[]) => void
+  activateCase: (caseId: string) => void
 }
 
 const storage = typeof window === 'undefined' ? undefined : window.localStorage
@@ -53,17 +55,19 @@ export const useGameStore = create<GameState>((set, get) => ({
   corruptSave: loaded.status === 'corrupt',
   investigate: (action) => {
     const state = get()
-    const newIds = discoverClues(caseDefinition, action, state.discoveredClueIds)
+    const caseDefinition = getCaseDefinition(state.caseId)
+    const completedEventKeys = [...new Set([...state.completedEventKeys, eventKey(action.type, action.itemId)])]
+    const newIds = discoverClues(caseDefinition, action, state.discoveredClueIds, completedEventKeys)
     const discoveredClueIds = [...state.discoveredClueIds, ...newIds]
     const effects = evaluateTriggers(caseDefinition, discoveredClueIds, state.triggeredEventIds, action.type === 'OPEN_ITEM' ? action.itemId : undefined)
     const triggeredEventIds = [...state.triggeredEventIds, ...effects.map((effect) => effect.id)]
-    const unlockedItemIds = [...state.unlockedItemIds, ...effects.flatMap((effect) => effect.itemId ? [effect.itemId] : [])]
+    const unlockedItemIds = [...state.unlockedItemIds, ...effects.flatMap((effect) => 'itemId' in effect ? [effect.itemId] : [])]
     const openedItems = state.openedItems.includes(action.itemId) ? state.openedItems : [...state.openedItems, action.itemId]
     if (newIds.length) playArchiveSound('clue', state.settings.sound)
     const clueTitle = newIds.length ? caseDefinition.clues.find((clue) => clue.id === newIds[0])?.title : null
     const eventMessage = effects.at(-1)?.message
     const notice = clueTitle ? `发现线索：${clueTitle}${eventMessage ? `｜${eventMessage}` : ''}` : eventMessage ?? state.notice
-    set({ discoveredClueIds, triggeredEventIds, unlockedItemIds, openedItems, notice })
+    set({ discoveredClueIds, triggeredEventIds, unlockedItemIds, openedItems, completedEventKeys, notice })
     persist(get(), (saveStatus) => set({ saveStatus }))
   },
   unlockMirror: () => {
@@ -72,6 +76,7 @@ export const useGameStore = create<GameState>((set, get) => ({
     persist(get(), (saveStatus) => set({ saveStatus }))
   },
   openIdentityDraft: () => {
+    const caseDefinition = getCaseDefinition(get().caseId)
     const effects = evaluateTriggers(caseDefinition, get().discoveredClueIds, get().triggeredEventIds, 'identity-draft')
     set((state) => ({ triggeredEventIds: [...state.triggeredEventIds, ...effects.map((effect) => effect.id)], notice: effects[0]?.message ?? state.notice }))
     persist(get(), (saveStatus) => set({ saveStatus }))
@@ -83,6 +88,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   updateSettings: (settings) => { set((state) => ({ settings: { ...state.settings, ...settings } })); persist(get(), (saveStatus) => set({ saveStatus })) },
   submit: (answers, note) => {
     const state = get()
+    const caseDefinition = getCaseDefinition(state.caseId)
     const contradictionPairs = state.evidenceRelations.filter((relation) => relation.type === '相互矛盾').map((relation) => [relation.from, relation.to] as [string, string])
     const result = scoreDeduction(caseDefinition, { answers, evidenceIds: state.pinnedClueIds, contradictionPairs, note })
     set({
@@ -94,10 +100,11 @@ export const useGameStore = create<GameState>((set, get) => ({
     return result
   },
   resetCase: () => {
+    const caseId = get().caseId
     const settings = get().settings
     const bestScore = get().bestScore
-    if (storage) clearGameSave(storage)
-    set({ ...createFreshSave(), settings, bestScore, notice: '案件已重置。', corruptSave: false })
+    if (storage) clearGameSave(storage, caseId)
+    set({ ...createFreshSave(caseId), settings, bestScore, notice: '案件已重置。', corruptSave: false })
     persist(get(), (saveStatus) => set({ saveStatus }))
   },
   markCaseStarted: () => {
@@ -122,4 +129,9 @@ export const useGameStore = create<GameState>((set, get) => ({
   setOnboardingComplete: (onboardingComplete) => { set({ onboardingComplete }); persist(get(), (saveStatus) => set({ saveStatus })) },
   setDesktopNote: (desktopNote) => { set({ desktopNote }); persist(get(), (saveStatus) => set({ saveStatus })) },
   updateWindowSnapshots: (currentWindows) => { set({ currentWindows }); persist(get(), (saveStatus) => set({ saveStatus })) },
+  activateCase: (caseId) => {
+    clearTimeout(saveTimer)
+    const next = storage ? loadGameSave(storage, caseId) : { status: 'fresh' as const, save: createFreshSave(caseId) }
+    set({ ...next.save, saveStatus: 'idle', notice: next.status === 'corrupt' ? '检测到无法读取的存档，原始数据已备份；你可以开始新的调查。' : null, corruptSave: next.status === 'corrupt' })
+  },
 }))

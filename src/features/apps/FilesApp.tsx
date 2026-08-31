@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { caseDefinition } from '../../cases/case-001/case'
+import { useActiveCaseDefinition } from '../../cases/useActiveCase'
 import type { VirtualFile } from '../../cases/types'
 import { verifyItemPassword } from '../../engine/clueEngine'
 import { playArchiveSound } from '../../engine/audioEngine'
@@ -13,6 +13,7 @@ function fileSize(file: VirtualFile) { return `${Math.max(2, Math.ceil(file.cont
 function modifiedAt(file: VirtualFile) { return file.id === 'farewell-v3' ? '2031.11.17 23:07' : `2031.11.${String(12 + (file.name.length % 6)).padStart(2, '0')} 22:${String(file.content.length % 60).padStart(2, '0')}` }
 
 function FilePreview({ file }: { file: VirtualFile }) {
+  const caseDefinition = useActiveCaseDefinition()
   const { investigate, unlockedItemIds, unlockMirror, openIdentityDraft } = useGameStore()
   const [password, setPassword] = useState('')
   const [error, setError] = useState(false)
@@ -23,6 +24,7 @@ function FilePreview({ file }: { file: VirtualFile }) {
 }
 
 export function FilesApp() {
+  const caseDefinition = useActiveCaseDefinition()
   const { investigate, openIdentityDraft, restoredItemIds, discoveredClueIds, pinnedClueIds, togglePinned } = useGameStore()
   const [folder, setFolder] = useState('旅行计划')
   const [history, setHistory] = useState(['旅行计划'])
@@ -55,7 +57,7 @@ export function FilesApp() {
       return folder === '回收站' || folder === '全部档案'
     }
     return folder === '全部档案' || file.folder === folder
-  }), [folder, restoredItemIds])
+  }), [caseDefinition.files, folder, restoredItemIds])
   const visible = useMemo(() => filesWithRestores.filter((file) => file.name.toLowerCase().includes(query.toLowerCase())).sort((a, b) => {
     const comparison = sort === 'name' ? a.name.localeCompare(b.name) : modifiedAt(a).localeCompare(modifiedAt(b))
     return descending ? -comparison : comparison

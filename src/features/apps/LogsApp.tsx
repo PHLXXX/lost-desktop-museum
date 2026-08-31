@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { caseDefinition } from '../../cases/case-001/case'
+import { useActiveCaseDefinition } from '../../cases/useActiveCase'
 import type { SystemLog } from '../../cases/types'
 import { useGameStore } from '../../store/gameStore'
 import { AppStatusBar, AppToolbar, PaneHeader } from './AppChrome'
@@ -17,6 +17,7 @@ function sourceFor(log: SystemLog) {
 }
 
 export function LogsApp() {
+  const caseDefinition = useActiveCaseDefinition()
   const [query, setQuery] = useState('')
   const [user, setUser] = useState('全部')
   const [type, setType] = useState('全部')
@@ -36,7 +37,7 @@ export function LogsApp() {
         && (time === '全部' || log.time.startsWith(time))
         && (level === '全部' || levelFor(log) === level)
     })
-  }, [level, query, time, type, user])
+  }, [caseDefinition.logs, level, query, time, type, user])
 
   const openLog = (log: SystemLog) => {
     setSelected(log)

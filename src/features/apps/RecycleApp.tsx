@@ -1,9 +1,10 @@
 import { useState } from 'react'
-import { caseDefinition } from '../../cases/case-001/case'
+import { useActiveCaseDefinition } from '../../cases/useActiveCase'
 import { useGameStore } from '../../store/gameStore'
 import { AppStatusBar, AppToolbar, PaneHeader } from './AppChrome'
 
 export function RecycleApp() {
+  const caseDefinition = useActiveCaseDefinition()
   const { unlockedItemIds, restoredItemIds, discoveredClueIds, pinnedClueIds, investigate, restoreItem, togglePinned } = useGameStore()
   const [selected, setSelected] = useState<string | null>(null)
   const files = caseDefinition.files.filter((file) => file.folder === '回收站' && (!file.locked || unlockedItemIds.includes(file.id)) && !restoredItemIds.includes(file.id))

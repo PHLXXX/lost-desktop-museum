@@ -1,10 +1,29 @@
 import airportImage from '../../assets/illustrations/airport.svg'
 import type { CaseDefinition, ClueDefinition } from '../types'
 
-const clue = (id: string, title: string, summary: string, explanation: string, source: ClueDefinition['source'], type: ClueDefinition['discovery']['type'], itemId: string, people: string[], times: string[], places: string[], isCore = true, isRedHerring = false): ClueDefinition => ({ id, title, summary, explanation, source, discovery: { type, itemId }, people, times, places, isCore, isRedHerring })
+const clue = (id: string, title: string, summary: string, explanation: string, source: ClueDefinition['source'], type: ClueDefinition['discovery']['type'], itemId: string, people: string[], times: string[], places: string[], isCore = true, isRedHerring = false): ClueDefinition => ({ id, title, summary, explanation, source, discovery: { type, itemId }, condition: { type: 'event', eventType: type, targetId: itemId }, people, times, places, isCore, isRedHerring })
+
+const applications = ([
+  ['files', '我的文件'], ['messages', '讯息'], ['mail', '邮件'], ['photos', '照片'], ['browser', '浏览记录'],
+  ['calendar', '日历'], ['recycle', '回收站'], ['logs', '系统日志'], ['evidence', '证据板'], ['settings', '设置'],
+] as const).map(([id, title], index) => ({ id, componentKey: id, title, enabled: true, desktopX: 32 + (index % 2) * 210, desktopY: 84 + Math.floor(index / 2) * 74 }))
 
 export const caseDefinition: CaseDefinition = {
+  formatVersion: 1,
   id: 'case-001', title: '没有出发的旅行', owner: '周屿',
+  manifest: {
+    caseId: 'case-001', version: '1.0.0', title: '没有出发的旅行', subtitle: '最后一次登录', author: 'Lost Desktop Museum', language: 'zh-CN',
+    summary: '从航班取消、旧照片与本地登录记录中还原周屿的最后轨迹。', estimatedMinutes: 25, difficulty: '普通', tags: ['身份', '旅行', '数字遗物'], contentWarnings: ['失踪主题'], builtIn: true, archivedAt: '2031-11-18T00:00:00+08:00',
+  },
+  subject: { name: '周屿', age: 29, occupation: '纪录片剪辑师', location: '海津', lastLoginAt: '2031-11-17T23:48:00+08:00' },
+  entities: [
+    { id: 'person-zhou-yu', type: 'person', name: '周屿', summary: '电脑主人', description: '自由纪录片剪辑师。', aliases: [], tags: ['主人'] },
+    { id: 'person-lin-ran', type: 'person', name: '林然', summary: '隐藏账户名称', description: '与周屿身份计划有关的名字。', aliases: ['LINRAN'], tags: ['账户'] },
+    { id: 'location-haijin', type: 'location', name: '海津', summary: '最后活动城市', description: '周屿居住与工作的城市。', aliases: [], tags: [] },
+  ],
+  desktop: { systemName: 'ARCHIVE/OS 3.1', bootMessage: '正在恢复最后一次会话', lastLoginMessage: '2031.11.17 23:48', themeColor: '#d9ad45', wallpaperAssetId: 'airport-illustration' },
+  applications,
+  assets: [{ id: 'airport-illustration', kind: 'image', mime: 'image/svg+xml', path: airportImage, size: 0, sha256: '0'.repeat(64), alt: '海津机场候机区插图' }],
   timeline: ([
     ['2031-08-03 18:46', '在海津机场拍摄照片'], ['2031-10-08 02:14', '创建隐藏账户 LINRAN'],
     ['2031-11-17 21:54', '搜索更改照片时间'], ['2031-11-17 22:06', '搜索未登机通知'], ['2031-11-17 22:41', 'HX217 订单取消'],

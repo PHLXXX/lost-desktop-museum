@@ -1,15 +1,18 @@
 import type { GameSave } from '../cases/types'
 
 export const SAVE_KEY = 'archive-os:case-001'
-export const CORRUPT_PREFIX = `${SAVE_KEY}:corrupt:`
+export const CORRUPT_PREFIX = 'archive-os:case:corrupt:'
 export const CURRENT_SAVE_VERSION = 2
 
-export function createFreshSave(): GameSave {
+export function getSaveKey(caseId: string): string { return caseId === 'case-001' ? SAVE_KEY : `archive-os:case:${caseId}` }
+
+export function createFreshSave(caseId = 'case-001'): GameSave {
   return {
     saveVersion: CURRENT_SAVE_VERSION,
-    caseId: 'case-001',
+    caseId,
     caseStarted: false,
     openedItems: [],
+    completedEventKeys: [],
     discoveredClueIds: [],
     pinnedClueIds: [],
     unlockedItemIds: [],
@@ -29,8 +32,8 @@ export function createFreshSave(): GameSave {
   }
 }
 
-export function migrateGameSave(input: unknown): GameSave {
-  const fresh = createFreshSave()
+export function migrateGameSave(input: unknown, caseId = 'case-001'): GameSave {
+  const fresh = createFreshSave(caseId)
   if (!input || typeof input !== 'object') return fresh
   const value = input as Partial<GameSave>
   const legacyWindows = Array.isArray(value.currentWindows) ? value.currentWindows : []
@@ -48,8 +51,10 @@ export function migrateGameSave(input: unknown): GameSave {
   return {
     ...fresh,
     ...value,
+    caseId,
     caseStarted,
     restoredItemIds: value.restoredItemIds ?? fresh.restoredItemIds,
+    completedEventKeys: value.completedEventKeys ?? fresh.completedEventKeys,
     evidenceNotes: value.evidenceNotes ?? fresh.evidenceNotes,
     bestScore: value.bestScore ?? value.deductionResult?.score ?? fresh.bestScore,
     currentWindows,
@@ -60,16 +65,22 @@ export function migrateGameSave(input: unknown): GameSave {
 }
 
 export function saveGameSave(storage: Storage, save: GameSave): void {
-  storage.setItem(SAVE_KEY, JSON.stringify({ ...save, lastSavedAt: new Date().toISOString() }))
+  const serialized = JSON.stringify({ ...save, lastSavedAt: new Date().toISOString() })
+  storage.setItem(getSaveKey(save.caseId), serialized)
 }
 
-export function loadGameSave(storage: Storage): { status: 'fresh' | 'loaded' | 'corrupt'; save: GameSave } {
-  const raw = storage.getItem(SAVE_KEY)
-  if (!raw) return { status: 'fresh', save: createFreshSave() }
-  try { return { status: 'loaded', save: migrateGameSave(JSON.parse(raw)) } } catch {
+export function loadGameSave(storage: Storage, caseId = 'case-001'): { status: 'fresh' | 'loaded' | 'corrupt'; save: GameSave } {
+  const key = getSaveKey(caseId)
+  const raw = storage.getItem(key) ?? (caseId === 'case-001' ? storage.getItem(SAVE_KEY) : null)
+  if (!raw) return { status: 'fresh', save: createFreshSave(caseId) }
+  try {
+    const save = migrateGameSave(JSON.parse(raw), caseId)
+    if (!storage.getItem(key)) saveGameSave(storage, save)
+    return { status: 'loaded', save }
+  } catch {
     try { storage.setItem(`${CORRUPT_PREFIX}${Date.now()}`, raw) } catch { /* recovery still returns a usable fresh save */ }
-    return { status: 'corrupt', save: createFreshSave() }
+    return { status: 'corrupt', save: createFreshSave(caseId) }
   }
 }
 
-export function clearGameSave(storage: Storage): void { storage.removeItem(SAVE_KEY) }
+export function clearGameSave(storage: Storage, caseId = 'case-001'): void { storage.removeItem(getSaveKey(caseId)) }

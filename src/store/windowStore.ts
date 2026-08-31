@@ -131,10 +131,9 @@ export const useWindowStore = create<WindowState>((set) => ({
       return { windows, activeWindowId: id }
     }),
   hydrateWindows: () =>
-    set({
-      windows: useGameStore
-        .getState()
-        .currentWindows.map((window, index) => ({ ...clampWindow(window), z: 101 + index })),
+    set(() => {
+      const windows = useGameStore.getState().currentWindows.map((window, index) => ({ ...clampWindow(window), z: 101 + index }))
+      return { windows, activeWindowId: windows.at(-1)?.id ?? null }
     }),
   resetWindows: () => {
     persistWindows([])

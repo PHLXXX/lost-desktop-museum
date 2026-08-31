@@ -1,9 +1,10 @@
 import { useState } from 'react'
-import { caseDefinition } from '../../cases/case-001/case'
+import { useActiveCaseDefinition } from '../../cases/useActiveCase'
 import { useGameStore } from '../../store/gameStore'
 import { AppStatusBar, AppToolbar, PaneHeader } from './AppChrome'
 
 export function PhotosApp() {
+  const caseDefinition = useActiveCaseDefinition()
   const [index, setIndex] = useState(0)
   const [metadata, setMetadata] = useState(false)
   const [rotation, setRotation] = useState(0)

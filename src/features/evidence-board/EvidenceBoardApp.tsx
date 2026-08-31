@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { caseDefinition } from '../../cases/case-001/case'
+import { useActiveCaseDefinition } from '../../cases/useActiveCase'
 import { useGameStore } from '../../store/gameStore'
 import { DeductionDialog } from './DeductionDialog'
 import { EvidenceCanvas } from './EvidenceCanvas'
@@ -10,6 +10,7 @@ import { filterEvidenceClues } from './evidenceFilters'
 import { clampEvidenceZoom, createEvidenceLayout } from './evidenceHistory'
 
 export function EvidenceBoardApp({ onDeduction, onResult }: { onDeduction?: () => void; onResult?: () => void }) {
+  const caseDefinition = useActiveCaseDefinition()
   const {
     discoveredClueIds,
     pinnedClueIds,
@@ -23,7 +24,7 @@ export function EvidenceBoardApp({ onDeduction, onResult }: { onDeduction?: () =
   const [deducing, setDeducing] = useState(false)
   const [zoom, setZoom] = useState(1)
   const [history, setHistory] = useState<Record<string, { x: number; y: number }>[]>([])
-  const clues = useMemo(() => filterEvidenceClues(caseDefinition.clues.filter((clue) => discoveredClueIds.includes(clue.id)), filters), [discoveredClueIds, filters])
+  const clues = useMemo(() => filterEvidenceClues(caseDefinition.clues.filter((clue) => discoveredClueIds.includes(clue.id)), filters), [caseDefinition.clues, discoveredClueIds, filters])
   const selected = caseDefinition.clues.find((clue) => clue.id === selectedId)
 
   const autoLayout = () => {
