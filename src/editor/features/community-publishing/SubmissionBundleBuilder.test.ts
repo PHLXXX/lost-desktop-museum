@@ -33,7 +33,13 @@ describe('community submission bundle', () => {
       'submission/CHANGELOG.md', 'submission/SUBMISSION.md', 'submission/case-community-sample-001-1.0.0.ldmcase',
       'submission/checksums.json', 'submission/entry.json', 'submission/publisher.json', 'submission/screenshots/cover.png',
     ])
-    const combined = Object.values(files).map((bytes) => strFromU8(bytes)).join('\n')
+    const packagePath = 'submission/case-community-sample-001-1.0.0.ldmcase'
+    const packagedCase = unzipSync(files[packagePath]!)
+    const textSubmissionFiles = Object.entries(files)
+      .filter(([path]) => !path.endsWith('.ldmcase') && !path.startsWith('submission/screenshots/'))
+      .map(([, bytes]) => strFromU8(bytes))
+    const textCaseFiles = ['manifest.json', 'case.json', 'checksums.json'].map((path) => strFromU8(packagedCase[path]!))
+    const combined = [...textSubmissionFiles, ...textCaseFiles].join('\n')
     expect(combined).not.toMatch(/archive-workshop|discoveredClueIds|evidenceRelations|[A-Z]:\\|github[_-]?token/i)
     expect(result.suggestedDirectory).toBe('catalog/cases/case-community-sample-001/1.0.0')
   })

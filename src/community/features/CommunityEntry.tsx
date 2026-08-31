@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { clearGameSave, loadGameSave, saveGameSave } from '../../engine/persistence'
 import { registerInstalledCase, unregisterInstalledCase } from '../../cases/registry'
+import { caseRepository } from '../../storage/caseRepository'
 import { ArchiveDialog } from '../../features/system/ArchiveDialog'
 import { getCommunityRegistryUrl } from '../config/communityConfig'
 import { CommunityRegistryClient, type RegistryLoadResult } from '../client/registryClient'
@@ -124,7 +125,7 @@ export default function CommunityEntry({ initialCaseId, onReturnMuseum, onStartC
       const progressSnapshot = loadGameSave(window.localStorage, detail.caseId).save
       const result = await communityInstallManager.rollback(detail.caseId, version, detail, progressSnapshot)
       if (result.restoredProgress) saveGameSave(window.localStorage, result.restoredProgress)
-      const definition = await (await import('../../storage/caseRepository')).caseRepository.get(detail.caseId)
+      const definition = await caseRepository.get(detail.caseId)
       if (definition) registerInstalledCase(definition)
       setInstallations((items) => [...items.filter((item) => item.caseId !== detail.caseId), result.record])
     } catch (reason) { setError(reason instanceof Error ? reason.message : '回滚失败，原版本保持不变。') }

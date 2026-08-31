@@ -1,4 +1,5 @@
 import { useActiveCaseDefinition } from '../../cases/useActiveCase'
+import { caseDisplayId } from '../../cases/casePresentation'
 import { useGameStore } from '../../store/gameStore'
 
 export function ResultScreen({
@@ -17,7 +18,7 @@ export function ResultScreen({
         <span className="brand-mark">A</span>
         <div>
           <strong>档案重建完成</strong>
-          <small>CASE LD-001 / LOCAL RESULT</small>
+          <small>CASE {caseDisplayId(caseDefinition)} / LOCAL RESULT</small>
         </div>
       </header>
       <section className="result-sheet">
@@ -28,7 +29,7 @@ export function ResultScreen({
           <b>{result.level}</b>
         </div>
         <article>
-          <h1>最后一次登录已形成一种可解释的顺序。</h1>
+          <h1>《{caseDefinition.title}》已形成一种可解释的调查顺序。</h1>
           <div className="score-breakdown">
             <span>
               核心判断 <b>{result.answerScore}/65</b>
@@ -41,14 +42,12 @@ export function ResultScreen({
             </span>
           </div>
           <p>
-            已发现 {discoveredClueIds.length}/12 条线索；标记的关键证据为{' '}
+            已发现 {discoveredClueIds.length}/{caseDefinition.clues.length} 条线索；标记的关键证据为{' '}
             {pinnedClueIds.join('、') || '无'}。
           </p>
           {result.note && <blockquote>{result.note}</blockquote>}
           <div className="ending">
-            <p>正在核对系统日志……</p>
-            <p>检测到新的本地会话。</p>
-            <p>用户 LINRAN 登录成功。</p>
+            <p>推理结果与证据引用已写入本地案件存档。</p>
             <strong>{caseDefinition.ending}</strong>
           </div>
           <div className="result-actions">

@@ -32,4 +32,25 @@ describe('game store persistence and notification policy', () => {
     expect(useGameStore.getState().discoveredClueIds).toEqual(['C01'])
     expect(useGameStore.getState().notice).toBeNull()
   })
+
+  it('does not inject another case identity after submitting a deduction', () => {
+    useGameStore.setState({
+      ...createFreshSave('case-002'),
+      pinnedClueIds: ['C01'],
+      saveStatus: 'idle',
+      notice: null,
+      corruptSave: false,
+    })
+
+    useGameStore.getState().submit(['local', 'no', 'cover'], '本地节目源与人员轨迹分离。')
+
+    expect(useGameStore.getState().notice).toBeNull()
+  })
+
+  it('keeps completed onboarding across cases', () => {
+    useGameStore.getState().setOnboardingComplete(true)
+    useGameStore.getState().activateCase('case-002')
+
+    expect(useGameStore.getState().onboardingComplete).toBe(true)
+  })
 })

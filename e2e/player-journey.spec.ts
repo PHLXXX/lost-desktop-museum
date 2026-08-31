@@ -13,7 +13,7 @@ async function startCase(page: Page) {
   await page.getByRole('button', { name: '查看案件简介' }).click()
   await page.getByRole('button', { name: '开始调查' }).click()
   await page.getByRole('button', { name: '跳过启动' }).click()
-  await page.getByRole('button', { name: '恢复上次会话' }).click()
+  await page.getByRole('button', { name: '进入调查桌面' }).click()
   const onboarding = page.getByRole('button', { name: '跳过介绍' })
   if (await onboarding.count()) await onboarding.click()
   await expect(page.getByTestId('desktop')).toBeVisible()
@@ -87,7 +87,7 @@ test('museum, case detail and distinct application screenshots render without er
   await page.screenshot({ path: 'docs/images/stage2-case-detail.png', fullPage: true })
   await page.getByRole('button', { name: '开始调查' }).click()
   await page.getByRole('button', { name: '跳过启动' }).click()
-  await page.getByRole('button', { name: '恢复上次会话' }).click()
+  await page.getByRole('button', { name: '进入调查桌面' }).click()
   await page.getByRole('button', { name: '跳过介绍' }).click()
   await page.screenshot({ path: 'docs/images/stage2-desktop.png', fullPage: true })
   await openApp(page, '我的文件')
@@ -241,6 +241,9 @@ test('sub-1024, reduced-motion and safe mode keep the main investigation path us
   await expect(page.getByText('当前宽度会限制多窗口操作')).toBeVisible()
   await expect(desktop).not.toHaveClass(/anomalies/)
   await openApp(page, '邮件')
+  await page.getByRole('button', { name: /HX217 订单取消成功/ }).click()
+  await expect(page.locator('.mail-reader')).toBeVisible()
+  await expect(page.locator('.mail-reader').getByText('您的 HX217 行程已取消，退款将在原渠道处理。', { exact: true })).toBeVisible()
   const box = await page.getByRole('dialog', { name: '邮件' }).boundingBox()
   expect(box?.x).toBeGreaterThanOrEqual(0)
   expect(box?.y).toBeGreaterThanOrEqual(0)
@@ -251,4 +254,42 @@ test('sub-1024, reduced-motion and safe mode keep the main investigation path us
   await expect(page.getByRole('heading', { name: /遗失的电脑/ })).toBeVisible()
   expect(errors).toEqual([])
   expect(failedResources).toEqual([])
+})
+
+test('narrow viewport can close an application instead of leaving a poisoned window snapshot', async ({ page }) => {
+  await page.setViewportSize({ width: 468, height: 700 })
+  await startCase(page)
+  const files = page.getByRole('button', { name: '我的文件', exact: true })
+  await files.click()
+  await files.press('Enter')
+  await expect(page.getByRole('dialog', { name: '我的文件' })).toBeVisible()
+
+  const noticeBox = await page.getByText('当前宽度会限制多窗口操作；应用已优先使用最大化布局。').boundingBox()
+  const closeBox = await page.getByRole('button', { name: '关闭 我的文件' }).boundingBox()
+  expect((closeBox?.y ?? 0)).toBeGreaterThanOrEqual((noticeBox?.y ?? 0) + (noticeBox?.height ?? 0))
+  expect((closeBox?.x ?? 0) + (closeBox?.width ?? 0)).toBeLessThanOrEqual(468)
+
+  await page.setViewportSize({ width: 320, height: 700 })
+  const phoneNoticeBox = await page.getByText('当前宽度会限制多窗口操作；应用已优先使用最大化布局。').boundingBox()
+  const phoneCloseBox = await page.getByRole('button', { name: '关闭 我的文件' }).boundingBox()
+  expect((phoneCloseBox?.y ?? 0)).toBeGreaterThanOrEqual((phoneNoticeBox?.y ?? 0) + (phoneNoticeBox?.height ?? 0))
+  expect((phoneCloseBox?.x ?? 0) + (phoneCloseBox?.width ?? 0)).toBeLessThanOrEqual(320)
+
+  await page.getByRole('button', { name: '关闭 我的文件' }).click()
+
+  await expect(page.getByRole('dialog', { name: '我的文件' })).toBeHidden()
+  await expect(page.getByRole('button', { name: /我的文件/ }).filter({ hasText: '我的文件' })).toHaveCount(1)
+})
+
+test('an open desktop window reflows when the viewport becomes narrow', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 })
+  await startCase(page)
+  await openApp(page, '邮件')
+
+  await page.setViewportSize({ width: 468, height: 700 })
+
+  const noticeBox = await page.getByText('当前宽度会限制多窗口操作；应用已优先使用最大化布局。').boundingBox()
+  const closeBox = await page.getByRole('button', { name: '关闭 邮件' }).boundingBox()
+  expect((closeBox?.y ?? 0)).toBeGreaterThanOrEqual((noticeBox?.y ?? 0) + (noticeBox?.height ?? 0))
+  expect((closeBox?.x ?? 0) + (closeBox?.width ?? 0)).toBeLessThanOrEqual(468)
 })

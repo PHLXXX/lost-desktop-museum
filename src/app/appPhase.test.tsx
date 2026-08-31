@@ -8,6 +8,7 @@ import { App } from './App'
 describe('stage two lifecycle', () => {
   beforeEach(() => {
     localStorage.clear()
+    window.history.replaceState(null, '', '#/museum')
     useGameStore.setState({ ...createFreshSave(), saveStatus: 'idle', notice: null, corruptSave: false })
   })
 
@@ -30,6 +31,7 @@ describe('stage two lifecycle', () => {
 
     expect(screen.getByTestId('desktop')).toBeInTheDocument()
     expect(screen.queryByRole('heading', { name: '遗失电脑博物馆' })).not.toBeInTheDocument()
+    expect(window.location.hash).toBe('#/cases/case-001')
   })
 
   it('shows progress metrics and museum actions without browser alert', async () => {

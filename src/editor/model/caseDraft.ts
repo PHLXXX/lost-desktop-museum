@@ -101,7 +101,7 @@ export function createMinimalTemplateDraft(): CaseDraft {
   ]
   draft.chats = [{ id: 'thread-luo-yu', title: '罗宇', messages: [{ id: 'message-corridor', sender: '罗宇', time: '18:45', text: '我只进去拿了巡查表，钥匙盒当时已经空了。', clueId: 'clue-message' }] }]
   draft.emails = [{ id: 'email-access', folder: '收件箱', from: '门禁系统', subject: '办公室临时通行记录', time: '18:43', body: '罗宇的门禁卡于18:42打开管理员办公室。', clueId: 'clue-access' }]
-  draft.browserHistory = [{ id: 'history-locker', time: '17:55', title: '东区储物柜临时密码', category: '内部帮助', clueId: 'clue-browser' }]
+  draft.browserHistory = [{ id: 'history-locker', time: '17:55', title: '东区储物柜临时密码', category: '内部帮助' }]
   draft.calendarEvents = [{ id: 'calendar-handover', date: '2032-06-18', title: '备用钥匙交接', note: '上午九点交给新值班员。', clueId: 'clue-calendar' }]
   draft.systemLogs = [{ id: 'log-cabinet', time: '2032-06-17 19:12', user: 'ZHOU.LAN', eventType: '文档打印', detail: '打印“备用钥匙补领单”一份', clueId: 'clue-print' }]
   const clue = (id: string, title: string, source: ClueDefinition['source'], eventType: ClueDefinition['discovery']['type'], itemId: string): ClueDefinition => ({ id, title, summary: title, explanation: `由${title}确认的时间线记录。`, source, discovery: { type: eventType, itemId }, condition: { type: 'event', eventType, targetId: itemId }, people: ['person-zhou-lan'], times: ['2032-06-17'], places: ['location-office'], isCore: true, isRedHerring: false })

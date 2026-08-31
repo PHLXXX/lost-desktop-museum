@@ -23,7 +23,7 @@ export function LogsApp() {
   const [type, setType] = useState('全部')
   const [time, setTime] = useState('全部')
   const [level, setLevel] = useState('全部')
-  const [selected, setSelected] = useState(caseDefinition.logs[0]!)
+  const [selected, setSelected] = useState<SystemLog | null>(caseDefinition.logs[0] ?? null)
   const investigate = useGameStore((state) => state.investigate)
 
   const logs = useMemo(() => {
@@ -44,6 +44,14 @@ export function LogsApp() {
     investigate({ type: 'VIEW_LOG', itemId: log.id })
   }
 
+  const times = [...new Set(caseDefinition.logs.flatMap((log) => /^(\d{4}-\d{2}-\d{2})/.exec(log.time)?.[1] ?? []))]
+  const users = [...new Set(caseDefinition.logs.map((log) => log.user))]
+  const eventTypes = [...new Set(caseDefinition.logs.map((log) => log.eventType))]
+
+  if (caseDefinition.logs.length === 0) {
+    return <div className="application logs-application"><section className="empty-state app-empty-state"><h2>没有恢复到系统日志</h2><p>当前案件包没有提供系统事件，其他调查应用仍可正常使用。</p></section><AppStatusBar><span>0 条系统事件</span><span>本地档案为空</span></AppStatusBar></div>
+  }
+
   return (
     <div className="application logs-application">
       <AppToolbar>
@@ -55,13 +63,13 @@ export function LogsApp() {
           onChange={(event) => setQuery(event.target.value)}
         />
         <select aria-label="时间筛选" value={time} onChange={(event) => setTime(event.target.value)}>
-          {['全部', '2031-11-17', '2031-10-08'].map((item) => <option key={item}>{item}</option>)}
+          {['全部', ...times].map((item) => <option key={item}>{item}</option>)}
         </select>
         <select aria-label="用户筛选" value={user} onChange={(event) => setUser(event.target.value)}>
-          {['全部', 'ZHOU_YU', 'LINRAN', 'SYSTEM'].map((item) => <option key={item}>{item}</option>)}
+          {['全部', ...users].map((item) => <option key={item}>{item}</option>)}
         </select>
         <select aria-label="事件类型筛选" value={type} onChange={(event) => setType(event.target.value)}>
-          {['全部', '登录', '账户', '文件', '异常'].map((item) => <option key={item}>{item}</option>)}
+          {['全部', ...eventTypes].map((item) => <option key={item}>{item}</option>)}
         </select>
         <select aria-label="级别筛选" value={level} onChange={(event) => setLevel(event.target.value)}>
           {['全部', '信息', '警告', '错误'].map((item) => <option key={item}>{item}</option>)}
@@ -72,7 +80,7 @@ export function LogsApp() {
         <section className="log-data-table" aria-label="系统日志列表">
           <div className="data-head"><span>时间</span><span>级别 / 用户</span><span>来源 / 编号</span><span>摘要</span></div>
           {logs.map((log) => (
-            <button key={log.id} data-selected={selected.id === log.id} onClick={() => openLog(log)}>
+            <button key={log.id} data-selected={selected?.id === log.id} onClick={() => openLog(log)}>
               <time>{log.time}</time>
               <span><b>{levelFor(log)}</b> · {log.user}</span>
               <span>{sourceFor(log)} · {log.id}</span>
@@ -83,7 +91,7 @@ export function LogsApp() {
         </section>
         <aside className="record-detail">
           <PaneHeader title="事件详情" />
-          <dl>
+          {selected ? <dl>
             <dt>事件 ID</dt><dd>{selected.id}</dd>
             <dt>时间戳</dt><dd>{selected.time}</dd>
             <dt>级别</dt><dd>{levelFor(selected)}</dd>
@@ -91,7 +99,7 @@ export function LogsApp() {
             <dt>事件类型</dt><dd>{selected.eventType}</dd>
             <dt>详情</dt><dd>{selected.detail}</dd>
             <dt>来源</dt><dd>ARCHIVE/OS 本地事件日志</dd>
-          </dl>
+          </dl> : <div className="empty-state">选择事件以查看详情</div>}
         </aside>
       </div>
       <AppStatusBar><span>显示 {logs.length} / {caseDefinition.logs.length} 条</span><span>完整性：已验证</span></AppStatusBar>

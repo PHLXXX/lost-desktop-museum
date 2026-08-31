@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import type { CSSProperties, MouseEvent } from 'react'
 import { ArchiveIcon } from '../../components/icons/ArchiveIcon'
 import { useActiveCaseDefinition } from '../../cases/useActiveCase'
+import { desktopArchiveDate } from '../../cases/casePresentation'
 import type { AppId } from '../../cases/types'
 import { AppContent } from '../../app/AppContent'
 import { getRuntimeAppRegistry } from '../../app/appRegistry'
@@ -16,6 +17,16 @@ import { WindowFrame } from '../window-manager/WindowFrame'
 import { DesktopContextMenu } from './DesktopContextMenu'
 import { isEditableTarget, isSaveShortcut } from './desktopShortcuts'
 
+function clockFromArchive(message: string) {
+  return /(\d{2}:\d{2})(?!.*\d{2}:\d{2})/.exec(message)?.[1] ?? '00:00'
+}
+
+function offsetClock(clock: string, minutes: number) {
+  const [hour = 0, minute = 0] = clock.split(':').map(Number)
+  const normalized = ((hour * 60 + minute + minutes) % 1440 + 1440) % 1440
+  return `${String(Math.floor(normalized / 60)).padStart(2, '0')}:${String(normalized % 60).padStart(2, '0')}`
+}
+
 export function Desktop({
   onReturnMuseum,
   onDeduction,
@@ -26,10 +37,11 @@ export function Desktop({
   onResult?: () => void
 }) {
   const caseDefinition = useActiveCaseDefinition()
-  const runtimeApps = getRuntimeAppRegistry(caseDefinition)
   const { windows, activeWindowId, openWindow, restoreWindow, minimizeWindow } = useWindowStore()
   const {
     discoveredClueIds,
+    unlockedItemIds,
+    restoredItemIds,
     triggeredEventIds,
     notice,
     dismissNotice,
@@ -38,6 +50,7 @@ export function Desktop({
     setDesktopNote,
     tickPlayTime,
   } = useGameStore()
+  const runtimeApps = getRuntimeAppRegistry(caseDefinition, { unlockedItemIds, restoredItemIds })
   const [selected, setSelected] = useState<AppId | null>(null)
   const [systemMenu, setSystemMenu] = useState(false)
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null)
@@ -45,12 +58,9 @@ export function Desktop({
   const [caseInfo, setCaseInfo] = useState(false)
   const [compactIcons, setCompactIcons] = useState(false)
   const [sortByName, setSortByName] = useState(false)
-  const [clock, setClock] = useState('23:48')
+  const [clock, setClock] = useState(() => clockFromArchive(caseDefinition.desktop.lastLoginMessage))
   useEffect(() => {
-    const timer = setInterval(
-      () => setClock((value) => (value === '23:48' ? '23:49' : '23:48')),
-      60000,
-    )
+    const timer = setInterval(() => setClock((value) => offsetClock(value, 1)), 60000)
     return () => clearInterval(timer)
   }, [])
   useEffect(() => {
@@ -97,8 +107,11 @@ export function Desktop({
     window.addEventListener('keydown', handleKeyboard)
     return () => window.removeEventListener('keydown', handleKeyboard)
   }, [contextMenu, setDesktopNote, showNote])
-  const displayClock =
-    settings.anomalies && triggeredEventIds.includes('event-identity') ? '23:47' : clock
+  const scriptedClockOffset = caseDefinition.triggers
+    .flatMap((trigger) => 'effect' in trigger ? [trigger.effect] : trigger.effects)
+    .filter((effect) => effect.type === 'CLOCK_OFFSET' && triggeredEventIds.includes(effect.id))
+    .reduce((total, effect) => total + (effect.type === 'CLOCK_OFFSET' ? effect.minutes : 0), 0)
+  const displayClock = settings.anomalies && !settings.safeMode ? offsetClock(clock, scriptedClockOffset) : clock
   const lastClue = caseDefinition.clues.find((clue) => clue.id === discoveredClueIds.at(-1))
   const openSelected = (id: AppId) => {
     playArchiveSound('open', settings.sound)
@@ -131,7 +144,7 @@ export function Desktop({
         </div>
         <div>
           <SaveIndicator />
-          <span>2031.11.17&nbsp;&nbsp;{displayClock}</span>
+          <span>{desktopArchiveDate(caseDefinition)}&nbsp;&nbsp;{displayClock}</span>
         </div>
       </header>
       <section className="desktop-case-strip">

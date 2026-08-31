@@ -2,7 +2,7 @@ import type { GameSave } from '../cases/types'
 
 export const SAVE_KEY = 'archive-os:case-001'
 export const CORRUPT_PREFIX = 'archive-os:case:corrupt:'
-export const CURRENT_SAVE_VERSION = 2
+export const CURRENT_SAVE_VERSION = 3
 
 export function getSaveKey(caseId: string): string {
   if (caseId.startsWith('preview-')) return `archive-workshop:preview:${caseId}`
@@ -26,6 +26,7 @@ export function createFreshSave(caseId = 'case-001'): GameSave {
     evidenceNotes: {},
     currentWindows: [],
     settings: { sound: true, anomalies: true, scanlines: 0.08, safeMode: false },
+    deductionDraft: { answers: {}, note: '' },
     deductionResult: null,
     bestScore: null,
     onboardingComplete: false,
@@ -59,6 +60,10 @@ export function migrateGameSave(input: unknown, caseId = 'case-001'): GameSave {
     restoredItemIds: value.restoredItemIds ?? fresh.restoredItemIds,
     completedEventKeys: value.completedEventKeys ?? fresh.completedEventKeys,
     evidenceNotes: value.evidenceNotes ?? fresh.evidenceNotes,
+    deductionDraft: {
+      answers: value.deductionDraft?.answers ?? fresh.deductionDraft.answers,
+      note: value.deductionDraft?.note ?? fresh.deductionDraft.note,
+    },
     bestScore: value.bestScore ?? value.deductionResult?.score ?? fresh.bestScore,
     currentWindows,
     saveVersion: CURRENT_SAVE_VERSION,

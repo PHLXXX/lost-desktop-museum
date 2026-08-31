@@ -5,8 +5,10 @@ import { registryCacheRepository, type RegistryCacheRepository } from '../cache/
 import { createRegistryUrlResolver } from './registryUrlResolver'
 import { fetchWithTimeout } from './fetchWithTimeout'
 import { compareSemver } from '../updates/semver'
+import { communityErrorMessage } from './communityErrorMessage'
 
 export interface RegistryLoadResult { index: CommunityRegistryIndex; source: 'network' | 'cache'; offline: boolean; fetchedAt: string; warning?: string }
+const asSentence = (message: string) => /[。！？]$/.test(message) ? message : `${message}。`
 export class CommunityRegistryClient {
   readonly resolver
   constructor(readonly indexUrl: string, private cache: RegistryCacheRepository = registryCacheRepository, private fetcher: typeof fetch = fetch) { this.resolver = createRegistryUrlResolver(indexUrl) }
@@ -20,9 +22,9 @@ export class CommunityRegistryClient {
       return { index, source: 'network', offline: false, fetchedAt }
     } catch (error) {
       if (cache) return { index: cache.index, source: 'cache', offline: true, fetchedAt: cache.fetchedAt, warning: '正在使用上次同步的社区目录。' }
-      const reason = error instanceof Error ? error.message : '网络错误'
-      if (storedCache && !cache) throw new Error(`社区目录需要更新的客户端版本：${reason}。已安装案件仍可正常使用。`, { cause: error })
-      throw new Error(`社区目录暂时不可用：${reason}。已安装案件仍可正常使用。`, { cause: error })
+      const reason = communityErrorMessage(error)
+      if (storedCache && !cache) throw new Error(`社区目录需要更新的客户端版本：${asSentence(reason)}已安装案件仍可正常使用。`, { cause: error })
+      throw new Error(`社区目录暂时不可用：${asSentence(reason)}已安装案件仍可正常使用。`, { cause: error })
     }
   }
   async detail(path: string, options: { force?: boolean; expectedVersion?: string; expectedCaseId?: string } = {}): Promise<CommunityCaseDetail> {
@@ -31,7 +33,7 @@ export class CommunityRegistryClient {
     const cached = await this.cached(); const cachedDetail = cached?.caseDetails[caseId]?.detail
     if (!options.force && cachedDetail && (!options.expectedVersion || cachedDetail.latestVersion === options.expectedVersion)) return cachedDetail
     try { const response = await fetchWithTimeout(this.resolver.resolve(path), {}, this.fetcher); if (!response.ok) throw new Error(`HTTP ${response.status}`); const detail = parseCommunityCaseDetail(await response.json()); if (detail.caseId !== caseId || options.expectedCaseId && detail.caseId !== options.expectedCaseId) throw new Error('社区案件详情内容与目录中的案件ID不一致。'); await this.cache.saveDetail(detail.caseId, detail); return detail }
-    catch (error) { if (cachedDetail) return cachedDetail; throw new Error(`社区案件详情不可用：${error instanceof Error ? error.message : '网络错误'}。`, { cause: error }) }
+    catch (error) { if (cachedDetail) return cachedDetail; throw new Error(`社区案件详情不可用：${asSentence(communityErrorMessage(error))}`, { cause: error }) }
   }
   async publisher(path: string, expectedPublisherId?: string): Promise<CommunityPublisher> {
     const publisherId = path.split('/').at(-1)?.replace(/\.json$/, '') ?? ''
