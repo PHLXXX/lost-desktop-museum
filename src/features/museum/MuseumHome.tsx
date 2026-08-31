@@ -1,10 +1,12 @@
-import { useState } from 'react'
-import { listBuiltInCases } from '../../cases/registry'
+import { useEffect, useState } from 'react'
+import { listAvailableCases, registerInstalledCase, unregisterInstalledCase } from '../../cases/registry'
 import type { CaseDefinition, GameSave } from '../../cases/types'
 import { createFreshSave, loadGameSave } from '../../engine/persistence'
 import { useGameStore } from '../../store/gameStore'
 import { useWindowStore } from '../../store/windowStore'
 import { ArchiveDialog } from '../system/ArchiveDialog'
+import { caseRepository } from '../../storage/caseRepository'
+import { assetRepository } from '../../storage/assetRepository'
 
 type MuseumDialog = 'about' | 'credits' | 'settings' | null
 
@@ -17,7 +19,7 @@ function readSave(caseId: string): GameSave {
   return typeof window === 'undefined' ? createFreshSave(caseId) : loadGameSave(window.localStorage, caseId).save
 }
 
-function ExhibitRow({ definition, saveOverride, onOpen, onContinue, onRestart }: { definition: CaseDefinition; saveOverride?: GameSave; onOpen: () => void; onContinue: () => void; onRestart: () => void }) {
+function ExhibitRow({ definition, saveOverride, onOpen, onContinue, onRestart, onRemove }: { definition: CaseDefinition; saveOverride?: GameSave; onOpen: () => void; onContinue: () => void; onRestart: () => void; onRemove?: () => void }) {
   const save = saveOverride ?? readSave(definition.id)
   const discovered = save.discoveredClueIds.length
   const hasProgress = save.caseStarted || discovered > 0 || save.playTime > 0
@@ -45,32 +47,51 @@ function ExhibitRow({ definition, saveOverride, onOpen, onContinue, onRestart }:
         <button className="primary-button" aria-label={suffix ? `${hasProgress ? '继续调查' : '开始调查'} ${suffix}` : undefined} onClick={hasProgress ? onContinue : onOpen}>{completed ? '重新进入档案' : hasProgress ? '继续调查' : '开始调查'}</button>
         <button className="secondary-button" aria-label={suffix ? `查看 ${suffix} 案件简介` : undefined} onClick={onOpen}>查看案件简介</button>
         {hasProgress && <button className="text-button" aria-label={suffix ? `重新调查 ${suffix}` : undefined} onClick={onRestart}>重新调查</button>}
+        {onRemove && <button className="text-button" onClick={onRemove}>移除导入案件</button>}
       </div>
     </section>
   )
 }
 
-export function MuseumHome({ onOpenCase, onContinue }: { onOpenCase: (caseId: string) => void; onContinue: (caseId: string) => void }) {
+export function MuseumHome({ onOpenCase, onContinue, onOpenWorkshop }: { onOpenCase: (caseId: string) => void; onContinue: (caseId: string) => void; onOpenWorkshop?: () => void }) {
   const gameState = useGameStore()
   const { settings, updateSettings, resetCase, activateCase, corruptSave, notice, dismissNotice } = gameState
   const [dialog, setDialog] = useState<MuseumDialog>(null)
   const [restartCaseId, setRestartCaseId] = useState<string | null>(null)
-  const cases = listBuiltInCases()
+  const [cases, setCases] = useState(listAvailableCases())
+  const [importNotice, setImportNotice] = useState<string | null>(null)
+  useEffect(() => { void caseRepository.list().then((items) => { items.forEach(registerInstalledCase); setCases(listAvailableCases()) }) }, [])
+  const importCase = async (file: File | undefined) => {
+    if (!file) return
+    try {
+      const { importCasePackage } = await import('../../packages/casePackage')
+      const imported = await importCasePackage(new Uint8Array(await file.arrayBuffer()), file.name)
+      await caseRepository.install(imported.caseDefinition)
+      registerInstalledCase(imported.caseDefinition)
+      for (const ref of imported.caseDefinition.assets) {
+        const bytes = imported.assets.get(ref.path) ?? imported.assets.get(ref.path.startsWith('assets/') ? ref.path : `assets/${ref.path}`)
+        if (bytes) await assetRepository.put({ assetKey: `${imported.caseDefinition.id}:${ref.id}`, ownerId: imported.caseDefinition.id, path: ref.path, mime: ref.mime, size: bytes.length, sha256: ref.sha256, blob: new Blob([bytes.slice().buffer], { type: ref.mime }) })
+      }
+      setCases(listAvailableCases()); setImportNotice(imported.warnings[0] ?? `已安装案件：${imported.caseDefinition.title}`)
+    } catch (error) { setImportNotice(error instanceof Error ? error.message : '案件导入失败。') }
+  }
+  const removeCase = async (caseId: string) => { await caseRepository.remove(caseId); await assetRepository.deleteOwner(caseId); unregisterInstalledCase(caseId); setCases(listAvailableCases()); setImportNotice('已移除导入案件；本地正式存档仍保留。') }
   return (
     <main className="museum-shell">
       <header className="museum-header">
         <div className="brand-lockup"><span className="brand-mark">A</span><div><strong>遗失电脑博物馆</strong><small>LOST DESKTOP MUSEUM</small></div></div>
-        <nav aria-label="博物馆导航"><button className="nav-current">馆藏</button><button onClick={() => setDialog('about')}>关于本馆</button></nav>
+        <nav aria-label="博物馆导航"><button className="nav-current">馆藏</button>{onOpenWorkshop && <button onClick={onOpenWorkshop}>档案工坊</button>}<button onClick={() => setDialog('about')}>关于本馆</button></nav>
       </header>
       {corruptSave && notice && <section className="museum-recovery" role="status" aria-label="存档恢复提示"><div><strong>存档恢复模式</strong><p>{notice}</p></div><button aria-label="关闭存档恢复提示" onClick={dismissNotice}>×</button></section>}
       <section className="museum-intro">
         <div><h1>遗失的电脑，<br />仍在等待最后一次登录。</h1><p>从数字遗物中，重新拼出一个人的最后轨迹。</p></div>
         <dl><div><dt>展品</dt><dd>{String(cases.length).padStart(2, '0')}</dd></div><div><dt>可记录线索</dt><dd>{cases.reduce((sum, item) => sum + item.clues.length, 0)}</dd></div><div><dt>运行方式</dt><dd>本地档案</dd></div></dl>
       </section>
+      {importNotice && <section className="museum-recovery" role="status"><div><strong>案件包</strong><p>{importNotice}</p></div><button aria-label="关闭案件包提示" onClick={() => setImportNotice(null)}>×</button></section>}
       <div className="museum-cases">
-        {cases.map((definition) => <ExhibitRow key={definition.id} definition={definition} saveOverride={definition.id === gameState.caseId ? gameState : undefined} onOpen={() => onOpenCase(definition.id)} onContinue={() => onContinue(definition.id)} onRestart={() => setRestartCaseId(definition.id)} />)}
+        {cases.map((definition) => <ExhibitRow key={definition.id} definition={definition} saveOverride={definition.id === gameState.caseId ? gameState : undefined} onOpen={() => onOpenCase(definition.id)} onContinue={() => onContinue(definition.id)} onRestart={() => setRestartCaseId(definition.id)} onRemove={definition.manifest.builtIn ? undefined : () => void removeCase(definition.id)} />)}
       </div>
-      <div className="museum-utility-actions"><button onClick={() => setDialog('settings')}>设置</button><button onClick={() => setDialog('credits')}>制作人员</button></div>
+      <div className="museum-utility-actions"><label className="museum-import-button">安装.ldmcase<input type="file" accept=".ldmcase,.lmdcase" onChange={(event) => { void importCase(event.target.files?.[0]); event.target.value = '' }} /></label><button onClick={() => setDialog('settings')}>设置</button><button onClick={() => setDialog('credits')}>制作人员</button></div>
       <footer className="museum-footer"><span>本地展馆 · 无账户 · 无数据上传</span><span>ARCHIVE/OS COLLECTION 2032</span></footer>
 
       {dialog === 'about' && <ArchiveDialog title="关于本馆" onClose={() => setDialog(null)} actions={<button className="primary-button" onClick={() => setDialog(null)}>知道了</button>}><p>馆藏调查完全在当前浏览器中运行。我们不会上传存档、推理或玩家便笺。</p></ArchiveDialog>}

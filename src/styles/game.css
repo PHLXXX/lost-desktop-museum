@@ -227,13 +227,58 @@
   justify-content: flex-end;
   gap: 8px;
 }
-.museum-utility-actions button {
+.museum-utility-actions button, .museum-import-button {
+  display: grid;
   height: 30px;
+  place-items: center;
   padding: 0 12px;
   color: var(--ink-2);
   border: 1px solid var(--line);
   background: var(--base-2);
 }
+.museum-import-button { cursor: pointer; }
+.museum-import-button input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+
+.extended-app { height: 100%; color: var(--ink-0); background: var(--base-1); }
+.audio-runtime, .diff-runtime { display: grid; grid-template-columns: 210px 1fr; }
+.audio-runtime > aside, .diff-runtime > aside { padding: 8px; border-right: 1px solid var(--line); background: var(--base-2); }
+.audio-runtime > aside button, .diff-runtime > aside button { display: grid; width: 100%; gap: 4px; padding: 9px; border: 0; border-bottom: 1px solid var(--line); background: transparent; text-align: left; }
+.audio-runtime > aside button.selected { background: var(--base-4); }
+.audio-runtime > aside small { color: var(--ink-2); font: 9px var(--font-data); }
+.audio-runtime > section, .diff-runtime > section { padding: 18px; }
+.audio-runtime header span, .data-runtime header span, .sitemap-runtime header span { color: var(--cyan); font: 9px var(--font-data); letter-spacing: .12em; }
+.audio-runtime h2, .data-runtime h2, .sitemap-runtime h2 { margin: 5px 0 14px; font-size: 17px; }
+.audio-wave { display: flex; height: 100px; align-items: center; gap: 3px; padding: 10px; border: 1px solid var(--line); background: var(--base-0); }
+.audio-wave i { width: 3px; background: #73938d; }
+.audio-runtime h3 { margin: 18px 0 7px; font-size: 12px; }
+.audio-runtime p { padding: 12px; color: var(--ink-1); border-left: 2px solid #657d78; background: var(--base-2); line-height: 1.7; }
+.broadcast-runtime > header { display: grid; height: 42px; align-items: center; padding: 0 12px; grid-template-columns: 150px 1fr auto; border-bottom: 1px solid var(--line); background: var(--base-2); font: 10px var(--font-data); }
+.broadcast-runtime > header b { color: #9fbea5; }
+.broadcast-runtime article { display: grid; padding: 14px; grid-template-columns: 90px 1fr; border-bottom: 1px solid var(--line); }
+.broadcast-runtime time { color: var(--cyan); font: 13px var(--font-data); }
+.broadcast-runtime article p { margin: 5px 0 0; color: var(--ink-2); }
+.data-runtime { padding: 16px; }
+.data-runtime table { width: 100%; border-collapse: collapse; }
+.data-runtime th, .data-runtime td { padding: 9px; border: 1px solid var(--line); text-align: left; }
+.data-runtime th { color: var(--ink-2); background: var(--base-3); font: 10px var(--font-data); }
+.terminal-runtime { display: grid; padding: 12px; grid-template-rows: 30px 1fr auto; background: #0d1314; font: 12px/1.6 var(--font-data); }
+.terminal-runtime > header { color: #7fa099; border-bottom: 1px solid #354440; }
+.terminal-output { padding: 14px 0; color: #b7c9c5; }
+.terminal-output span { color: #8db1a8; }
+.terminal-output pre { white-space: pre-wrap; }
+.terminal-runtime footer { display: flex; flex-wrap: wrap; gap: 6px; }
+.terminal-runtime footer button { min-height: 28px; color: #a8bbb6; border: 1px solid #43544f; background: #15201e; }
+.diff-runtime > section > header { padding: 8px; border-bottom: 1px solid var(--line); background: var(--base-2); font-weight: 700; }
+.diff-runtime > section > div { display: grid; height: calc(100% - 36px); grid-template-columns: 1fr 1fr; gap: 1px; background: var(--line); }
+.diff-runtime pre { margin: 0; padding: 14px; background: var(--base-0); white-space: pre-wrap; }
+.diff-runtime pre:first-child { border-left: 3px solid #8c5e5b; }
+.diff-runtime pre:last-child { border-left: 3px solid #5f8068; }
+.sitemap-runtime { position: relative; padding: 16px; }
+.sitemap-runtime > div { display: grid; max-width: 65%; gap: 12px; padding: 20px; border: 1px solid var(--line); }
+.sitemap-runtime > div button { display: flex; width: 180px; align-items: center; gap: 8px; padding: 8px; border: 1px solid var(--line); background: var(--base-3); text-align: left; }
+.sitemap-runtime > div button i { width: 7px; height: 7px; border: 1px solid var(--cyan); }
+.sitemap-runtime > aside { position: absolute; top: 70px; right: 16px; width: 30%; padding: 14px; border: 1px solid var(--line); background: var(--base-2); }
+.sitemap-runtime aside p { color: var(--ink-2); line-height: 1.6; }
 .museum-footer {
   display: flex;
   justify-content: space-between;
