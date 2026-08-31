@@ -1,0 +1,62 @@
+{
+  "schemaVersion": 1,
+  "caseId": "case-community-sample-001",
+  "publisherId": "ldm-team",
+  "title": "消失的备用钥匙",
+  "subtitle": "The Missing Spare Key",
+  "summary": "管理员办公室的备用钥匙在交接前消失。请检查本地文件、消息与访问记录。",
+  "language": "zh-CN",
+  "additionalLanguages": [
+    "en"
+  ],
+  "difficulty": "easy",
+  "estimatedMinutes": {
+    "min": 10,
+    "max": 15
+  },
+  "tags": [
+    "教学案件",
+    "办公室",
+    "时间线",
+    "文件记录",
+    "适合新手"
+  ],
+  "contentRating": "general",
+  "contentWarnings": [],
+  "status": "active",
+  "curated": true,
+  "featured": true,
+  "publisherPath": "registry/v1/publishers/ldm-team.json",
+  "latestVersion": "1.0.0",
+  "versions": [
+    {
+      "version": "1.0.0",
+      "packagePath": "packages/hash-mismatch.ldmcase",
+      "packageSha256": "0000000000000000000000000000000000000000000000000000000000000000",
+      "packageByteSize": 3829,
+      "engineCompatibility": {
+        "minimum": "0.5.0"
+      },
+      "saveCompatibility": {
+        "mode": "compatible",
+        "compatibleFromVersions": [
+          "1.0.0"
+        ]
+      },
+      "changelog": "首次发布教学案件。",
+      "screenshots": [
+        "screenshots/cover.png"
+      ],
+      "license": {
+        "name": "MIT",
+        "url": "https://opensource.org/license/mit"
+      },
+      "automatedValidation": {
+        "passed": true,
+        "checkedAt": "2026-08-31T00:00:00.000Z"
+      },
+      "publishedAt": "2026-08-31T00:00:00.000Z",
+      "updatedAt": "2026-08-31T00:00:00.000Z"
+    }
+  ]
+}

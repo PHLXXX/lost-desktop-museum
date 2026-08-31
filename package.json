@@ -9,6 +9,7 @@
     "lint": "eslint . --max-warnings=0",
     "test": "vitest run",
     "test:editor": "vitest run src/editor src/packages src/preview",
+    "test:community": "vitest run src/community src/editor/features/community-publishing",
     "test:coverage": "vitest run --coverage",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
@@ -16,6 +17,7 @@
     "validate:cases": "vitest run src/cases/validateCases.test.ts",
     "validate:editor-examples": "tsx scripts/validate-editor-examples.ts",
     "package:editor-examples": "tsx scripts/package-editor-examples.ts",
+    "generate:community-fixtures": "tsx scripts/generate-community-fixtures.ts",
     "check": "npm run typecheck && npm run lint && npm run test && npm run validate:cases && npm run validate:editor-examples && npm run build"
   },
   "dependencies": {

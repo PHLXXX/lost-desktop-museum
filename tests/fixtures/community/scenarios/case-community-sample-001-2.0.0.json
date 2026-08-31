@@ -1,0 +1,119 @@
+{
+  "schemaVersion": 1,
+  "caseId": "case-community-sample-001",
+  "publisherId": "ldm-team",
+  "title": "消失的备用钥匙",
+  "subtitle": "The Missing Spare Key",
+  "summary": "管理员办公室的备用钥匙在交接前消失。请检查本地文件、消息与访问记录。",
+  "language": "zh-CN",
+  "additionalLanguages": [
+    "en"
+  ],
+  "difficulty": "easy",
+  "estimatedMinutes": {
+    "min": 10,
+    "max": 15
+  },
+  "tags": [
+    "教学案件",
+    "办公室",
+    "时间线",
+    "文件记录",
+    "适合新手"
+  ],
+  "contentRating": "general",
+  "contentWarnings": [],
+  "status": "active",
+  "curated": true,
+  "featured": true,
+  "publisherPath": "registry/v1/publishers/ldm-team.json",
+  "latestVersion": "2.0.0",
+  "versions": [
+    {
+      "version": "1.0.0",
+      "packagePath": "packages/valid-1.0.0.ldmcase",
+      "packageSha256": "fb0a4daaa6d2bd0614004c3bbee25b6085f9e4403532ca91c0acc9dcde54897a",
+      "packageByteSize": 3829,
+      "engineCompatibility": {
+        "minimum": "0.5.0"
+      },
+      "saveCompatibility": {
+        "mode": "compatible",
+        "compatibleFromVersions": [
+          "1.0.0"
+        ]
+      },
+      "changelog": "首次发布教学案件。",
+      "screenshots": [
+        "screenshots/cover.png"
+      ],
+      "license": {
+        "name": "MIT",
+        "url": "https://opensource.org/license/mit"
+      },
+      "automatedValidation": {
+        "passed": true,
+        "checkedAt": "2026-08-31T00:00:00.000Z"
+      },
+      "publishedAt": "2026-08-31T00:00:00.000Z",
+      "updatedAt": "2026-08-31T00:00:00.000Z"
+    },
+    {
+      "version": "1.1.0",
+      "packagePath": "packages/valid-1.1.0.ldmcase",
+      "packageSha256": "19d1da7eef8d2418138ed1968ac6a5ccd7d3298cecd5d3ab25e33a1cfcc2920d",
+      "packageByteSize": 3863,
+      "engineCompatibility": {
+        "minimum": "0.5.0"
+      },
+      "saveCompatibility": {
+        "mode": "compatible",
+        "compatibleFromVersions": [
+          "1.0.0"
+        ]
+      },
+      "changelog": "补充交接记录说明，保持1.0.0进度兼容。",
+      "screenshots": [
+        "screenshots/cover.png"
+      ],
+      "license": {
+        "name": "MIT",
+        "url": "https://opensource.org/license/mit"
+      },
+      "automatedValidation": {
+        "passed": true,
+        "checkedAt": "2026-08-31T00:00:00.000Z"
+      },
+      "publishedAt": "2026-08-31T00:00:00.000Z",
+      "updatedAt": "2026-08-31T00:00:00.000Z"
+    },
+    {
+      "version": "2.0.0",
+      "packagePath": "packages/incompatible-2.0.0.ldmcase",
+      "packageSha256": "cc1c47309047d0b0f782fe73a26f99d10b7f47f3eaaafcb2fc9732fc35caaa4b",
+      "packageByteSize": 3775,
+      "engineCompatibility": {
+        "minimum": "0.5.0"
+      },
+      "saveCompatibility": {
+        "mode": "incompatible",
+        "compatibleFromVersions": [],
+        "notes": "测试版本移除了clue-handover。"
+      },
+      "changelog": "重排线索结构并移除旧交接线索，仅用于不兼容更新测试。",
+      "screenshots": [
+        "screenshots/cover.png"
+      ],
+      "license": {
+        "name": "MIT",
+        "url": "https://opensource.org/license/mit"
+      },
+      "automatedValidation": {
+        "passed": true,
+        "checkedAt": "2026-08-31T00:00:00.000Z"
+      },
+      "publishedAt": "2026-08-31T00:00:00.000Z",
+      "updatedAt": "2026-08-31T00:00:00.000Z"
+    }
+  ]
+}
