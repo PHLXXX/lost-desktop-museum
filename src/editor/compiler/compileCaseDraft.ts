@@ -13,7 +13,7 @@ function required(value: string | undefined, path: string, label: string, issues
   return normalized
 }
 
-export function compileCaseDraft(source: CaseDraft, assets: EditorAssetMetadata[]): CompileCaseResult {
+export function compileCaseDraft(source: CaseDraft, assets?: EditorAssetMetadata[]): CompileCaseResult {
   const draft = normalizeCaseDraft(source)
   const issues: ValidationIssue[] = []
   const caseId = required(draft.manifest.caseId, 'manifest.caseId', 'caseId', issues)
@@ -36,8 +36,12 @@ export function compileCaseDraft(source: CaseDraft, assets: EditorAssetMetadata[
   const points = draft.deduction.questions?.reduce((sum, question) => sum + question.points, 0) ?? 0
   if (points !== 100 && draft.manifest.builtIn !== true) issues.push({ id: 'deduction-points', severity: 'error', category: 'deduction', code: 'POINTS_NOT_100', message: `推理题总分必须为100，当前为${points}。`, path: 'deduction.questions' })
   if (caseId && isBuiltInCaseId(caseId) && draft.manifest.builtIn !== true) issues.push({ id: 'built-in-case-id', severity: 'error', category: 'security', code: 'BUILT_IN_CASE_ID', message: '用户案件不能覆盖内置案件ID。', path: 'manifest.caseId' })
-  const availableAssets = new Set(assets.map((asset) => asset.id))
-  draft.assets.forEach((asset, index) => { if (assets.length && !availableAssets.has(asset.id)) issues.push({ id: `asset-${asset.id}`, severity: 'error', category: 'resource', code: 'ASSET_MISSING', message: `资源 ${asset.id} 不存在。`, path: `assets.${index}` }) })
+  const availableAssets = assets ? new Map(assets.map((asset) => [asset.id, asset])) : null
+  draft.assets.forEach((asset, index) => {
+    const stored = availableAssets?.get(asset.id)
+    if (availableAssets && !stored) issues.push({ id: `asset-${asset.id}`, severity: 'error', category: 'resource', code: 'ASSET_MISSING', message: `资源 ${asset.id} 不存在。`, path: `assets.${index}` })
+    else if (stored && (stored.mime !== asset.mime || stored.size !== asset.size || stored.sha256.toLowerCase() !== asset.sha256.toLowerCase())) issues.push({ id: `asset-integrity-${asset.id}`, severity: 'error', category: 'resource', code: 'ASSET_INTEGRITY', message: `资源 ${asset.id} 的类型、大小或哈希与草稿不一致。`, path: `assets.${index}`, entityId: asset.id })
+  })
   if (issues.length) return { ok: false, issues }
 
   const definition: CaseDefinition = {

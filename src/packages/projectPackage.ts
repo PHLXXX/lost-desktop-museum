@@ -1,6 +1,7 @@
 import { strFromU8, unzipSync, zipSync } from 'fflate'
 import type { AuthoringProject } from '../editor/model/authoringProject'
 import { migrateAuthoringProject } from '../editor/model/projectMigrations'
+import { validateContentSecurity } from '../engine/validation'
 import { inferAssetMime, validateAssetBytes } from './assetContentValidation'
 import { inspectZipCentralDirectory, validatePackageEntries } from './packageSecurity'
 
@@ -10,6 +11,8 @@ async function sha256(bytes: Uint8Array) { const digest = await crypto.subtle.di
 function bytes(value: unknown) { return encoder.encode(`${JSON.stringify(value, null, 2)}\n`) }
 
 export async function exportProjectPackage(project: AuthoringProject, assets = new Map<string, Uint8Array>()) {
+  const securityIssues = validateContentSecurity(project.draft)
+  if (securityIssues.length) throw new Error(`工程包含不安全内容：${securityIssues.map((issue) => issue.message).join('；')}`)
   const entries = new Map<string, Uint8Array>()
   entries.set('manifest.json', bytes({ projectFormatVersion: 1, projectId: project.projectId, name: project.name, caseId: project.caseId, createdAt: project.createdAt, updatedAt: project.updatedAt, editorVersion: '0.4.0', assetCount: assets.size }))
   entries.set('project.json', bytes(project))
@@ -53,6 +56,8 @@ export async function importProjectPackage(packageBytes: Uint8Array, filename: s
   const raw = JSON.parse(strFromU8(projectBytes)) as unknown
   const migrated = migrateAuthoringProject(raw)
   if (!migrated.ok) throw new Error(`工程数据无法迁移：${migrated.error}`)
+  const securityIssues = validateContentSecurity(migrated.project.draft)
+  if (securityIssues.length) throw new Error(`工程包含不安全内容：${securityIssues.map((issue) => issue.message).join('；')}`)
   const assets = new Map(Object.entries(entries).filter(([path]) => path.startsWith('assets/')))
   for (const [path, value] of assets) {
     const mime = inferAssetMime(path)

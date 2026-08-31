@@ -7,7 +7,7 @@ import { validatePackageEntries } from './packageSecurity'
 import { InMemoryCaseRepository } from '../storage/caseRepository'
 
 function minimalCase() {
-  const result = compileCaseDraft(createMinimalTemplateDraft(), [])
+  const result = compileCaseDraft(createMinimalTemplateDraft())
   if (!result.ok) throw new Error('template should compile')
   return result.caseDefinition
 }

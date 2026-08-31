@@ -12,11 +12,12 @@ import { projectRepository } from '../storage/projectRepository'
 import { projectSnapshotRepository, type ProjectSnapshot } from '../storage/projectSnapshotRepository'
 import { HistoryStore } from './historyStore'
 import spareKeyCoverUrl from '../../../examples/editor/minimal-valid-project/assets/spare-key-cover.png'
-import { editorAssetRepository } from '../storage/editorAssetRepository'
+import { editorAssetRepository, listEditorAssetMetadata } from '../storage/editorAssetRepository'
 
 interface EditorState {
   projects: AuthoringProject[]
   currentProject: AuthoringProject | null
+  readOnly: boolean
   saveStatus: EditorSaveStatus
   saveError: string | null
   issues: ValidationIssue[]
@@ -32,10 +33,11 @@ interface EditorState {
   updateProject: (mutator: (project: AuthoringProject) => void, historyKey?: string) => void
   updateDraft: (mutator: (draft: CaseDraft) => void, historyKey?: string) => void
   setSection: (section: EditorSection) => void
-  validate: () => ValidationIssue[]
+  validate: () => Promise<ValidationIssue[]>
   undo: () => void
   redo: () => void
-  saveNow: () => Promise<void>
+  saveNow: () => Promise<boolean>
+  setReadOnly: (readOnly: boolean) => void
   createSnapshot: (reason: string) => Promise<void>
   listSnapshots: () => Promise<ProjectSnapshot[]>
   restoreSnapshot: (snapshotId: string) => Promise<void>
@@ -64,7 +66,7 @@ async function storeImportedAssets(project: AuthoringProject, assets: Map<string
 }
 
 export const useEditorStore = create<EditorState>((set, get) => ({
-  projects: [], currentProject: null, saveStatus: 'idle', saveError: null, issues: [], lastValidatedAt: null,
+  projects: [], currentProject: null, readOnly: false, saveStatus: 'idle', saveError: null, issues: [], lastValidatedAt: null,
   loadProjects: async () => set({ projects: await projectRepository.list() }),
   createProject: async (kind, details) => {
     let draft = kind === 'blank' ? createBlankDraft() : kind === 'template' ? createMinimalTemplateDraft() : decompileCaseDefinition(getCaseDefinition(kind))
@@ -86,16 +88,16 @@ export const useEditorStore = create<EditorState>((set, get) => ({
     await projectRepository.put(project)
     history.clear()
     startAutosave(set)
-    set({ currentProject: project, projects: await projectRepository.list(), saveStatus: 'saved', issues: [] })
+    set({ currentProject: project, projects: await projectRepository.list(), readOnly: false, saveStatus: 'saved', issues: [] })
   },
   openProject: async (projectId) => {
     const project = await projectRepository.get(projectId)
     if (!project) throw new Error('工程不存在或已被移除。')
     history.clear()
     startAutosave(set)
-    set({ currentProject: { ...project, lastOpenedAt: new Date().toISOString() }, saveStatus: 'saved', issues: [] })
+    set({ currentProject: { ...project, lastOpenedAt: new Date().toISOString() }, readOnly: false, saveStatus: 'saved', issues: [] })
   },
-  closeProject: () => { autosave?.dispose(); autosave = null; history.clear(); set({ currentProject: null, issues: [], saveStatus: 'idle' }) },
+  closeProject: () => { autosave?.dispose(); autosave = null; history.clear(); set({ currentProject: null, readOnly: false, issues: [], saveStatus: 'idle' }) },
   deleteProject: async (projectId) => { await projectRepository.delete(projectId); await editorAssetRepository.clear(projectId); await projectSnapshotRepository.deleteProject?.(projectId); if (get().currentProject?.projectId === projectId) get().closeProject(); set({ projects: await projectRepository.list() }) },
   duplicateProject: async (projectId) => {
     const source = await projectRepository.get(projectId)
@@ -130,6 +132,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
     return project
   },
   updateProject: (mutator, historyKey = 'project') => {
+    if (get().readOnly) return
     const current = get().currentProject
     if (!current) return
     const next = structuredClone(current)
@@ -143,25 +146,44 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   setSection: (section) => {
     const current = get().currentProject
     if (!current) return
-    const next = withRevision(structuredClone(current))
+    const next = structuredClone(current)
     next.uiState.activeSection = section
-    set({ currentProject: next, saveStatus: 'dirty' })
-    autosave?.queue(next)
+    if (get().readOnly) { set({ currentProject: next }); return }
+    const revised = withRevision(next)
+    set({ currentProject: revised, saveStatus: 'dirty' })
+    autosave?.queue(revised)
   },
-  validate: () => {
+  validate: async () => {
     const project = get().currentProject
     if (!project) return []
-    const result = compileCaseDraft(project.draft, [])
+    let assets
+    try { assets = await listEditorAssetMetadata(project.projectId) } catch (error) {
+      const issues: ValidationIssue[] = [{ id: 'asset-storage-unavailable', severity: 'error', category: 'resource', code: 'ASSET_STORAGE_UNAVAILABLE', message: error instanceof Error ? `无法读取本地资源：${error.message}` : '无法读取本地资源。', path: 'assets' }]
+      set({ issues, lastValidatedAt: new Date().toISOString() })
+      return issues
+    }
+    const result = compileCaseDraft(project.draft, assets)
     const issues = result.ok ? result.warnings : result.issues
     set({ issues, lastValidatedAt: new Date().toISOString() })
     return issues
   },
-  undo: () => { const current = get().currentProject; if (!current || !history.canUndo) return; const next = withRevision(history.undo(current)); set({ currentProject: next, saveStatus: 'dirty' }); autosave?.queue(next) },
-  redo: () => { const current = get().currentProject; if (!current || !history.canRedo) return; const next = withRevision(history.redo(current)); set({ currentProject: next, saveStatus: 'dirty' }); autosave?.queue(next) },
-  saveNow: async () => { const current = get().currentProject; if (!current) return; if (!autosave) startAutosave(set); autosave?.queue(current); await autosave?.flush(); set({ projects: await projectRepository.list() }) },
-  createSnapshot: async (reason) => { const current = get().currentProject; if (current) await projectSnapshotRepository.create(current, reason) },
+  undo: () => { const current = get().currentProject; if (get().readOnly || !current || !history.canUndo) return; const next = withRevision(history.undo(current)); set({ currentProject: next, saveStatus: 'dirty' }); autosave?.queue(next) },
+  redo: () => { const current = get().currentProject; if (get().readOnly || !current || !history.canRedo) return; const next = withRevision(history.redo(current)); set({ currentProject: next, saveStatus: 'dirty' }); autosave?.queue(next) },
+  saveNow: async () => {
+    const current = get().currentProject
+    if (!current) return false
+    if (get().readOnly) return true
+    if (!autosave) startAutosave(set)
+    autosave?.queue(current)
+    await autosave?.flush()
+    set({ projects: await projectRepository.list() })
+    return autosave?.status !== 'error'
+  },
+  setReadOnly: (readOnly) => set({ readOnly }),
+  createSnapshot: async (reason) => { const current = get().currentProject; if (!get().readOnly && current) await projectSnapshotRepository.create(current, reason) },
   listSnapshots: async () => { const current = get().currentProject; return current ? projectSnapshotRepository.list(current.projectId) : [] },
   restoreSnapshot: async (snapshotId) => {
+    if (get().readOnly) return
     const current = get().currentProject
     const restored = await projectSnapshotRepository.restore(snapshotId)
     if (!current || !restored || restored.projectId !== current.projectId) return
@@ -171,5 +193,5 @@ export const useEditorStore = create<EditorState>((set, get) => ({
     history.clear()
     set({ currentProject: next, projects: await projectRepository.list(), saveStatus: 'saved', issues: [] })
   },
-  deleteSnapshot: async (snapshotId) => { await projectSnapshotRepository.delete(snapshotId) },
+  deleteSnapshot: async (snapshotId) => { if (!get().readOnly) await projectSnapshotRepository.delete(snapshotId) },
 }))

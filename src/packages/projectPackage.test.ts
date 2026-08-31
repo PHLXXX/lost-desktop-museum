@@ -39,4 +39,12 @@ describe('.ldmproject backups', () => {
     project.draft.assets[0]!.sha256 = [...new Uint8Array(digest)].map((value) => value.toString(16).padStart(2, '0')).join('')
     await expect(exportProjectPackage(project, new Map([['spare-key-cover.png', disguised]]))).rejects.toThrow(/文件签名/)
   })
+
+  it('rejects executable or remote authoring content', async () => {
+    const project = createAuthoringProject('恶意工程', createMinimalTemplateDraft())
+    project.draft.entities[0]!.description = '<script>globalThis.compromised=true</script>'
+    await expect(exportProjectPackage(project)).rejects.toThrow(/不安全|脚本/)
+    project.draft.entities[0]!.description = 'https://example.com/remote.png'
+    await expect(exportProjectPackage(project)).rejects.toThrow(/不安全|远程/)
+  })
 })

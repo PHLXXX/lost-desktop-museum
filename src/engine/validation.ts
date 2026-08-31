@@ -36,11 +36,16 @@ function inspectSecurity(value: unknown, path: string, issues: ValidationIssue[]
   }
 }
 
-export function validateCaseDefinition(input: unknown): ValidationIssue[] {
+export function validateContentSecurity(input: unknown): ValidationIssue[] {
   const issues: ValidationIssue[] = []
+  inspectSecurity(input, '$', issues)
+  return issues
+}
+
+export function validateCaseDefinition(input: unknown): ValidationIssue[] {
+  const issues = validateContentSecurity(input)
   const parsed = caseDefinitionSchema.safeParse(input)
   if (!parsed.success) parsed.error.issues.forEach((issue, index) => issues.push({ id: `schema-${index}`, severity: 'error', category: 'schema', code: 'SCHEMA_INVALID', message: issue.message, path: issue.path.join('.') }))
-  inspectSecurity(input, '$', issues)
   if (!parsed.success) return issues
 
   const definition = parsed.data

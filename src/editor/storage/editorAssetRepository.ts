@@ -34,3 +34,7 @@ export async function hashBlob(blob: Blob) {
 }
 
 export const editorAssetRepository = new EditorAssetRepository()
+
+export async function listEditorAssetMetadata(projectId: string) {
+  return (await editorAssetRepository.list(projectId)).map((asset) => ({ id: asset.assetKey.slice(projectId.length + 1), mime: asset.mime, size: asset.size, sha256: asset.sha256 }))
+}

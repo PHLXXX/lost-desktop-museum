@@ -10,7 +10,7 @@ describe('isolated preview sessions', () => {
   afterEach(() => vi.useRealTimers())
 
   it('restores formal progress, score and save namespace after preview', async () => {
-    const compiled = compileCaseDraft(createMinimalTemplateDraft(), [])
+    const compiled = compileCaseDraft(createMinimalTemplateDraft())
     if (!compiled.ok) throw new Error('template should compile')
     const session = new PreviewSession('project-preview-test', compiled.caseDefinition)
     session.start()

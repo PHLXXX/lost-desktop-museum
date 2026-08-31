@@ -1,7 +1,7 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { exportCasePackage } from '../../../packages/casePackage'
-import { compileCaseDraft } from '../../compiler/compileCaseDraft'
-import { editorAssetRepository } from '../../storage/editorAssetRepository'
+import { compileCaseDraft, type CompileCaseResult } from '../../compiler/compileCaseDraft'
+import { editorAssetRepository, listEditorAssetMetadata } from '../../storage/editorAssetRepository'
 import { useEditorStore } from '../../store/editorStore'
 import { downloadFile } from '../../utils/downloadFile'
 
@@ -10,7 +10,14 @@ export function PackagePublisher({ onClose }: { onClose: () => void }) {
   const createSnapshot = useEditorStore((state) => state.createSnapshot)
   const [status, setStatus] = useState<'ready' | 'exporting' | 'done' | 'error'>('ready')
   const [message, setMessage] = useState<string | null>(null)
-  const result = useMemo(() => project ? compileCaseDraft(project.draft, []) : null, [project])
+  const [result, setResult] = useState<CompileCaseResult | null>(null)
+  useEffect(() => {
+    let active = true
+    if (project) void listEditorAssetMetadata(project.projectId)
+      .then((assets) => { if (active) setResult(compileCaseDraft(project.draft, assets)) })
+      .catch((error) => { if (active) setResult({ ok: false, issues: [{ id: 'asset-storage-unavailable', severity: 'error', category: 'resource', code: 'ASSET_STORAGE_UNAVAILABLE', message: error instanceof Error ? `无法读取本地资源：${error.message}` : '无法读取本地资源。', path: 'assets' }] }) })
+    return () => { active = false }
+  }, [project])
   if (!project || !result) return null
   const errors = result.ok ? [] : result.issues.filter((issue) => issue.severity === 'error')
   const publish = async () => {

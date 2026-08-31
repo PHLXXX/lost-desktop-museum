@@ -9,7 +9,7 @@ describe('CaseDraft compiler boundary', () => {
   it('allows an incomplete blank draft but will not compile it', () => {
     const draft = createBlankDraft()
     expect(draft.manifest.title).toBeUndefined()
-    const result = compileCaseDraft(draft, [])
+    const result = compileCaseDraft(draft)
     expect(result.ok).toBe(false)
     if (!result.ok) expect(result.issues.some((issue) => issue.path.includes('manifest.title'))).toBe(true)
   })
@@ -17,7 +17,7 @@ describe('CaseDraft compiler boundary', () => {
   it('compiles the minimal playable template without mutating it', () => {
     const draft = createMinimalTemplateDraft()
     const before = structuredClone(draft)
-    const result = compileCaseDraft(draft, [])
+    const result = compileCaseDraft(draft)
     expect(result.ok ? [] : result.issues).toEqual([])
     expect(draft).toEqual(before)
     if (result.ok) {
@@ -26,9 +26,18 @@ describe('CaseDraft compiler boundary', () => {
     }
   })
 
+  it('reports missing and mismatched resource metadata when a storage inventory is supplied', () => {
+    const draft = createMinimalTemplateDraft()
+    const missing = compileCaseDraft(draft, [])
+    expect(missing.ok ? [] : missing.issues.map((issue) => issue.code)).toContain('ASSET_MISSING')
+    const ref = draft.assets[0]!
+    const mismatched = compileCaseDraft(draft, [{ id: ref.id, mime: ref.mime, size: ref.size + 1, sha256: ref.sha256 }])
+    expect(mismatched.ok ? [] : mismatched.issues.map((issue) => issue.code)).toContain('ASSET_INTEGRITY')
+  })
+
   it('decompiles and recompiles without losing core case data', () => {
     const draft = decompileCaseDefinition(case002)
-    const result = compileCaseDraft(draft, [])
+    const result = compileCaseDraft(draft)
     expect(result.ok ? [] : result.issues).toEqual([])
     if (result.ok) {
       expect(result.caseDefinition.files).toEqual(case002.files)

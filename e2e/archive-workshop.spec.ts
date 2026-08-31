@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test'
+import { strToU8, zipSync } from 'fflate'
 import { resolve } from 'node:path'
 
 function watchRuntime(page: Page) {
@@ -82,7 +83,10 @@ test('template edit, autosave, reload, undo, snapshot restore and publish round 
   await page.getByRole('button', { name: '基本信息' }).click()
   const title = page.getByLabel('案件标题')
   await title.fill('备用钥匙：修订版')
-  await expect(page.getByText('已保存')).toBeVisible({ timeout: 5_000 })
+  await page.getByRole('button', { name: '工程列表' }).click()
+  await page.getByRole('button', { name: '打开' }).click()
+  await page.getByRole('button', { name: '基本信息' }).click()
+  await expect(page.getByLabel('案件标题')).toHaveValue('备用钥匙：修订版')
   await page.getByRole('button', { name: '人物与实体' }).click()
   await page.getByRole('option', { name: /周岚/ }).click()
   const name = page.getByLabel('显示名称')
@@ -199,5 +203,56 @@ test('global search locates a file and a second tab defaults to read-only', asyn
   await second.getByRole('button', { name: '只读打开' }).click()
   await expect(second.getByText(/只读模式/)).toBeVisible()
   await expect(second.getByRole('button', { name: '立即保存' })).toBeDisabled()
+  await second.getByRole('button', { name: '基本信息' }).click()
+  await expect(second.getByText('已保存')).toBeVisible()
+  expect(runtime.errors).toEqual([])
+})
+
+test('malicious project ZIP paths are rejected without executing content', async ({ page }) => {
+  await enterWorkshop(page)
+  const malicious = zipSync({ '../project.json': strToU8('{"script":"globalThis.compromised=true"}') })
+  await page.locator('input[type=file][accept=".ldmproject"]').setInputFiles({ name: 'malicious.ldmproject', mimeType: 'application/zip', buffer: Buffer.from(malicious) })
+  await expect(page.getByText(/不安全路径|安全校验失败/)).toBeVisible()
+  expect(await page.evaluate(() => (globalThis as typeof globalThis & { compromised?: boolean }).compromised)).toBeUndefined()
+})
+
+test('both built-in cases start, use separate saves, and case 002 opens its dedicated tools', async ({ page }) => {
+  const runtime = watchRuntime(page)
+  await page.goto('/')
+  await page.getByRole('button', { name: '查看 零点后的回声 案件简介' }).click()
+  await page.getByRole('button', { name: '开始调查' }).click()
+  await page.getByRole('button', { name: '跳过启动' }).click()
+  await page.getByRole('button', { name: '恢复上次会话' }).click()
+  const onboarding = page.getByRole('button', { name: '跳过介绍' })
+  if (await onboarding.count()) await onboarding.click()
+  await page.getByRole('button', { name: '我的文件', exact: true }).dblclick()
+  await page.getByRole('button', { name: /零点节目单\.md/ }).dblclick()
+  await page.getByRole('button', { name: '关闭 我的文件' }).click()
+  await page.getByRole('button', { name: '音频工作台', exact: true }).dblclick()
+  await expect(page.getByRole('dialog', { name: '音频工作台' })).toContainText('零点备份片段')
+  await page.keyboard.press('Escape')
+  await page.getByRole('menuitem', { name: /保存并返回档案馆/ }).click()
+  await expect(page.locator('.exhibit-row').filter({ hasText: '零点后的回声' })).toContainText('1 / 6')
+
+  const case001 = page.locator('.exhibit-row').filter({ has: page.getByRole('heading', { name: '没有出发的旅行' }) })
+  await case001.getByRole('button', { name: '查看案件简介' }).click()
+  await page.getByRole('button', { name: '开始调查' }).click()
+  await page.getByRole('button', { name: '跳过启动' }).click()
+  await page.getByRole('button', { name: '恢复上次会话' }).click()
+  const firstOnboarding = page.getByRole('button', { name: '跳过介绍' })
+  if (await firstOnboarding.count()) await firstOnboarding.click()
+  await page.getByRole('button', { name: '邮件', exact: true }).dblclick()
+  await page.getByRole('button', { name: /HX217 订单取消成功/ }).click()
+  await page.keyboard.press('Escape')
+  await page.getByRole('menuitem', { name: /保存并返回档案馆/ }).click()
+
+  const saves = await page.evaluate(() => ({
+    case001: JSON.parse(localStorage.getItem('archive-os:case-001') ?? '{}').discoveredClueIds,
+    case002: JSON.parse(localStorage.getItem('archive-os:case:case-002') ?? '{}').discoveredClueIds,
+  }))
+  expect(saves.case001).toContain('C01')
+  expect(saves.case002).toContain('C01')
+  await page.getByRole('button', { name: '继续调查 零点后的回声' }).click()
+  await expect(page.getByRole('button', { name: /已记录 1 \/ 6/ })).toBeVisible()
   expect(runtime.errors).toEqual([])
 })
