@@ -78,7 +78,7 @@ export function createBlankDraft(): CaseDraft {
 export function createMinimalTemplateDraft(): CaseDraft {
   const draft = createBlankDraft()
   draft.manifest = {
-    caseId: 'case-spare-key', version: '1.0.0', title: '消失的备用钥匙', subtitle: '一个可完整试玩的教学案件', author: '档案工坊创作者', language: 'zh-CN',
+    caseId: 'case-spare-key', version: '1.0.0', title: '消失的备用钥匙', subtitle: '一个可完整试玩的教学案件', author: 'independent-author', language: 'zh-CN',
     summary: '管理员办公室的备用钥匙在交接前消失。请检查终端中的文件、消息与访问记录。', estimatedMinutes: 15, difficulty: '入门', tags: ['教学', '室内'], contentWarnings: [], builtIn: false, archivedAt: '2032-06-18T09:00:00+08:00',
   }
   draft.subject = { name: '周岚', age: 29, occupation: '展馆管理员', location: '东区档案馆', lastLoginAt: '2032-06-17T19:42:00+08:00' }

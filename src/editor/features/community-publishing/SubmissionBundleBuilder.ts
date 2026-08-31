@@ -34,9 +34,13 @@ export async function buildSubmissionBundle(input: BuildSubmissionInput): Promis
   if (imported.caseDefinition.manifest.builtIn) throw new Error('内置案件不能作为社区投稿。')
   if (imported.caseDefinition.manifest.author !== publisher.publisherId) throw new Error('案件作者字段必须与发布者ID一致。')
   const screenshotEntries: [string, Uint8Array][] = []
+  const screenshotNames = new Set<string>()
   for (const screenshot of input.screenshots) {
     if (screenshot.bytes.length > 2 * 1024 * 1024) throw new Error(`截图超过2MB：${screenshot.filename}`)
     const filename = safeScreenshotName(screenshot.filename)
+    const normalizedName = filename.normalize('NFC').toLowerCase()
+    if (screenshotNames.has(normalizedName)) throw new Error(`截图文件名重复：${filename}`)
+    screenshotNames.add(normalizedName)
     const validation = validateAssetBytes(filename, screenshot.mime, screenshot.bytes)
     if (!validation.valid) throw new Error(`截图校验失败：${validation.message}`)
     screenshotEntries.push([`submission/screenshots/${filename}`, screenshot.bytes])

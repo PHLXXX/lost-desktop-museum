@@ -48,4 +48,14 @@ describe('community submission bundle', () => {
     }
     await expect(buildSubmissionBundle(base)).rejects.toThrow(/发布者|截图/)
   })
+
+  it('rejects duplicate screenshot output names', async () => {
+    const exported = await packageFixture(); const screenshot = new Uint8Array([137, 80, 78, 71, 13, 10, 26, 10])
+    await expect(buildSubmissionBundle({
+      packageBytes: exported.bytes, packageFilename: exported.filename,
+      publisher: { schemaVersion: 1, publisherId: 'ldm-team', displayName: 'LDM Team', description: 'Sample publisher', languages: ['zh-CN'], links: [], joinedAt: '2026-08-31T00:00:00.000Z', status: 'active' },
+      metadata: { title: '消失的备用钥匙', summary: '教学案件。', language: 'zh-CN', additionalLanguages: [], difficulty: 'easy', estimatedMinutes: { min: 10, max: 15 }, tags: [], contentRating: 'general', contentWarnings: [], license: { name: 'MIT' }, changelog: '首次发布。', engineCompatibility: { minimum: '0.5.0' }, saveCompatibility: { mode: 'compatible', compatibleFromVersions: ['1.0.0'] }, requestCuration: false },
+      screenshots: [{ filename: 'cover.png', mime: 'image/png', bytes: screenshot }, { filename: 'COVER.PNG', mime: 'image/png', bytes: screenshot }],
+    })).rejects.toThrow(/重复/)
+  })
 })
