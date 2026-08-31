@@ -1,6 +1,6 @@
 import { expect, test, type Page } from '@playwright/test'
 import { strToU8, zipSync } from 'fflate'
-import { resolve } from 'node:path'
+import { readFile } from 'node:fs/promises'
 
 function watchRuntime(page: Page) {
   const errors: string[] = []
@@ -153,12 +153,21 @@ test('preview state is isolated and an exported case installs as a playable arch
   await page.getByRole('button', { name: '返回档案工坊' }).click()
   const formalKeys = await page.evaluate(() => Object.keys(localStorage).filter((key) => key.startsWith('archive-os:case:case-spare-key')))
   expect(formalKeys).toEqual([])
+  await page.getByRole('button', { name: '校验结果' }).click()
+  await page.getByRole('button', { name: '运行完整校验' }).click()
+  await expect(page.getByText('校验通过')).toBeVisible()
+  await page.getByRole('button', { name: '导出' }).click()
+  const packageDownload = page.waitForEvent('download')
+  await page.getByRole('button', { name: '导出.ldmcase' }).click()
+  const packagePath = await (await packageDownload).path()
+  expect(packagePath).not.toBeNull()
+  const packageBuffer = await readFile(packagePath!)
+  await page.getByRole('button', { name: '关闭发布流程' }).click()
   await page.getByRole('button', { name: '档案馆', exact: true }).click()
-  const packagePath = resolve(process.cwd(), 'release-assets/minimal-valid-case.ldmcase')
-  await page.locator('input[type=file][accept*=".ldmcase"]').setInputFiles(packagePath)
-  await expect(page.getByText(/已安装案件：消失的备用钥匙/)).toBeVisible()
-  await expect(page.getByRole('heading', { name: '消失的备用钥匙' })).toBeVisible()
-  await page.getByRole('button', { name: '查看 消失的备用钥匙 案件简介' }).click()
+  await page.locator('input[type=file][accept*=".ldmcase"]').setInputFiles({ name: 'playable-roundtrip.ldmcase', mimeType: 'application/zip', buffer: packageBuffer })
+  await expect(page.getByText(/已安装案件：可安装的备用钥匙/)).toBeVisible()
+  await expect(page.getByRole('heading', { name: '可安装的备用钥匙' })).toBeVisible()
+  await page.getByRole('button', { name: '查看 可安装的备用钥匙 案件简介' }).click()
   await expect(page.getByText('周岚', { exact: true })).toBeVisible()
   await page.getByRole('button', { name: '开始调查' }).click()
   await page.getByRole('button', { name: '跳过启动' }).click()
