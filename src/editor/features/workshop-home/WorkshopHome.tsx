@@ -4,19 +4,21 @@ import { CreateProjectWizard } from '../project-create/CreateProjectWizard'
 import { useEditorStore } from '../../store/editorStore'
 import { editorAssetRepository } from '../../storage/editorAssetRepository'
 import { downloadFile } from '../../utils/downloadFile'
+import type { AuthoringProject } from '../../model/authoringProject'
 
 export function WorkshopHome({ onReturnMuseum }: { onReturnMuseum: () => void }) {
   const { projects, openProject, duplicateProject, deleteProject, importProject, importCaseDefinition } = useEditorStore()
   const [creating, setCreating] = useState(false)
   const [deleteId, setDeleteId] = useState<string | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
+  const [projectConflict, setProjectConflict] = useState<{ project: AuthoringProject; assets: Map<string, Uint8Array>; filename: string } | null>(null)
   const importProjectFile = async (file: File | undefined) => {
     if (!file) return
     try {
       const { importProjectPackage } = await import('../../../packages/projectPackage')
       const imported = await importProjectPackage(new Uint8Array(await file.arrayBuffer()), file.name)
-      await importProject(imported.project, imported.assets)
-      setNotice(`已导入工程备份：${file.name}`)
+      if (projects.some((project) => project.projectId === imported.project.projectId)) setProjectConflict({ ...imported, filename: file.name })
+      else { await importProject(imported.project, imported.assets); setNotice(`已导入工程备份：${file.name}`) }
     } catch (error) { setNotice(error instanceof Error ? error.message : '工程导入失败。') }
   }
   const importCaseFile = async (file: File | undefined) => {
@@ -47,6 +49,7 @@ export function WorkshopHome({ onReturnMuseum }: { onReturnMuseum: () => void })
     </section>
     <footer className="workshop-home-footer"><span>编辑器 Schema v1</span><span>IndexedDB · 自动保存 · 无远程上传</span></footer>
     {creating && <CreateProjectWizard onClose={() => setCreating(false)} />}
+    {projectConflict && <div className="workshop-modal-backdrop"><section className="workshop-modal compact" role="dialog" aria-modal="true" aria-labelledby="project-conflict-title"><header><div><span>PROJECT ID CONFLICT</span><h2 id="project-conflict-title">工程已存在</h2></div></header><div className="wizard-body"><p>本地已有相同 projectId：<code>{projectConflict.project.projectId}</code></p><p>安装为副本会生成新 projectId 与新 caseId；替换会先为当前工程创建恢复快照。</p></div><footer><button onClick={() => setProjectConflict(null)}>取消</button><button onClick={() => { const pending = projectConflict; setProjectConflict(null); void importProject(pending.project, pending.assets, 'copy').then(() => setNotice(`已安装为副本：${pending.filename}`)) }}>安装为副本</button><button className="danger-button" onClick={() => { const pending = projectConflict; setProjectConflict(null); void importProject(pending.project, pending.assets, 'replace').then(() => setNotice(`已替换本地工程：${pending.filename}`)) }}>替换本地工程</button></footer></section></div>}
     {deleteId && <div className="workshop-modal-backdrop"><section className="workshop-modal compact" role="dialog" aria-modal="true"><header><h2>删除工程？</h2></header><div className="wizard-body"><p>工程和未导出的本地内容将被移除。此操作不会删除已安装案件。</p></div><footer><button onClick={() => setDeleteId(null)}>取消</button><button className="danger-button" onClick={() => { void deleteProject(deleteId); setDeleteId(null) }}>确认删除</button></footer></section></div>}
   </main>
 }

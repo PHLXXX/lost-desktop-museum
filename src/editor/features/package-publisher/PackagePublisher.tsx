@@ -20,7 +20,12 @@ export function PackagePublisher({ onClose }: { onClose: () => void }) {
       await createSnapshot('导出正式案件前')
       const stored = await editorAssetRepository.list(project.projectId)
       const assets = new Map<string, Uint8Array>()
-      for (const asset of stored) assets.set(asset.path, new Uint8Array(await asset.blob.arrayBuffer()))
+      for (const asset of stored) {
+        const bytes = new Uint8Array(await asset.blob.arrayBuffer())
+        const ref = project.draft.assets.find((item) => item.sha256 === asset.sha256 || item.path.replace(/^assets\//, '') === asset.path)
+        assets.set(asset.path, bytes)
+        if (ref) { assets.set(ref.id, bytes); assets.set(ref.path, bytes) }
+      }
       const exported = await exportCasePackage(result.caseDefinition, assets)
       downloadFile(exported.filename, exported.bytes)
       setStatus('done'); setMessage(`已生成并往返校验：${exported.filename}`)

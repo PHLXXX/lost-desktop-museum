@@ -4,7 +4,7 @@ import { useEditorStore } from '../../store/editorStore'
 
 export function EntityEditor() {
   const { currentProject: project, updateDraft, updateProject } = useEditorStore()
-  const [selectedId, setSelectedId] = useState<string | null>(project?.draft.entities[0]?.id ?? null)
+  const [selectedId, setSelectedId] = useState<string | null>(project?.uiState.selectedEntityId ?? project?.draft.entities[0]?.id ?? null)
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null)
   if (!project) return null
   const selected = project.draft.entities.find((entity) => entity.id === selectedId)
@@ -14,4 +14,3 @@ export function EntityEditor() {
     {deleteTarget && <div className="inline-dialog" role="dialog" aria-modal="true"><h2>删除实体？</h2><p>发现 {findReferences(project.draft, deleteTarget).length} 个引用。被引用实体不能静默删除。</p><div><button onClick={() => setDeleteTarget(null)}>取消</button><button disabled={findReferences(project.draft, deleteTarget).length > 0} onClick={() => remove('block')}>安全删除</button><button className="danger-button" onClick={() => remove('remove')}>删除并移除引用</button></div></div>}
   </section>
 }
-

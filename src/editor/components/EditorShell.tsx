@@ -18,7 +18,7 @@ import { EditorSidebar } from './EditorSidebar'
 import { EditorTopbar } from './EditorTopbar'
 import { InspectorPanel } from './InspectorPanel'
 import { getAppEditorBySection } from '../registry/appEditorRegistry'
-import { LocalStorageLockStorage, ProjectLockManager } from '../storage/projectLock'
+import { getEditorTabOwnerId, LocalStorageLockStorage, ProjectLockManager } from '../storage/projectLock'
 import { SnapshotDialog } from './SnapshotDialog'
 
 const AssetManager = lazy(() => import('../features/asset-manager/AssetManager').then((module) => ({ default: module.AssetManager })))
@@ -79,7 +79,7 @@ export function EditorShell({ onReturnMuseum }: { onReturnMuseum: () => void }) 
   useEffect(() => () => session.current?.stop(), [])
   useEffect(() => {
     if (!projectId) return
-    const manager = new ProjectLockManager(new LocalStorageLockStorage(), crypto.randomUUID())
+    const manager = new ProjectLockManager(new LocalStorageLockStorage(), getEditorTabOwnerId())
     lock.current = manager
     let active = true
     const result = manager.acquire(projectId)

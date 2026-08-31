@@ -80,7 +80,30 @@ export interface CaseAssetReference {
   alt: string
 }
 
-export interface VirtualFile { id: string; name: string; folder: string; originalFolder?: string; content: string; locked?: boolean; password?: string; clueAction?: InvestigationAction['type'] }
+export interface VirtualFile {
+  id: string
+  name: string
+  folder: string
+  originalFolder?: string
+  content: string
+  kind?: 'text' | 'markdown' | 'image' | 'audio'
+  path?: string
+  createdAt?: string
+  modifiedAt?: string
+  size?: number
+  owner?: string
+  hash?: string
+  hidden?: boolean
+  locked?: boolean
+  password?: string
+  passwordHint?: string
+  assetId?: string
+  deletedAt?: string
+  recoveryPath?: string
+  desktopShortcut?: boolean
+  metadata?: Record<string, string>
+  clueAction?: InvestigationAction['type']
+}
 export interface VirtualFolder { id: string; name: string }
 export interface ChatMessage { id: string; sender: string; time: string; text: string; attachmentId?: string; unread?: boolean; clueId?: string }
 export interface ChatThread { id: string; title: string; messages: ChatMessage[] }

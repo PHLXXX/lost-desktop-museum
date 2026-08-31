@@ -23,3 +23,12 @@ export class LocalStorageLockStorage implements LockStorage {
   set(key: string, value: string) { window.localStorage.setItem(key, value) }
   delete(key: string) { window.localStorage.removeItem(key) }
 }
+
+export function getEditorTabOwnerId(storage: Storage = window.sessionStorage) {
+  const key = 'archive-workshop-tab-owner'
+  const existing = storage.getItem(key)
+  if (existing) return existing
+  const ownerId = crypto.randomUUID()
+  storage.setItem(key, ownerId)
+  return ownerId
+}

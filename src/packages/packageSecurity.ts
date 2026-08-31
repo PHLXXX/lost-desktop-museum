@@ -2,7 +2,7 @@ export interface PackageEntryMetadata { path: string; compressedSize: number; si
 export interface PackageSecurityIssue { code: 'INVALID_ZIP' | 'PATH_TRAVERSAL' | 'DUPLICATE_PATH' | 'ENTRY_TOO_LARGE' | 'PACKAGE_TOO_LARGE' | 'COMPRESSION_RATIO' | 'FILE_TYPE_BLOCKED' | 'SVG_BLOCKED' | 'ENCRYPTED_ENTRY' | 'SYMLINK_BLOCKED'; path: string; message: string }
 
 const allowedNames = new Set(['manifest.json', 'case.json', 'draft.json', 'project.json', 'checksums.json'])
-const allowedAssetExtensions = new Set(['png', 'jpg', 'jpeg', 'webp', 'gif', 'wav', 'mp3', 'ogg', 'txt', 'md'])
+const allowedAssetExtensions = new Set(['png', 'jpg', 'jpeg', 'webp', 'wav', 'ogg', 'txt', 'md'])
 export const PACKAGE_LIMITS = { maxEntries: 512, maxEntryBytes: 20 * 1024 * 1024, maxPackageBytes: 60 * 1024 * 1024, maxCompressionRatio: 100 }
 
 function safePath(path: string) {
@@ -64,4 +64,3 @@ export function inspectZipCentralDirectory(bytes: Uint8Array): PackageEntryMetad
   }
   return entries
 }
-

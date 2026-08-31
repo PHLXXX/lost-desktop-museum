@@ -27,7 +27,7 @@ interface EditorState {
   closeProject: () => void
   deleteProject: (projectId: string) => Promise<void>
   duplicateProject: (projectId: string) => Promise<void>
-  importProject: (project: AuthoringProject, assets?: Map<string, Uint8Array>) => Promise<AuthoringProject>
+  importProject: (project: AuthoringProject, assets?: Map<string, Uint8Array>, strategy?: 'copy' | 'replace') => Promise<AuthoringProject>
   importCaseDefinition: (definition: CaseDefinition, assets?: Map<string, Uint8Array>) => Promise<AuthoringProject>
   updateProject: (mutator: (project: AuthoringProject) => void, historyKey?: string) => void
   updateDraft: (mutator: (draft: CaseDraft) => void, historyKey?: string) => void
@@ -108,10 +108,11 @@ export const useEditorStore = create<EditorState>((set, get) => ({
     for (const asset of assets) await editorAssetRepository.put({ id: asset.assetKey.split(':').slice(1).join(':'), projectId: copy.projectId, filename: asset.path, mime: asset.mime, size: asset.size, sha256: asset.sha256, alt: copy.draft.assets.find((item) => item.sha256 === asset.sha256)?.alt ?? '', transcript: '' }, asset.blob)
     set({ projects: await projectRepository.list() })
   },
-  importProject: async (incoming, assets = new Map()) => {
+  importProject: async (incoming, assets = new Map(), strategy = 'copy') => {
     const existing = await projectRepository.get(incoming.projectId)
-    const project = existing ? createAuthoringProject(`${incoming.name} 导入副本`, incoming.draft) : structuredClone(incoming)
-    if (existing) { project.caseId = project.draft.manifest.caseId ?? project.caseId; project.draft.manifest.caseId = `${project.caseId}-import-${project.projectId.slice(0, 4)}`; project.caseId = project.draft.manifest.caseId }
+    if (existing && strategy === 'replace') { await projectSnapshotRepository.create(existing, '工程包替换前'); await editorAssetRepository.clear(existing.projectId) }
+    const project = existing && strategy === 'copy' ? createAuthoringProject(`${incoming.name} 导入副本`, incoming.draft) : structuredClone(incoming)
+    if (existing && strategy === 'copy') { project.caseId = project.draft.manifest.caseId ?? project.caseId; project.draft.manifest.caseId = `${project.caseId}-import-${project.projectId.slice(0, 4)}`; project.caseId = project.draft.manifest.caseId }
     await projectRepository.put(project)
     await storeImportedAssets(project, assets)
     set({ projects: await projectRepository.list() })

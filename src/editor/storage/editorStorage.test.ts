@@ -3,7 +3,7 @@ import { createAuthoringProject } from '../model/authoringProject'
 import { createMinimalTemplateDraft } from '../model/caseDraft'
 import { HistoryStore } from '../store/historyStore'
 import { EditorAutosave } from './editorAutosave'
-import { ProjectLockManager } from './projectLock'
+import { getEditorTabOwnerId, ProjectLockManager } from './projectLock'
 import { InMemoryProjectRepository } from './projectRepository'
 import { InMemorySnapshotRepository } from './projectSnapshotRepository'
 
@@ -62,5 +62,13 @@ describe('authoring project lifecycle', () => {
     expect(second.acquire('project-one', 1_101)).toBe('acquired')
     first.release('project-one')
     expect(second.status('project-one', 1_102)).toBe('owned')
+  })
+
+  it('keeps the same tab owner across reloads without sharing it with another session', () => {
+    const createSession = () => { const values = new Map<string, string>(); return { getItem: (key: string) => values.get(key) ?? null, setItem: (key: string, value: string) => values.set(key, value) } as unknown as Storage }
+    const firstSession = createSession()
+    const otherSession = createSession()
+    expect(getEditorTabOwnerId(firstSession)).toBe(getEditorTabOwnerId(firstSession))
+    expect(getEditorTabOwnerId(otherSession)).not.toBe(getEditorTabOwnerId(firstSession))
   })
 })
