@@ -34,12 +34,21 @@ export const registryIndexSchema = z.object({
   engineCompatibility: z.object({ minimumClientVersion: semver }).strict(),
   stats: z.object({ activeCases: z.number().int().nonnegative(), publishers: z.number().int().nonnegative(), languages: z.number().int().nonnegative(), totalPackageBytes: z.number().int().nonnegative() }).strict(),
   featuredCaseIds: z.array(identifier), cases: z.array(summarySchema),
-}).strict()
+}).strict().superRefine((value, context) => {
+  const caseIds = new Set<string>()
+  value.cases.forEach((item, index) => {
+    if (caseIds.has(item.caseId)) context.addIssue({ code: 'custom', path: ['cases', index, 'caseId'], message: '案件ID重复' })
+    caseIds.add(item.caseId)
+    if (!item.detailPath.endsWith(`/cases/${item.caseId}.json`)) context.addIssue({ code: 'custom', path: ['cases', index, 'detailPath'], message: '详情路径必须与案件ID一致' })
+  })
+  value.featuredCaseIds.forEach((caseId, index) => { if (!caseIds.has(caseId)) context.addIssue({ code: 'custom', path: ['featuredCaseIds', index], message: '精选案件ID不存在' }) })
+  if (value.stats.activeCases !== value.cases.filter((item) => item.status === 'active').length) context.addIssue({ code: 'custom', path: ['stats', 'activeCases'], message: '活跃案件统计与目录不一致' })
+})
 
 const saveCompatibilitySchema = z.object({ mode: z.enum(['compatible', 'requires-review', 'incompatible']), compatibleFromVersions: z.array(semver), notes: safeText.max(1000).optional() }).strict()
 const licenseSchema = z.object({ name: safeText.min(1).max(100), url: httpsUrl.optional(), customTextPath: relativePath.optional() }).strict()
 const caseVersionSchema = z.object({
-  version: semver, packagePath: relativePath, packageSha256: z.string().regex(/^[a-f0-9]{64}$/), packageByteSize: z.number().int().positive(),
+  version: semver, packagePath: relativePath, packageSha256: z.string().regex(/^[a-f0-9]{64}$/), packageByteSize: z.number().int().positive().max(30 * 1024 * 1024),
   engineCompatibility: z.object({ minimum: semver, maximumExclusive: semver.optional() }).strict(), saveCompatibility: saveCompatibilitySchema,
   changelog: safeText.min(1).max(20_000), screenshots: z.array(relativePath).min(1).max(5), license: licenseSchema,
   automatedValidation: z.object({ passed: z.literal(true), checkedAt: isoDate }).strict(), publishedAt: isoDate, updatedAt: isoDate,
@@ -50,7 +59,16 @@ export const communityCaseDetailSchema = z.object({
   language: z.string().min(2), additionalLanguages: languageList, difficulty, estimatedMinutes: minutes, tags: z.array(safeText.min(1).max(40)).max(20), contentRating,
   contentWarnings: z.array(safeText.max(200)).max(20), status, blockReason: safeText.max(1000).optional(), curated: z.boolean(), featured: z.boolean(),
   publisherPath: relativePath, latestVersion: semver, versions: z.array(caseVersionSchema).min(1),
-}).strict()
+}).strict().superRefine((value, context) => {
+  const versions = new Set<string>()
+  value.versions.forEach((item, index) => {
+    if (versions.has(item.version)) context.addIssue({ code: 'custom', path: ['versions', index, 'version'], message: '案件版本重复' })
+    versions.add(item.version)
+  })
+  if (!versions.has(value.latestVersion)) context.addIssue({ code: 'custom', path: ['latestVersion'], message: '最新版本必须存在于版本历史中' })
+  if (!value.publisherPath.endsWith(`/publishers/${value.publisherId}.json`)) context.addIssue({ code: 'custom', path: ['publisherPath'], message: '发布者路径必须与发布者ID一致' })
+  if (value.status === 'blocked' && !value.blockReason?.trim()) context.addIssue({ code: 'custom', path: ['blockReason'], message: '被阻止案件必须提供原因' })
+})
 
 export const catalogEntrySchema = z.object({
   schemaVersion: z.literal(1), caseId: identifier, version: semver, publisherId: publisherIdentifier, title: safeText.min(1).max(160), subtitle: safeText.max(200).optional(), summary: safeText.min(1).max(5000),

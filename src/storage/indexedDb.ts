@@ -5,6 +5,14 @@ export interface KeyValueRepository<T> {
   list(): Promise<T[]>
 }
 
+export class InMemoryKeyValueRepository<T> implements KeyValueRepository<T> {
+  private values = new Map<string, T>()
+  async get(key: string) { return this.values.get(key) ?? null }
+  async set(key: string, value: T) { this.values.set(key, value) }
+  async delete(key: string) { this.values.delete(key) }
+  async list() { return [...this.values.values()] }
+}
+
 export class IndexedDbRepository<T> implements KeyValueRepository<T> {
   constructor(private databaseName: string, private storeName: string, private keyField: string) {}
 
@@ -25,10 +33,12 @@ export class IndexedDbRepository<T> implements KeyValueRepository<T> {
     return new Promise((resolve, reject) => {
       const transaction = database.transaction(this.storeName, mode)
       const request = operation(transaction.objectStore(this.storeName))
-      request.onsuccess = () => resolve(request.result)
-      request.onerror = () => reject(request.error ?? new Error('本地工程存储操作失败。'))
-      transaction.oncomplete = () => database.close()
-      transaction.onerror = () => reject(transaction.error ?? new Error('本地工程事务失败。'))
+      let result: R
+      request.onsuccess = () => { result = request.result }
+      request.onerror = () => { database.close(); reject(request.error ?? new Error('本地工程存储操作失败。')) }
+      transaction.oncomplete = () => { database.close(); resolve(result) }
+      transaction.onerror = () => { database.close(); reject(transaction.error ?? new Error('本地工程事务失败。')) }
+      transaction.onabort = () => { database.close(); reject(transaction.error ?? new Error('本地工程事务已取消。')) }
     })
   }
 
