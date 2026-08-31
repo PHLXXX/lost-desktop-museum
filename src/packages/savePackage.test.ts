@@ -22,4 +22,9 @@ describe('.ldmsave player progress backups', () => {
     raw.caseId = 'case-002'
     expect(() => importSavePackage(new TextEncoder().encode(JSON.stringify(raw)), exported.filename)).toThrow(/案件ID/)
   })
+
+  it('can carry private community preferences without changing the case package', () => {
+    const exported = exportSavePackage(createFreshSave('case-community-sample-001'), '1.0.0', '2032-01-01T00:00:00.000Z', { favorite: true, rating: 4, note: '只在本机的记录' })
+    expect(importSavePackage(exported.bytes, exported.filename).communityPreference).toEqual({ favorite: true, rating: 4, note: '只在本机的记录' })
+  })
 })
