@@ -12,14 +12,15 @@ const encoder = new TextEncoder()
 
 function sha256(bytes: Uint8Array) { return createHash('sha256').update(bytes).digest('hex') }
 function jsonBytes(value: unknown) { return encoder.encode(`${JSON.stringify(value, null, 2)}\n`) }
-async function put(relativePath: string, bytes: Uint8Array) {
-  const target = resolve(root, relativePath)
+async function putAt(base: string, relativePath: string, bytes: Uint8Array) {
+  const target = resolve(base, relativePath)
   await mkdir(dirname(target), { recursive: true })
   let existing: Uint8Array | null = null
   try { existing = new Uint8Array(await readFile(target)) } catch { /* first generation */ }
   if (existing && Buffer.compare(existing, bytes) === 0) return
   await writeFile(target, bytes)
 }
+const put = (relativePath: string, bytes: Uint8Array) => putAt(root, relativePath, bytes)
 
 const artifacts = await buildCommunityFixtureArtifacts()
 for (const [path, bytes] of artifacts) await put(path, bytes)
@@ -27,7 +28,7 @@ for (const [path, bytes] of artifacts) await put(path, bytes)
 const baseBytes = artifacts.get('packages/valid-1.0.0.ldmcase')!
 const updateBytes = artifacts.get('packages/valid-1.1.0.ldmcase')!
 const incompatibleBytes = artifacts.get('packages/incompatible-2.0.0.ldmcase')!
-const coverBytes = new Uint8Array(await readFile(resolve('examples/editor/minimal-valid-project/assets/spare-key-cover.png')))
+const coverBytes = new Uint8Array(await readFile(resolve('docs/images/stage4-live-preview.png')))
 await put('screenshots/cover.png', coverBytes)
 
 const publisher = parseCommunityPublisher({
