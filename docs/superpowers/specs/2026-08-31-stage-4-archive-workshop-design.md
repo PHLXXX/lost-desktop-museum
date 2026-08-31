@@ -53,7 +53,7 @@ type CompileCaseResult =
 
 ## 条件与触发器
 
-条件节点为 `event`、`all`、`any`、`clue`、`clue-count`、`relation`、`trigger`。最大深度8、最大节点100。运行时求值器与编辑器测试条件共用同一纯函数。
+条件节点为 `event`、`all`、`any`、`clue`、`clue-count`、`relation`、`trigger`。最大深度5、最大节点30。运行时求值器与编辑器使用同一个联合类型和语义。
 
 触发器只接受白名单效果联合类型。Schema无法表示 JavaScript、网络、HTML、CSS注入、Shell、外部URL或任意存储写入。安全模式与 reduced-motion 替代字段是正式模型的一部分。
 
@@ -61,9 +61,9 @@ type CompileCaseResult =
 
 `AuthoringProject`、草稿和 UI 状态写入 IndexedDB；Blob 资源单独保存。编辑变更在800ms后自动保存。内存草稿只有在仓库确认成功后标记 saved；失败保持 dirty/error 并允许导出 `.ldmproject`。
 
-历史最多80步，连续文本输入在800ms窗口内合并。导航与自动保存不进入历史。导入、批量ID更新、引用删除、迁移和正式导出前创建最多20个恢复快照。
+历史最多80步，连续同字段输入在600ms窗口内合并。导航与自动保存不进入历史。工程可保留最多20个恢复快照；替换导入和快照恢复前会自动创建保护快照。
 
-工程锁使用 BroadcastChannel + 带过期时间的 localStorage 心跳。第二标签默认只读；接管必须二次确认；过期锁自动恢复。
+工程锁使用带15秒过期时间的 localStorage 心跳，并在 sessionStorage 中保留当前标签身份。第二标签默认只读；接管必须二次确认；过期锁自动恢复。
 
 ## 编辑器界面
 
@@ -86,7 +86,7 @@ type CompileCaseResult =
 
 ## 试玩隔离
 
-完整试玩生成不可变编译快照并创建 `PreviewSession`。运行时存档键、窗口键和调试事件均使用 `ldm-preview:<projectId>:<revision>`；不加入正式案件注册表。退出时恢复原工程模块和选择，调试解锁永不写入工程或案件包。
+完整试玩生成不可变编译快照并创建 `PreviewSession`。临时定义以内存 `preview-<projectId>` ID 注册，并使用该 ID 的独立玩家存档；进入前的正式玩家状态与窗口状态会被深拷贝。退出时取消待写入、删除临时存档、注销定义并恢复快照，调试解锁永不写入工程或案件包。
 
 ## 错误恢复
 
@@ -94,7 +94,6 @@ IndexedDB失败、损坏工程、版本不兼容、资源丢失、Worker失败�
 
 ## 测试与发布
 
-纯函数核心用Vitest覆盖草稿、编译、引用、条件、安全、历史、锁、资源、包和试玩隔离。Testing Library覆盖工坊入口、工程创建、编辑、校验定位、预览与发布。Playwright覆盖八条指定流程与两个内置案件回归。
+纯函数核心用Vitest覆盖草稿、编译、引用、条件、安全、历史、锁、资源、包和试玩隔离。Testing Library覆盖工坊入口、全局搜索和关键状态。Playwright覆盖工程创建/保存/快照/发布、空白工程校验、试玩安装、响应式、全局搜索和多标签只读，并继续运行原有玩家回归。
 
 CI依次执行类型、Lint、全部测试、案件校验、编辑器模板校验、模板打包往返、安全测试、构建和Chromium E2E。只有PR与main CI通过、Pages线上验证完成后创建v0.4.0和两个经验证Release Assets。
-
