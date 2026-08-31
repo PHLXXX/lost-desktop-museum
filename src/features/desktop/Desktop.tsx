@@ -4,7 +4,7 @@ import { ArchiveIcon } from '../../components/icons/ArchiveIcon'
 import { useActiveCaseDefinition } from '../../cases/useActiveCase'
 import type { AppId } from '../../cases/types'
 import { AppContent } from '../../app/AppContent'
-import { appRegistry } from '../../app/appRegistry'
+import { getRuntimeAppRegistry } from '../../app/appRegistry'
 import { playArchiveSound } from '../../engine/audioEngine'
 import { useGameStore } from '../../store/gameStore'
 import { useWindowStore } from '../../store/windowStore'
@@ -26,6 +26,7 @@ export function Desktop({
   onResult?: () => void
 }) {
   const caseDefinition = useActiveCaseDefinition()
+  const runtimeApps = getRuntimeAppRegistry(caseDefinition)
   const { windows, activeWindowId, openWindow, restoreWindow, minimizeWindow } = useWindowStore()
   const {
     discoveredClueIds,
@@ -110,7 +111,7 @@ export function Desktop({
     event.preventDefault()
     setContextMenu({ x: Math.max(8, Math.min(event.clientX, innerWidth - 190)), y: Math.max(40, Math.min(event.clientY, innerHeight - 250)) })
   }
-  const desktopApps = sortByName ? [...appRegistry].sort((a, b) => a.title.localeCompare(b.title, 'zh-CN')) : appRegistry
+  const desktopApps = sortByName ? [...runtimeApps].sort((a, b) => a.title.localeCompare(b.title, 'zh-CN')) : runtimeApps
   return (
     <main
       className={`desktop ${settings.anomalies ? 'anomalies' : ''} ${compactIcons ? 'compact-icons' : ''}`}
@@ -189,7 +190,7 @@ export function Desktop({
         <WindowFrame
           key={window.id}
           window={window}
-          title={appRegistry.find((app) => app.id === window.id)?.title ?? window.id}
+          title={runtimeApps.find((app) => app.id === window.id)?.title ?? window.id}
         >
           <AppContent appId={window.id} onDeduction={onDeduction} onResult={onResult} />
         </WindowFrame>
@@ -198,7 +199,7 @@ export function Desktop({
         <aside className="clue-toast" role="status" aria-label="线索通知">
           <span>
             {lastClue
-              ? `${lastClue.id} · ${appRegistry.find((app) => app.id === lastClue.source)?.title}`
+              ? `${lastClue.id} · ${runtimeApps.find((app) => app.id === lastClue.source)?.title}`
               : 'SYSTEM'}
           </span>
           <strong>{notice.startsWith('发现线索：') ? '新证据已记录' : '系统通知'}</strong>
@@ -222,7 +223,7 @@ export function Desktop({
         </button>
         <div className="running-apps">
           {windows.map((window) => {
-            const title = appRegistry.find((app) => app.id === window.id)?.title ?? window.id
+            const title = runtimeApps.find((app) => app.id === window.id)?.title ?? window.id
             return (
               <button
                 key={window.id}

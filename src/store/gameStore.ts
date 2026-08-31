@@ -38,6 +38,7 @@ const storage = typeof window === 'undefined' ? undefined : window.localStorage
 const loaded = storage ? loadGameSave(storage) : { status: 'fresh' as const, save: createFreshSave() }
 
 let saveTimer: ReturnType<typeof setTimeout> | undefined
+export function cancelPendingGameSave() { clearTimeout(saveTimer); saveTimer = undefined }
 function saveImmediately(state: GameState, setStatus?: (status: GameState['saveStatus']) => void) {
   if (!storage) return
   try { saveGameSave(storage, state); setStatus?.('saved') } catch { setStatus?.('error') }

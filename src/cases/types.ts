@@ -1,4 +1,4 @@
-export type AppId = 'files' | 'messages' | 'mail' | 'photos' | 'browser' | 'calendar' | 'recycle' | 'logs' | 'evidence' | 'settings'
+export type AppId = 'files' | 'messages' | 'mail' | 'photos' | 'browser' | 'calendar' | 'recycle' | 'logs' | 'audio' | 'broadcast' | 'data' | 'terminal' | 'versions' | 'sitemap' | 'evidence' | 'settings'
 
 export type InvestigationAction =
   | { type: 'OPEN_ITEM'; itemId: string }
@@ -90,6 +90,12 @@ export interface CalendarEvent { id: string; date: string; title: string; note: 
 export interface PhotoMetadata { capturedAt: string; exportedAt: string; camera: string }
 export interface PhotoAsset { id: string; title: string; image: string; metadata: PhotoMetadata; clueId?: string }
 export interface SystemLog { id: string; time: string; user: string; eventType: string; detail: string; clueId?: string }
+export interface AudioTrack { id: string; title: string; assetId: string; transcript: string }
+export interface BroadcastEvent { id: string; time: string; title: string; detail: string }
+export interface DataTable { id: string; title: string; columns: string[]; rows: string[][] }
+export interface TerminalEntry { id: string; command: string; output: string; enabled: boolean }
+export interface VersionDiff { id: string; title: string; before: string; after: string }
+export interface SitemapNode { id: string; label: string; parentId?: string; detail: string }
 export interface ClueDefinition { id: string; title: string; summary: string; explanation: string; source: AppId; discovery: InvestigationAction; condition: CaseCondition; people: string[]; times: string[]; places: string[]; isCore: boolean; isRedHerring: boolean }
 export type TriggerEffect =
   | { id: string; type: 'NOTIFICATION' | 'SYSTEM_MESSAGE'; message: string }
@@ -102,6 +108,7 @@ export type GameTrigger =
   | { id: string; name: string; once: boolean; condition: CaseCondition; effects: TriggerEffect[]; reducedMotionEffects: TriggerEffect[]; safeModeEffects: TriggerEffect[] }
 export interface EvidenceRelation { id: string; from: string; to: string; type: '相互矛盾' | '相互支持' | '时间先后' | '同一人物' }
 export interface DeductionQuestion { id: string; prompt: string; options: { id: string; label: string }[]; correctId: string; points: number }
+export interface DeductionResultLevel { id: string; label: string; minScore: number; maxScore: number; description: string }
 export interface DeductionSubmission { answers: string[]; evidenceIds: string[]; contradictionPairs: [string, string][]; note: string }
 export interface DeductionResult { score: number; level: string; answerScore: number; evidenceScore: number; relationScore: number; note: string }
 export interface WindowSnapshot { id: AppId; x: number; y: number; width: number; height: number; minimized: boolean; maximized: boolean }
@@ -149,9 +156,16 @@ export interface CaseDefinition {
   calendar: CalendarEvent[]
   photos: PhotoAsset[]
   logs: SystemLog[]
+  audioTracks: AudioTrack[]
+  broadcastEvents: BroadcastEvent[]
+  dataTables: DataTable[]
+  terminalEntries: TerminalEntry[]
+  versionDiffs: VersionDiff[]
+  sitemap: SitemapNode[]
   clues: ClueDefinition[]
   triggers: GameTrigger[]
   questions: DeductionQuestion[]
+  resultLevels: DeductionResultLevel[]
   coreEvidenceIds: string[]
   correctContradictions: [string, string][]
   ending: string

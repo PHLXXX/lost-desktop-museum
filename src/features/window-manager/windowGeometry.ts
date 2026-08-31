@@ -2,6 +2,7 @@ import type { AppId } from '../../cases/types'
 
 export const defaultWindowSizes: Record<AppId, [number, number]> = {
   files: [980, 620], messages: [860, 580], mail: [1020, 650], photos: [940, 640], browser: [900, 560], calendar: [880, 600], recycle: [820, 520], logs: [980, 580], evidence: [1100, 680], settings: [680, 520],
+  audio: [980, 600], broadcast: [900, 560], data: [920, 580], terminal: [860, 540], versions: [980, 620], sitemap: [900, 600],
 }
 
 export function clampWindow<T extends { x: number; y: number; width: number; height: number }>(window: T, viewportWidth = globalThis.innerWidth, viewportHeight = globalThis.innerHeight): T {

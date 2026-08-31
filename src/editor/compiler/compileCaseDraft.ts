@@ -55,7 +55,8 @@ export function compileCaseDraft(source: CaseDraft, assets: EditorAssetMetadata[
     desktop: { systemName, bootMessage, lastLoginMessage, themeColor, wallpaperAssetId: draft.desktop.wallpaperAssetId },
     applications: structuredClone(draft.applications), assets: structuredClone(draft.assets), timeline: structuredClone(draft.timeline), folders: structuredClone(draft.folders), files: structuredClone(draft.files),
     chats: structuredClone(draft.chats), emails: structuredClone(draft.emails), browser: structuredClone(draft.browserHistory), calendar: structuredClone(draft.calendarEvents), photos: structuredClone(draft.photos), logs: structuredClone(draft.systemLogs),
-    clues: structuredClone(draft.clues), triggers: structuredClone(draft.triggers), questions: structuredClone(draft.deduction.questions ?? []), coreEvidenceIds: structuredClone(draft.deduction.coreEvidenceIds ?? []), correctContradictions: structuredClone(draft.deduction.correctContradictions ?? []), ending,
+    audioTracks: structuredClone(draft.audioTracks), broadcastEvents: structuredClone(draft.broadcastEvents), dataTables: structuredClone(draft.dataTables), terminalEntries: structuredClone(draft.terminalEntries), versionDiffs: structuredClone(draft.versionDiffs), sitemap: structuredClone(draft.sitemap),
+    clues: structuredClone(draft.clues), triggers: structuredClone(draft.triggers), questions: structuredClone(draft.deduction.questions ?? []), resultLevels: structuredClone(draft.deduction.resultLevels ?? []), coreEvidenceIds: structuredClone(draft.deduction.coreEvidenceIds ?? []), correctContradictions: structuredClone(draft.deduction.correctContradictions ?? []), ending,
   }
   const formalIssues = validateCaseDefinition(definition)
   const errors = formalIssues.filter((issue) => issue.severity === 'error')

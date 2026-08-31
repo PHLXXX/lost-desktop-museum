@@ -4,7 +4,10 @@ export const SAVE_KEY = 'archive-os:case-001'
 export const CORRUPT_PREFIX = 'archive-os:case:corrupt:'
 export const CURRENT_SAVE_VERSION = 2
 
-export function getSaveKey(caseId: string): string { return caseId === 'case-001' ? SAVE_KEY : `archive-os:case:${caseId}` }
+export function getSaveKey(caseId: string): string {
+  if (caseId.startsWith('preview-')) return `archive-workshop:preview:${caseId}`
+  return caseId === 'case-001' ? SAVE_KEY : `archive-os:case:${caseId}`
+}
 
 export function createFreshSave(caseId = 'case-001'): GameSave {
   return {

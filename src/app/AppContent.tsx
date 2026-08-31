@@ -9,6 +9,7 @@ import { PhotosApp } from '../features/apps/PhotosApp'
 import { RecycleApp } from '../features/apps/RecycleApp'
 import { SettingsApp } from '../features/apps/SettingsApp'
 import { EvidenceBoardApp } from '../features/evidence-board/EvidenceBoardApp'
+import { AudioWorkbenchApp, BroadcastConsoleApp, DataDeskApp, SitemapApp, TerminalApp, VersionDiffApp } from '../features/apps/ExtendedApps'
 
 export function AppContent({ appId, onDeduction, onResult }: { appId: AppId; onDeduction?: () => void; onResult?: () => void }) {
   switch (appId) {
@@ -22,5 +23,11 @@ export function AppContent({ appId, onDeduction, onResult }: { appId: AppId; onD
     case 'logs': return <LogsApp />
     case 'evidence': return <EvidenceBoardApp onDeduction={onDeduction} onResult={onResult} />
     case 'settings': return <SettingsApp />
+    case 'audio': return <AudioWorkbenchApp />
+    case 'broadcast': return <BroadcastConsoleApp />
+    case 'data': return <DataDeskApp />
+    case 'terminal': return <TerminalApp />
+    case 'versions': return <VersionDiffApp />
+    case 'sitemap': return <SitemapApp />
   }
 }

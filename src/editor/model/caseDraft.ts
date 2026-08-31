@@ -1,6 +1,8 @@
 import type {
   ApplicationDefinition,
+  AudioTrack,
   BrowserHistoryEntry,
+  BroadcastEvent,
   CalendarEvent,
   CaseAssetReference,
   CaseEntity,
@@ -9,14 +11,18 @@ import type {
   ChatThread,
   ClueDefinition,
   DeductionQuestion,
+  DataTable,
   DesktopDefinition,
   EmailMessage,
   GameTrigger,
   PhotoAsset,
   SystemLog,
+  SitemapNode,
+  TerminalEntry,
   TimelineEntry,
   VirtualFile,
   VirtualFolder,
+  VersionDiff,
 } from '../../cases/types'
 
 export interface DraftDeductionDefinition {
@@ -42,8 +48,12 @@ export interface CaseDraft {
   calendarEvents: CalendarEvent[]
   photos: PhotoAsset[]
   systemLogs: SystemLog[]
-  audioTracks: { id: string; title: string; assetId: string; transcript: string }[]
-  broadcastEvents: { id: string; time: string; title: string; detail: string }[]
+  audioTracks: AudioTrack[]
+  broadcastEvents: BroadcastEvent[]
+  dataTables: DataTable[]
+  terminalEntries: TerminalEntry[]
+  versionDiffs: VersionDiff[]
+  sitemap: SitemapNode[]
   clues: ClueDefinition[]
   triggers: GameTrigger[]
   deduction: DraftDeductionDefinition
@@ -51,7 +61,8 @@ export interface CaseDraft {
 }
 
 const enabledAppEntries = [
-  ['files', '文件管理器'], ['messages', '讯息'], ['mail', '邮件'], ['calendar', '日历'], ['logs', '系统日志'], ['evidence', '证据板'], ['settings', '设置'],
+  ['files', '文件管理器'], ['messages', '讯息'], ['mail', '邮件'], ['photos', '照片'], ['browser', '浏览记录'], ['calendar', '日历'], ['recycle', '回收站'], ['logs', '系统日志'],
+  ['audio', '音频工作台'], ['broadcast', '广播控制台'], ['data', '数据台'], ['terminal', '模拟终端'], ['versions', '版本差异'], ['sitemap', '站点地图'], ['evidence', '证据板'], ['settings', '设置'],
 ] as const
 const enabledApps: ApplicationDefinition[] = enabledAppEntries.map(([id, title], index) => ({ id, componentKey: id, title, enabled: true, desktopX: 36 + (index % 2) * 196, desktopY: 72 + Math.floor(index / 2) * 76 }))
 
@@ -59,7 +70,7 @@ export function createBlankDraft(): CaseDraft {
   return {
     manifest: { language: 'zh-CN', version: '0.1.0', difficulty: '入门', estimatedMinutes: 15, tags: [], contentWarnings: [], builtIn: false },
     subject: {}, entities: [], timeline: [], desktop: { systemName: 'ARCHIVE/OS 3.1', themeColor: '#557b78' }, applications: enabledApps.map((app) => ({ ...app })),
-    folders: [], files: [], chats: [], emails: [], browserHistory: [], calendarEvents: [], photos: [], systemLogs: [], audioTracks: [], broadcastEvents: [], clues: [], triggers: [],
+    folders: [], files: [], chats: [], emails: [], browserHistory: [], calendarEvents: [], photos: [], systemLogs: [], audioTracks: [], broadcastEvents: [], dataTables: [], terminalEntries: [], versionDiffs: [], sitemap: [], clues: [], triggers: [],
     deduction: { questions: [], coreEvidenceIds: [], correctContradictions: [], resultLevels: [] }, assets: [],
   }
 }

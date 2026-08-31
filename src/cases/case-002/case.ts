@@ -26,6 +26,7 @@ const clue = (
 const applications = ([
   ['files', '我的文件'], ['messages', '讯息'], ['mail', '邮件'], ['photos', '照片'], ['browser', '浏览记录'],
   ['calendar', '日历'], ['recycle', '回收站'], ['logs', '系统日志'], ['evidence', '证据板'], ['settings', '设置'],
+  ['audio', '音频工作台'], ['broadcast', '广播控制台'], ['data', '数据台'], ['terminal', '模拟终端'], ['versions', '版本差异'], ['sitemap', '站点地图'],
 ] as const).map(([id, title], index) => ({ id, componentKey: id, title, enabled: true, desktopX: 32 + (index % 2) * 210, desktopY: 84 + Math.floor(index / 2) * 74 }))
 
 export const caseDefinition: CaseDefinition = {
@@ -70,6 +71,12 @@ export const caseDefinition: CaseDefinition = {
   calendar: [{ id: 'calendar-zero', date: '2032-04-09', title: '零点特别节目', note: '改为预录，不进入A演播室', clueId: 'C05' }],
   photos: [{ id: 'photo-console', title: '控制台恢复图.svg', image: archiveImage, metadata: { capturedAt: '2032-04-08 20:00', exportedAt: '2032-04-09 00:20', camera: 'ARCHIVE CAPTURE' } }],
   logs: [{ id: 'log-door', time: '2032-04-09 00:01', user: 'ACCESS', eventType: '门禁', detail: 'A演播室无人刷卡进入', clueId: 'C06' }],
+  audioTracks: [{ id: 'audio-midnight', title: '零点备份片段', assetId: '', transcript: '如果零点后还有我的声音，那不是直播。' }],
+  broadcastEvents: [{ id: 'broadcast-local', time: '00:00', title: '节目源切换', detail: '主输出切换至本地备份线路。' }],
+  dataTables: [{ id: 'data-delay', title: '节目源延迟采样', columns: ['时间', '延迟'], rows: [['23:59:58', '2.0s'], ['00:00:03', '2.1s']] }],
+  terminalEntries: [{ id: 'terminal-source', command: 'source --status', output: 'INPUT=LOCAL_BACKUP\nSTUDIO_A=OFFLINE', enabled: true }],
+  versionDiffs: [{ id: 'version-schedule', title: '节目单修改', before: '播出方式：直播', after: '播出方式：本地预录' }],
+  sitemap: [{ id: 'site-studio', label: 'A演播室', detail: '主控室，无门禁进入记录' }, { id: 'site-archive', label: '本地档案室', parentId: 'site-studio', detail: '备份节目源存储位置' }],
   clues: [
     clue('C01', '空白签字栏', '节目单没有主持人签字。', 'files', 'OPEN_ITEM', 'file-midnight-script'),
     clue('C02', '不是直播', '林默提前说明零点后的声音不是直播。', 'messages', 'OPEN_ITEM', 'message-last'),
@@ -86,6 +93,11 @@ export const caseDefinition: CaseDefinition = {
     { id: 'question-source', prompt: '零点节目最可能来自哪里？', options: [{ id: 'live', label: 'A演播室直播' }, { id: 'local', label: '本地预录备份' }], correctId: 'local', points: 25 },
     { id: 'question-presence', prompt: '林默零点时是否在A演播室？', options: [{ id: 'yes', label: '在' }, { id: 'no', label: '现有记录不支持' }], correctId: 'no', points: 20 },
     { id: 'question-purpose', prompt: '异常声音最可能用于什么？', options: [{ id: 'cover', label: '制造仍在主持的假象' }, { id: 'test', label: '普通设备测试' }], correctId: 'cover', points: 20 },
+  ],
+  resultLevels: [
+    { id: 'echo-low', label: '信号未明', minScore: 0, maxScore: 49, description: '声音来源仍未确认。' },
+    { id: 'echo-mid', label: '节目源已定位', minScore: 50, maxScore: 84, description: '本地输入已经确认。' },
+    { id: 'echo-high', label: '零点回声已还原', minScore: 85, maxScore: 100, description: '节目源与人员轨迹完整闭合。' },
   ],
   coreEvidenceIds: ['C01', 'C02', 'C03', 'C04', 'C05', 'C06'],
   correctContradictions: [['C01', 'C02'], ['C05', 'C06']],

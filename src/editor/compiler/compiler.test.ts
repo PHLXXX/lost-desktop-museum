@@ -18,7 +18,7 @@ describe('CaseDraft compiler boundary', () => {
     const draft = createMinimalTemplateDraft()
     const before = structuredClone(draft)
     const result = compileCaseDraft(draft, [])
-    expect(result.ok).toBe(true)
+    expect(result.ok ? [] : result.issues).toEqual([])
     expect(draft).toEqual(before)
     if (result.ok) {
       expect(result.caseDefinition.clues).toHaveLength(6)
@@ -29,7 +29,7 @@ describe('CaseDraft compiler boundary', () => {
   it('decompiles and recompiles without losing core case data', () => {
     const draft = decompileCaseDefinition(case002)
     const result = compileCaseDraft(draft, [])
-    expect(result.ok).toBe(true)
+    expect(result.ok ? [] : result.issues).toEqual([])
     if (result.ok) {
       expect(result.caseDefinition.files).toEqual(case002.files)
       expect(result.caseDefinition.chats).toEqual(case002.chats)

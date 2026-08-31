@@ -1,7 +1,7 @@
 import { z } from 'zod'
 import type { CaseCondition } from './types'
 
-const appIdSchema = z.enum(['files', 'messages', 'mail', 'photos', 'browser', 'calendar', 'recycle', 'logs', 'evidence', 'settings'])
+const appIdSchema = z.enum(['files', 'messages', 'mail', 'photos', 'browser', 'calendar', 'recycle', 'logs', 'audio', 'broadcast', 'data', 'terminal', 'versions', 'sitemap', 'evidence', 'settings'])
 const actionTypeSchema = z.enum(['OPEN_ITEM', 'VIEW_METADATA', 'COMPARE_ITEMS', 'VIEW_TRANSCRIPT', 'UNLOCK_ITEM', 'VIEW_LOG'])
 const eventTypeSchema = z.enum(['OPEN_ITEM', 'VIEW_METADATA', 'COMPARE_ITEMS', 'VIEW_TRANSCRIPT', 'UNLOCK_ITEM', 'VIEW_LOG', 'VIEW_MAIL_HEADERS', 'RESTORE_ITEM', 'RUN_COMMAND', 'VIEW_AUDIO_MARKER', 'COMPARE_AUDIO', 'VIEW_MAP_LOCATION', 'VIEW_VERSION_DIFF', 'CREATE_RELATION'])
 const actionSchema = z.object({ type: actionTypeSchema, itemId: z.string().min(1) }).strict()
@@ -35,6 +35,12 @@ const browserSchema = z.object({ id: z.string().min(1), time: z.string(), title:
 const calendarSchema = z.object({ id: z.string().min(1), date: z.string(), title: z.string(), note: z.string(), clueId: z.string().optional() }).strict()
 const photoSchema = z.object({ id: z.string().min(1), title: z.string(), image: z.string(), metadata: z.object({ capturedAt: z.string(), exportedAt: z.string(), camera: z.string() }).strict(), clueId: z.string().optional() }).strict()
 const logSchema = z.object({ id: z.string().min(1), time: z.string(), user: z.string(), eventType: z.string(), detail: z.string(), clueId: z.string().optional() }).strict()
+const audioSchema = z.object({ id: z.string().min(1), title: z.string(), assetId: z.string(), transcript: z.string() }).strict()
+const broadcastSchema = z.object({ id: z.string().min(1), time: z.string(), title: z.string(), detail: z.string() }).strict()
+const dataTableSchema = z.object({ id: z.string().min(1), title: z.string(), columns: z.array(z.string()), rows: z.array(z.array(z.string())) }).strict()
+const terminalEntrySchema = z.object({ id: z.string().min(1), command: z.string(), output: z.string(), enabled: z.boolean() }).strict()
+const versionDiffSchema = z.object({ id: z.string().min(1), title: z.string(), before: z.string(), after: z.string() }).strict()
+const sitemapNodeSchema = z.object({ id: z.string().min(1), label: z.string(), parentId: z.string().optional(), detail: z.string() }).strict()
 const clueSchema = z.object({ id: z.string().min(1), title: z.string().min(1), summary: z.string(), explanation: z.string(), source: appIdSchema, discovery: actionSchema, condition: conditionSchema, people: z.array(z.string()), times: z.array(z.string()), places: z.array(z.string()), isCore: z.boolean(), isRedHerring: z.boolean() }).strict()
 const effectSchema = z.discriminatedUnion('type', [
   z.object({ id: z.string().min(1), type: z.enum(['NOTIFICATION', 'SYSTEM_MESSAGE']), message: z.string() }).strict(),
@@ -46,11 +52,12 @@ const effectSchema = z.discriminatedUnion('type', [
 const legacyTriggerSchema = z.object({ id: z.string().min(1), kind: z.enum(['clue-count', 'item-opened', 'deduction']), threshold: z.number().int().optional(), itemId: z.string().optional(), effect: effectSchema }).strict()
 const declarativeTriggerSchema = z.object({ id: z.string().min(1), name: z.string().min(1), once: z.boolean(), condition: conditionSchema, effects: z.array(effectSchema), reducedMotionEffects: z.array(effectSchema), safeModeEffects: z.array(effectSchema) }).strict()
 const questionSchema = z.object({ id: z.string().min(1), prompt: z.string().min(1), options: z.array(z.object({ id: z.string().min(1), label: z.string().min(1) }).strict()).min(2), correctId: z.string().min(1), points: z.number().int().nonnegative() }).strict()
+const resultLevelSchema = z.object({ id: z.string().min(1), label: z.string().min(1), minScore: z.number().int().min(0).max(100), maxScore: z.number().int().min(0).max(100), description: z.string() }).strict()
 
 export const caseDefinitionSchema = z.object({
   formatVersion: z.literal(1), id: z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/), title: z.string().min(1), owner: z.string().min(1), manifest: manifestSchema, subject: subjectSchema,
   entities: z.array(entitySchema), desktop: desktopSchema, applications: z.array(applicationSchema).min(2), assets: z.array(assetSchema), timeline: z.array(z.object({ time: z.string(), text: z.string() }).strict()),
   folders: z.array(folderSchema), files: z.array(fileSchema), chats: z.array(chatSchema), emails: z.array(emailSchema), browser: z.array(browserSchema), calendar: z.array(calendarSchema), photos: z.array(photoSchema), logs: z.array(logSchema),
-  clues: z.array(clueSchema).min(1), triggers: z.array(z.union([legacyTriggerSchema, declarativeTriggerSchema])), questions: z.array(questionSchema).min(1), coreEvidenceIds: z.array(z.string()), correctContradictions: z.array(z.tuple([z.string(), z.string()])), ending: z.string(),
+  audioTracks: z.array(audioSchema), broadcastEvents: z.array(broadcastSchema), dataTables: z.array(dataTableSchema), terminalEntries: z.array(terminalEntrySchema), versionDiffs: z.array(versionDiffSchema), sitemap: z.array(sitemapNodeSchema),
+  clues: z.array(clueSchema).min(1), triggers: z.array(z.union([legacyTriggerSchema, declarativeTriggerSchema])), questions: z.array(questionSchema).min(1), resultLevels: z.array(resultLevelSchema).min(1), coreEvidenceIds: z.array(z.string()), correctContradictions: z.array(z.tuple([z.string(), z.string()])), ending: z.string(),
 }).strict()
-

@@ -39,7 +39,7 @@ export function deleteWithReferencePolicy(draft: CaseDraft, targetId: string, po
   const references = findReferences(draft, targetId)
   if (references.length && policy === 'block') return { ok: false, draft, references }
   const next = structuredClone(draft)
-  const arrayKeys: (keyof CaseDraft)[] = ['entities', 'timeline', 'applications', 'folders', 'files', 'chats', 'emails', 'browserHistory', 'calendarEvents', 'photos', 'systemLogs', 'audioTracks', 'broadcastEvents', 'clues', 'triggers', 'assets']
+  const arrayKeys: (keyof CaseDraft)[] = ['entities', 'timeline', 'applications', 'folders', 'files', 'chats', 'emails', 'browserHistory', 'calendarEvents', 'photos', 'systemLogs', 'audioTracks', 'broadcastEvents', 'dataTables', 'terminalEntries', 'versionDiffs', 'sitemap', 'clues', 'triggers', 'assets']
   arrayKeys.forEach((key) => {
     const value = next[key]
     if (Array.isArray(value)) (next as unknown as Record<string, unknown>)[key] = value.filter((item) => typeof item !== 'object' || item === null || !('id' in item) || (item as { id?: string }).id !== targetId)
