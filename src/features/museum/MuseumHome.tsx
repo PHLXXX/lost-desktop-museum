@@ -11,6 +11,7 @@ import { downloadFile } from '../../editor/utils/downloadFile'
 import { communityInstallationRepository } from '../../community/install/communityInstallationRepository'
 
 type MuseumDialog = 'about' | 'credits' | 'settings' | null
+type CaseSource = 'built-in' | 'community' | 'local' | 'pending'
 
 function formatPlayTime(seconds: number) {
   const minutes = Math.floor(seconds / 60)
@@ -21,7 +22,13 @@ function readSave(caseId: string): GameSave {
   return typeof window === 'undefined' ? createFreshSave(caseId) : loadGameSave(window.localStorage, caseId).save
 }
 
-function ExhibitRow({ definition, saveOverride, source, onOpen, onContinue, onRestart, onRemove }: { definition: CaseDefinition; saveOverride?: GameSave; source: 'built-in' | 'community' | 'local'; onOpen: () => void; onContinue: () => void; onRestart: () => void; onRemove?: () => void }) {
+function resolveCaseSource(definition: CaseDefinition, communityIds: Set<string> | null): CaseSource {
+  if (definition.manifest.builtIn) return 'built-in'
+  if (communityIds === null) return 'pending'
+  return communityIds.has(definition.id) ? 'community' : 'local'
+}
+
+function ExhibitRow({ definition, saveOverride, source, onOpen, onContinue, onRestart, onRemove }: { definition: CaseDefinition; saveOverride?: GameSave; source: CaseSource; onOpen: () => void; onContinue: () => void; onRestart: () => void; onRemove?: () => void }) {
   const save = saveOverride ?? readSave(definition.id)
   const discovered = save.discoveredClueIds.length
   const hasProgress = save.caseStarted || discovered > 0 || save.playTime > 0
@@ -33,7 +40,7 @@ function ExhibitRow({ definition, saveOverride, source, onOpen, onContinue, onRe
     <section className="exhibit-row" aria-labelledby={`case-title-${definition.id}`}>
       <div className="exhibit-index"><span>档案</span><strong>{index}</strong><i aria-hidden="true" /></div>
       <div className="exhibit-copy">
-        <span className="status-chip">{completed ? '已完成' : hasProgress ? '调查中' : '未开始'}</span><span className="source-chip">{source === 'built-in' ? '内置档案' : source === 'community' ? '社区档案' : '本地导入'}</span>
+        <span className="status-chip">{completed ? '已完成' : hasProgress ? '调查中' : '未开始'}</span><span className="source-chip">{source === 'built-in' ? '内置档案' : source === 'community' ? '社区档案' : source === 'local' ? '本地导入' : '正在确认来源'}</span>
         <h2 id={`case-title-${definition.id}`}>{definition.title}</h2>
         <p>{definition.manifest.summary}</p>
         <dl className="case-summary-grid">
@@ -61,7 +68,7 @@ export function MuseumHome({ onOpenCase, onContinue, onOpenWorkshop, onOpenCommu
   const [dialog, setDialog] = useState<MuseumDialog>(null)
   const [restartCaseId, setRestartCaseId] = useState<string | null>(null)
   const [cases, setCases] = useState(listAvailableCases())
-  const [communityIds, setCommunityIds] = useState<Set<string>>(new Set())
+  const [communityIds, setCommunityIds] = useState<Set<string> | null>(null)
   const [sourceFilter, setSourceFilter] = useState<'all' | 'built-in' | 'community' | 'local'>('all')
   const [importNotice, setImportNotice] = useState<string | null>(null)
   const [removeCaseId, setRemoveCaseId] = useState<string | null>(null)
@@ -80,7 +87,7 @@ export function MuseumHome({ onOpenCase, onContinue, onOpenWorkshop, onOpenCommu
       setCases(listAvailableCases()); setImportNotice(imported.warnings[0] ?? `已安装案件：${imported.caseDefinition.title}`)
     } catch (error) { setImportNotice(error instanceof Error ? error.message : '案件导入失败。') }
   }
-  const removeCase = async (caseId: string) => { if (communityIds.has(caseId)) { const { communityInstallManager } = await import('../../community/install/communityInstallManager'); await communityInstallManager.uninstall(caseId); setCommunityIds((ids) => new Set([...ids].filter((id) => id !== caseId))) } else { await caseRepository.remove(caseId); await assetRepository.deleteOwner(caseId) } unregisterInstalledCase(caseId); setCases(listAvailableCases()); setImportNotice('已移除案件资源；本地正式存档仍保留。') }
+  const removeCase = async (caseId: string) => { if (communityIds?.has(caseId)) { const { communityInstallManager } = await import('../../community/install/communityInstallManager'); await communityInstallManager.uninstall(caseId); setCommunityIds((ids) => new Set([...(ids ?? [])].filter((id) => id !== caseId))) } else { await caseRepository.remove(caseId); await assetRepository.deleteOwner(caseId) } unregisterInstalledCase(caseId); setCases(listAvailableCases()); setImportNotice('已移除案件资源；本地正式存档仍保留。') }
   const exportProgress = async () => {
     const definition = cases.find((item) => item.id === gameState.caseId)
     if (!definition) return
@@ -116,7 +123,7 @@ export function MuseumHome({ onOpenCase, onContinue, onOpenWorkshop, onOpenCommu
       {importNotice && <section className="museum-recovery" role="status"><div><strong>案件包</strong><p>{importNotice}</p></div><button aria-label="关闭案件包提示" onClick={() => setImportNotice(null)}>×</button></section>}
       <div className="museum-source-filters" role="group" aria-label="案件来源筛选">{([['all', '全部'], ['built-in', '内置'], ['community', '社区安装'], ['local', '本地导入']] as const).map(([value, label]) => <button className={sourceFilter === value ? 'selected' : ''} key={value} onClick={() => setSourceFilter(value)}>{label}</button>)}</div>
       <div className="museum-cases">
-        {cases.filter((definition) => { const source = definition.manifest.builtIn ? 'built-in' : communityIds.has(definition.id) ? 'community' : 'local'; return sourceFilter === 'all' || sourceFilter === source }).map((definition) => { const source = definition.manifest.builtIn ? 'built-in' : communityIds.has(definition.id) ? 'community' : 'local'; return <ExhibitRow key={definition.id} definition={definition} source={source} saveOverride={definition.id === gameState.caseId ? gameState : undefined} onOpen={() => onOpenCase(definition.id)} onContinue={() => onContinue(definition.id)} onRestart={() => setRestartCaseId(definition.id)} onRemove={definition.manifest.builtIn ? undefined : source === 'community' ? () => onOpenCommunity?.(definition.id) : () => setRemoveCaseId(definition.id)} /> })}
+      {cases.filter((definition) => { const source = resolveCaseSource(definition, communityIds); return sourceFilter === 'all' || source === sourceFilter }).map((definition) => { const source = resolveCaseSource(definition, communityIds); return <ExhibitRow key={definition.id} definition={definition} source={source} saveOverride={definition.id === gameState.caseId ? gameState : undefined} onOpen={() => onOpenCase(definition.id)} onContinue={() => onContinue(definition.id)} onRestart={() => setRestartCaseId(definition.id)} onRemove={source === 'community' ? () => onOpenCommunity?.(definition.id) : source === 'local' ? () => setRemoveCaseId(definition.id) : undefined} /> })}
       </div>
       <div className="museum-utility-actions"><label className="museum-import-button">安装.ldmcase<input type="file" accept=".ldmcase,.lmdcase" onChange={(event) => { void importCase(event.target.files?.[0]); event.target.value = '' }} /></label><button onClick={() => void exportProgress()}>导出.ldmsave</button><label className="museum-import-button">恢复.ldmsave<input type="file" accept=".ldmsave" onChange={(event) => { void importProgress(event.target.files?.[0]); event.target.value = '' }} /></label><button onClick={() => setDialog('about')}>关于本馆</button><button onClick={() => setDialog('credits')}>制作人员</button></div>
       <footer className="museum-footer"><span>本地展馆 · 无账户 · 无数据上传</span><span>ARCHIVE/OS COLLECTION 2032</span></footer>
