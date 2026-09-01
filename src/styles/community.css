@@ -1,4 +1,5 @@
 .community-shell { min-height: 100%; overflow: auto; color: var(--ink-0); background: var(--base-1); }
+.community-page-title { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
 .community-header { display: flex; height: 64px; align-items: center; justify-content: space-between; padding: 0 40px; border-bottom: 1px solid var(--line); background: var(--base-0); }
 .community-header > div { display: grid; grid-template-columns: auto auto; align-items: center; gap: 2px 16px; }
 .community-header > div button { grid-row: 1 / 3; height: 32px; }
@@ -108,9 +109,10 @@
   .community-body { width: calc(100% - 24px); }
   .community-header { padding: 0 12px; }
   .community-header nav button { padding: 0 9px; }
-  .community-tools { grid-template-columns: 1fr; }
-  .community-tools fieldset { overflow-x: auto; }
-  .community-sort { grid-column: 1; }
+  .community-tools { grid-template-columns: minmax(0, 1fr); }
+  .community-tools > * { min-width: 0; }
+  .community-tools fieldset { width: 100%; min-width: 0; overflow-x: auto; }
+  .community-sort { min-width: 0; grid-column: 1; }
   .community-case-row, .community-catalog.grid .community-case-row { grid-template-columns: 92px 1fr; }
   .community-case-row > dl, .community-row-state { border-top: 1px solid var(--line); border-left: 0; grid-column: 1 / 3; }
   .community-row-state { flex-direction: row; justify-content: space-between; }
@@ -121,6 +123,12 @@
 @media (max-width: 680px) {
   .community-header { height: auto; min-height: 64px; align-items: flex-start; flex-direction: column; }
   .community-header nav { min-height: 42px; }
+  .community-tools fieldset { display: grid; overflow: visible; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .community-tools fieldset legend { grid-column: 1 / -1; }
+  .community-tools fieldset select { width: 100%; min-width: 0; }
+  .community-tools fieldset label { min-width: 0; white-space: normal; }
+  .community-sort { justify-content: flex-start; flex-wrap: wrap; }
+  .community-sort label { display: flex; min-width: 0; align-items: center; gap: 6px; }
   .community-catalog.grid { grid-template-columns: 1fr; }
   .community-detail > header { display: block; }
   .community-detail-cover { min-height: 120px; }

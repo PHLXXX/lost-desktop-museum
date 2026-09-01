@@ -9,6 +9,7 @@ import { caseRepository } from '../storage/caseRepository'
 import { useGameStore } from '../store/gameStore'
 import { useWindowStore } from '../store/windowStore'
 import type { AppPhase } from './appPhase'
+import { LazyRouteBoundary } from './LazyRouteBoundary'
 
 const WorkshopEntry = lazy(() => import('../editor/entry/WorkshopEntry'))
 const CommunityEntry = lazy(() => import('../community/features/CommunityEntry'))
@@ -56,8 +57,8 @@ export function AppShell() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
   if (phase === 'museum') return <MuseumHome onOpenCase={(caseId) => { window.location.hash = `#/cases/${caseId}`; selectCase(caseId, 'case-detail') }} onContinue={(caseId) => { window.history.replaceState(null, '', `#/cases/${caseId}`); selectCase(caseId, 'investigation') }} onOpenCommunity={(caseId) => { setCommunityCaseId(caseId ?? null); navigate('community', caseId ? `#/community/cases/${caseId}` : '#/community') }} onOpenWorkshop={() => navigate('workshop', '#/workshop')} />
-  if (phase === 'community') return <Suspense fallback={<main className="workshop-loading" aria-busy="true">正在挂载社区档案…</main>}><CommunityEntry initialCaseId={communityCaseId} onReturnMuseum={() => navigate('museum', '#/museum')} onStartCase={(caseId) => { window.location.hash = `#/cases/${caseId}`; selectCase(caseId, 'case-detail') }} /></Suspense>
-  if (phase === 'workshop') return <Suspense fallback={<main className="workshop-loading" aria-busy="true">正在挂载档案工坊…</main>}><WorkshopEntry onReturnMuseum={() => navigate('museum', '#/museum')} /></Suspense>
+  if (phase === 'community') return <LazyRouteBoundary featureName="社区功能" onReturnMuseum={() => navigate('museum', '#/museum')}><Suspense fallback={<main className="workshop-loading" aria-busy="true">正在挂载社区档案…</main>}><CommunityEntry initialCaseId={communityCaseId} onReturnMuseum={() => navigate('museum', '#/museum')} onStartCase={(caseId) => { window.location.hash = `#/cases/${caseId}`; selectCase(caseId, 'case-detail') }} /></Suspense></LazyRouteBoundary>
+  if (phase === 'workshop') return <LazyRouteBoundary featureName="档案工坊" onReturnMuseum={() => navigate('museum', '#/museum')}><Suspense fallback={<main className="workshop-loading" aria-busy="true">正在挂载档案工坊…</main>}><WorkshopEntry onReturnMuseum={() => navigate('museum', '#/museum')} /></Suspense></LazyRouteBoundary>
   if (phase === 'case-detail') return <CaseDetail onBack={() => navigate('museum', '#/museum')} onStart={() => setPhase('case-boot')} onContinue={() => setPhase('investigation')} />
   if (phase === 'case-boot') return <BootScreen onEnter={(safeMode) => { markCaseStarted(); updateSettings({ safeMode, anomalies: safeMode ? false : useGameStore.getState().settings.anomalies }); setPhase('investigation') }} />
   if (phase === 'result') return <ResultScreen onReturnMuseum={() => navigate('museum', '#/museum')} onReviewEvidence={() => setPhase('investigation')} />

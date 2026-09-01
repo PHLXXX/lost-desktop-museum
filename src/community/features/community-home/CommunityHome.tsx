@@ -51,6 +51,7 @@ export function CommunityHome({ index, installedVersions, resolvePath, onOpen }:
   }, [index, installedVersions, query, difficulty, rating, language, tag, duration, installationFilter, curated, showMature, sort])
   const clear = () => { setQuery(''); setDifficulty(''); setRating(''); setLanguage(''); setTag(''); setDuration(''); setInstallationFilter(''); setCurated(false); setShowMature(false) }
   return <>
+    <h1 className="community-page-title">社区档案</h1>
     <section className="community-tools">
       <label className="community-search"><span>搜索社区案件</span><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="标题、标签、发布者或语言" /></label>
       <fieldset><legend>筛选</legend>

@@ -44,4 +44,33 @@ test.describe('Archive Exchange', () => {
     await page.getByRole('button', { name: '← 我的档案' }).click()
     await expect(page.getByText('遗失电脑博物馆')).toBeVisible()
   })
+
+  test('keeps local archives recoverable when the lazy community module cannot load offline', async ({ page, context }) => {
+    await expect(page.getByRole('heading', { name: /遗失的电脑/ })).toBeVisible()
+    await context.setOffline(true)
+    await page.getByRole('button', { name: '社区档案' }).click()
+
+    await expect(page.getByRole('alert')).toContainText('社区功能暂时无法载入')
+    await page.getByRole('button', { name: '返回我的档案' }).click()
+    await expect(page.getByRole('heading', { name: /遗失的电脑/ })).toBeVisible()
+  })
+
+  test('community catalog exposes an accessible page heading', async ({ page }) => {
+    await page.getByRole('button', { name: '社区档案' }).click()
+    await expect(page.getByRole('heading', { level: 1, name: '社区档案' })).toBeVisible()
+  })
+
+  test('keeps every community filter and sort control in the phone viewport', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 })
+    await page.getByRole('button', { name: '社区档案' }).click()
+    await expect(page.getByText('社区目录可用')).toBeVisible()
+
+    for (const viewport of [{ width: 390, height: 844 }, { width: 320, height: 720 }]) {
+      await page.setViewportSize(viewport)
+      for (const name of ['安装状态', '内容评级', '人工精选', '显示成熟主题案件', '排序', '列表视图', '紧凑网格视图']) {
+        const control = name === '排序' ? page.getByLabel('排序') : page.getByLabel(name)
+        await expect(control).toBeInViewport()
+      }
+    }
+  })
 })
