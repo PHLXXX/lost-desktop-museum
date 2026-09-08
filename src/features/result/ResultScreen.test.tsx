@@ -68,4 +68,20 @@ describe('ResultScreen', () => {
       unregisterInstalledCase(caseId)
     }
   })
+
+  it('distinguishes a newly unlocked reward from an existing collectible', () => {
+    useGameStore.setState({
+      deductionResult: {
+        ...useGameStore.getState().deductionResult!,
+        rewardIds: ['default-case-archive', 'default-complete-record'],
+        newRewardKeys: ['case-002:default-case-archive'],
+      },
+    })
+
+    render(<ResultScreen onReturnMuseum={vi.fn()} onReviewEvidence={vi.fn()} />)
+
+    expect(screen.getByRole('heading', { name: '本次通关奖励' })).toBeInTheDocument()
+    expect(screen.getByText('首次解锁')).toBeInTheDocument()
+    expect(screen.getByText('已收藏')).toBeInTheDocument()
+  })
 })

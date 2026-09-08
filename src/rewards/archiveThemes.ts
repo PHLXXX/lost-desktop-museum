@@ -6,11 +6,11 @@ export interface ArchiveThemeDefinition {
   description: string
 }
 
-export const archiveThemes: readonly ArchiveThemeDefinition[] = [
+export const archiveThemes = [
   { id: 'archive-standard', title: '标准档案', description: 'ARCHIVE/OS 默认的琥珀与深灰配色。' },
   { id: 'departure-night', title: '候机厅夜色', description: '取自深夜航站楼信息屏的靛蓝与暖琥珀。' },
   { id: 'signal-blueprint', title: '信号室蓝图', description: '取自广播控制室图纸的冷蓝与青色。' },
-]
+] as const satisfies readonly ArchiveThemeDefinition[]
 
 const archiveThemeIds = new Set<ArchiveThemeId>(archiveThemes.map((theme) => theme.id))
 

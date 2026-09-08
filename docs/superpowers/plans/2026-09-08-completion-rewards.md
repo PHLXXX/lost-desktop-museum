@@ -205,33 +205,33 @@ Commit: `feat: award rewards after deduction`
 - Produces: accessible reward collection dialog content and result reward section.
 - Consumes: available case definitions, reward profile, and resolved rewards.
 
-- [ ] **Step 1: Write failing component tests**
+- [x] **Step 1: Write failing component tests**
 
 Verify that the result page labels a fresh artifact “首次解锁”, repeat rewards “已收藏”, the museum displays unlocked/known totals, a locked theme cannot be equipped, and an unlocked theme can be equipped with “当前使用” feedback.
 
-- [ ] **Step 2: Run tests and verify RED**
+- [x] **Step 2: Run tests and verify RED**
 
 Run: `npm test -- src/features/result/ResultScreen.test.tsx src/features/rewards/RewardCollection.test.tsx src/features/museum/MuseumHome.test.tsx`
 
 Expected: FAIL because reward UI and navigation are absent.
 
-- [ ] **Step 3: Add result reward records**
+- [x] **Step 3: Add result reward records**
 
 Render compact rows with reward type, title, description, and status. When no rewards are earned, show a replay hint without hiding the existing ending and report.
 
-- [ ] **Step 4: Add museum collection**
+- [x] **Step 4: Add museum collection**
 
 Add “馆藏奖励” to the museum navigation. The collection groups known definitions by source case, preserves orphaned unlock snapshots, and equips only unlocked theme rewards.
 
-- [ ] **Step 5: Add case-row reward progress**
+- [x] **Step 5: Add case-row reward progress**
 
 Display `奖励 X / Y` next to case mastery without increasing card height excessively.
 
-- [ ] **Step 6: Style and test responsive behavior**
+- [x] **Step 6: Style and test responsive behavior**
 
 Use square archive-record rows, small type labels, visible focus states, single-column layout below 1024 px, and no continuous animation.
 
-- [ ] **Step 7: Run tests and commit**
+- [x] **Step 7: Run tests and commit**
 
 Run: `npm test -- src/features/result/ResultScreen.test.tsx src/features/rewards/RewardCollection.test.tsx src/features/museum/MuseumHome.test.tsx`
 

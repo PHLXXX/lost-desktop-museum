@@ -4,6 +4,7 @@ import { resolveInvestigationGameplay } from '../../gameplay/defaultGameplay'
 import { getHintState } from '../../gameplay/hintEngine'
 import { getObjectiveStates } from '../../gameplay/objectiveEngine'
 import { useGameStore } from '../../store/gameStore'
+import { evaluateRewards, resolveInvestigationRewards } from '../../gameplay/rewardEngine'
 
 function formatPlayTime(seconds: number) {
   const minutes = Math.floor(seconds / 60)
@@ -36,6 +37,9 @@ export function ResultScreen({
   const completedObjectives = objectives.filter((objective) => objective.complete)
   const hintLayers = getHintState(caseDefinition, saveState).hints.reduce((total, hint) => total + hint.revealedCount, 0)
   const earnedChallenges = gameplay.challenges.filter((challenge) => result.challengeIds?.includes(challenge.id))
+  const earnedRewardIds = new Set(result.rewardIds ?? evaluateRewards(caseDefinition, saveState, result).map((reward) => reward.id))
+  const earnedRewards = resolveInvestigationRewards(caseDefinition).filter((reward) => earnedRewardIds.has(reward.id))
+  const newRewardKeys = new Set(result.newRewardKeys ?? [])
   const endingVariant = gameplay.endingVariants.find((ending) => ending.id === result.endingVariantId)
   const ending = endingVariant
     ? { title: endingVariant.title, text: endingVariant.text }
@@ -90,6 +94,19 @@ export function ResultScreen({
             <div className="result-challenge-badges">
               {gameplay.challenges.map((challenge) => <span data-earned={result.challengeIds?.includes(challenge.id) ?? false} key={challenge.id}>{result.challengeIds?.includes(challenge.id) ? '已达成' : '未达成'} · {challenge.title}</span>)}
             </div>
+          </section>
+          <section className="result-review-section result-rewards" aria-labelledby="result-rewards-title">
+            <h2 id="result-rewards-title">本次通关奖励</h2>
+            {earnedRewards.length ? <div className="result-reward-list">
+              {earnedRewards.map((reward) => {
+                const isNew = newRewardKeys.has(`${caseDefinition.id}:${reward.id}`)
+                return <article data-new={isNew} key={reward.id}>
+                  <span>{reward.kind === 'artifact' ? '纪念藏品' : reward.kind === 'badge' ? '专精徽章' : '系统主题'}</span>
+                  <div><strong>{reward.title}</strong><p>{reward.description}</p></div>
+                  <b>{isNew ? '首次解锁' : '已收藏'}</b>
+                </article>
+              })}
+            </div> : <p className="result-reward-empty">本次没有获得新奖励。完成更多线索、减少提示或提高可信度后再次调查。</p>}
           </section>
           {result.note && <blockquote>{result.note}</blockquote>}
           <div className="ending">

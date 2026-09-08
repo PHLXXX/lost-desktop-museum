@@ -10,6 +10,9 @@ import { createFreshSave } from '../../engine/persistence'
 import { resolveInvestigationGameplay } from '../../gameplay/defaultGameplay'
 import { useGameStore } from '../../store/gameStore'
 import { MuseumHome } from './MuseumHome'
+import { defaultRewardProfile } from '../../rewards/rewardProfile'
+import { useRewardStore } from '../../rewards/rewardStore'
+import userEvent from '@testing-library/user-event'
 
 const caseId = 'case-community-source-test'
 const definition = {
@@ -39,6 +42,7 @@ describe('MuseumHome case sources', () => {
   beforeEach(() => {
     localStorage.clear()
     useGameStore.setState({ ...createFreshSave(), saveStatus: 'idle', notice: null, corruptSave: false })
+    useRewardStore.setState({ ...defaultRewardProfile, unlocks: [] })
   })
 
   afterEach(async () => {
@@ -71,5 +75,15 @@ describe('MuseumHome case sources', () => {
 
     const row = screen.getByRole('region', { name: case001.title })
     expect(within(row).getByText(`专精 2 / ${challenges.length}`)).toBeInTheDocument()
+    expect(within(row).getByText('奖励 0 / 2')).toBeInTheDocument()
+  })
+
+  it('opens the completion reward collection from museum navigation', async () => {
+    render(<MuseumHome onOpenCase={() => undefined} onContinue={() => undefined} />)
+
+    await userEvent.click(screen.getByRole('button', { name: '馆藏奖励' }))
+
+    expect(screen.getByRole('dialog', { name: '馆藏奖励' })).toBeInTheDocument()
+    expect(screen.getByText('通关藏品、专精徽章与可装备主题只保存在本设备。')).toBeInTheDocument()
   })
 })
