@@ -172,7 +172,7 @@ test('completion rewards persist across theme reload and case restart', async ({
   await expect(caseRow).toContainText('奖励 3 / 3')
   await page.getByRole('button', { name: '馆藏奖励' }).click()
   const collection = page.getByRole('dialog', { name: '馆藏奖励' })
-  await expect(collection.getByText('3 / 6', { exact: true })).toBeVisible()
+  await expect(collection.getByText('3 / 9', { exact: true })).toBeVisible()
   await collection.getByRole('button', { name: '装备 候机厅夜色' }).click()
   await expect(collection.getByRole('button', { name: '当前使用 候机厅夜色' })).toBeVisible()
   await expect.poll(() => page.locator('html').getAttribute('data-archive-theme')).toBe('departure-night')
