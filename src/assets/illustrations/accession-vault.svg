@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 900" role="img" aria-labelledby="title description">
+  <title id="title">东区藏品库编号档案</title>
+  <desc id="description">昏暗库房货架前，两张编号为A-731与R-731的藏品标签错位叠放。</desc>
+  <defs>
+    <linearGradient id="wall" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#25302d"/>
+      <stop offset="1" stop-color="#111816"/>
+    </linearGradient>
+    <pattern id="grain" width="8" height="8" patternUnits="userSpaceOnUse">
+      <path d="M0 7h8M7 0v8" stroke="#829089" stroke-opacity=".045"/>
+    </pattern>
+  </defs>
+  <rect width="1440" height="900" fill="url(#wall)"/>
+  <rect width="1440" height="900" fill="url(#grain)"/>
+  <g fill="none" stroke="#718079" stroke-width="3" opacity=".62">
+    <path d="M110 118h1220v600H110zM110 290h1220M110 470h1220M110 650h1220"/>
+    <path d="M350 118v600M610 118v600M870 118v600M1130 118v600"/>
+  </g>
+  <g fill="#1a2421" stroke="#56655f" stroke-width="2">
+    <rect x="146" y="154" width="170" height="96"/>
+    <rect x="392" y="332" width="180" height="100"/>
+    <rect x="910" y="512" width="178" height="100"/>
+    <rect x="1168" y="332" width="126" height="100"/>
+  </g>
+  <g transform="translate(545 250) rotate(-2)">
+    <rect width="360" height="214" rx="5" fill="#d5d0bd" stroke="#111816" stroke-width="5"/>
+    <path d="M24 58h312M24 164h312" stroke="#6b6b61" stroke-width="2"/>
+    <text x="28" y="43" fill="#30352f" font-family="system-ui, sans-serif" font-size="18" letter-spacing="3">ACCESSION RECORD</text>
+    <text x="28" y="133" fill="#1b211e" font-family="ui-monospace, monospace" font-size="66" font-weight="700">A-731</text>
+    <text x="28" y="194" fill="#4e554f" font-family="system-ui, sans-serif" font-size="16">EAST VAULT · B2-07</text>
+  </g>
+  <g transform="translate(706 382) rotate(4)">
+    <rect width="322" height="160" rx="4" fill="#b9c7bf" stroke="#121917" stroke-width="5"/>
+    <path d="M22 48h278M22 122h278" stroke="#5b6b64" stroke-width="2"/>
+    <text x="24" y="37" fill="#34423c" font-family="system-ui, sans-serif" font-size="15" letter-spacing="2">REPLICA LABEL</text>
+    <text x="24" y="105" fill="#15201c" font-family="ui-monospace, monospace" font-size="54" font-weight="700">R-731</text>
+    <text x="24" y="146" fill="#48564f" font-family="system-ui, sans-serif" font-size="14">REPRINT 21:49</text>
+  </g>
+  <path d="M124 772h1192" stroke="#718079" stroke-width="2"/>
+  <text x="124" y="814" fill="#91a29a" font-family="ui-monospace, monospace" font-size="18" letter-spacing="4">ARCHIVE/OS · EAST COLLECTION VAULT · RECORD 731</text>
+</svg>

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import type { ExportedPackage } from '../../../packages/casePackage'
 import type { CaseDefinition } from '../../../cases/types'
 import type { CommunityContentRating, CommunityDifficulty, CommunityPublisher } from '../../../community/types/communityTypes'
+import { COMMUNITY_CLIENT_VERSION } from '../../../community/config/communityConfig'
 import { downloadFile } from '../../utils/downloadFile'
 import { ArchiveDialog } from '../../../features/system/ArchiveDialog'
 
@@ -17,7 +18,7 @@ export function CommunityPublishPanel({ exported, definition, onClose }: Props) 
       const publisher: CommunityPublisher = { schemaVersion: 1, publisherId, displayName, description, ...(githubUsername ? { githubUsername } : {}), ...(githubUsername ? { repositoryUrl: `https://github.com/${githubUsername}` } : {}), languages: [definition.manifest.language], links: [], joinedAt: new Date().toISOString(), status: 'active' }
       const images = await Promise.all(screenshots.map(async (file) => ({ filename: file.name, mime: file.type as 'image/png' | 'image/jpeg' | 'image/webp', bytes: new Uint8Array(await file.arrayBuffer()) })))
       const { buildSubmissionBundle } = await import('./SubmissionBundleBuilder')
-      const bundle = await buildSubmissionBundle({ packageBytes: exported.bytes, packageFilename: exported.filename, publisher, metadata: { title, subtitle: definition.manifest.subtitle, summary, language: definition.manifest.language, additionalLanguages: [], difficulty, estimatedMinutes: { min: Math.max(5, definition.manifest.estimatedMinutes - 5), max: definition.manifest.estimatedMinutes + 5 }, tags: tags.split(/[、,]/).map((value) => value.trim()).filter(Boolean), contentRating: rating, contentWarnings: warnings.split(/[、,]/).map((value) => value.trim()).filter(Boolean), license: { name: license }, changelog, engineCompatibility: { minimum: '0.5.0' }, saveCompatibility: { mode: 'compatible', compatibleFromVersions: [definition.manifest.version] }, requestCuration }, screenshots: images })
+      const bundle = await buildSubmissionBundle({ packageBytes: exported.bytes, packageFilename: exported.filename, publisher, metadata: { title, subtitle: definition.manifest.subtitle, summary, language: definition.manifest.language, additionalLanguages: [], difficulty, estimatedMinutes: { min: Math.max(5, definition.manifest.estimatedMinutes - 5), max: definition.manifest.estimatedMinutes + 5 }, tags: tags.split(/[、,]/).map((value) => value.trim()).filter(Boolean), contentRating: rating, contentWarnings: warnings.split(/[、,]/).map((value) => value.trim()).filter(Boolean), license: { name: license }, changelog, engineCompatibility: { minimum: COMMUNITY_CLIENT_VERSION }, saveCompatibility: { mode: 'compatible', compatibleFromVersions: [definition.manifest.version] }, requestCuration }, screenshots: images })
       downloadFile(bundle.filename, bundle.bytes, 'application/zip'); localStorage.setItem('archive-workshop:community-publisher', JSON.stringify(publisher)); setResult({ title: bundle.suggestedPullRequestTitle, body: bundle.suggestedPullRequestBody }); setStatus('done'); setMessage(`投稿 ZIP 已生成：${bundle.filename}\n建议目录：${bundle.suggestedDirectory}`)
     } catch (error) { setStatus('error'); setMessage(error instanceof Error ? error.message : '投稿包生成失败。') }
   }

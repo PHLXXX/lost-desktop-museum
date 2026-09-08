@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { caseDefinition as case002 } from '../../cases/case-002/case'
+import type { InvestigationGameplayDefinition } from '../../cases/types'
 import { createBlankDraft, createMinimalTemplateDraft } from '../model/caseDraft'
 import { compileCaseDraft } from './compileCaseDraft'
 import { decompileCaseDefinition } from './decompileCaseDefinition'
@@ -23,6 +24,8 @@ describe('CaseDraft compiler boundary', () => {
     if (result.ok) {
       expect(result.caseDefinition.clues).toHaveLength(6)
       expect(result.caseDefinition.questions.reduce((sum, question) => sum + question.points, 0)).toBe(100)
+      expect(result.caseDefinition.gameplay?.hints.length).toBe(6)
+      expect(result.caseDefinition.gameplay?.endingVariants.length).toBeGreaterThan(0)
     }
   })
 
@@ -45,6 +48,43 @@ describe('CaseDraft compiler boundary', () => {
       expect(result.caseDefinition.triggers).toEqual(case002.triggers)
       expect(result.caseDefinition.questions).toEqual(case002.questions)
     }
+  })
+
+  it('preserves an authored gameplay block through compilation and decompilation', () => {
+    const draft = createMinimalTemplateDraft()
+    const gameplay = {
+      initialAnalysisPoints: 4,
+      objectives: [{ id: 'trace-access', title: '核对门禁', description: '确认门禁与交接时间。', kind: 'primary', condition: { type: 'clue-count', count: 3 } }],
+      hints: [{ id: 'access-hint', clueId: 'clue-access', label: '门禁记录', tiers: [
+        { id: 'direction', label: '方向', text: '留意出入记录。', cost: 1 },
+        { id: 'action', label: '操作', text: '打开门禁邮件。', cost: 1 },
+        { id: 'location', label: '定位', text: '检查办公室临时通行记录。', cost: 2 },
+      ] }],
+      challenges: [{ id: 'precise-score', title: '精确归档', description: '可信度达到九十分。', requirements: [{ type: 'score-at-least', value: 90 }] }],
+      endingVariants: [{ id: 'complete-note', title: '完整记录', text: '每个时间节点都已闭合。', priority: 20, requirements: [{ type: 'all-clues' }] }],
+      rewards: [
+        { id: 'archive-token', kind: 'artifact', title: '档案凭证', description: '完成案件后归档。', requirements: [] },
+        { id: 'blueprint-theme', kind: 'theme', title: '蓝图主题', description: '完整复原案件后解锁。', themeId: 'signal-blueprint', requirements: [{ type: 'all-clues' }] },
+      ],
+    } satisfies InvestigationGameplayDefinition
+    draft.gameplay = gameplay
+
+    const compiled = compileCaseDraft(draft)
+
+    expect(compiled.ok).toBe(true)
+    if (!compiled.ok) return
+    expect(compiled.caseDefinition.gameplay).toEqual(gameplay)
+    expect(decompileCaseDefinition(compiled.caseDefinition).gameplay).toEqual(gameplay)
+    expect(draft.gameplay).toEqual(gameplay)
+  })
+
+  it('keeps legacy drafts free of an authored gameplay block', () => {
+    const draft = createMinimalTemplateDraft()
+    draft.gameplay = undefined
+    expect(draft.gameplay).toBeUndefined()
+    const compiled = compileCaseDraft(draft)
+    expect(compiled.ok).toBe(true)
+    if (compiled.ok) expect(compiled.caseDefinition.gameplay).toBeUndefined()
   })
 
   it('keeps stable ids when titles change and atomically renames references', () => {

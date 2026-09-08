@@ -1,14 +1,23 @@
 export type AppId = 'files' | 'messages' | 'mail' | 'photos' | 'browser' | 'calendar' | 'recycle' | 'logs' | 'audio' | 'broadcast' | 'data' | 'terminal' | 'versions' | 'sitemap' | 'evidence' | 'settings'
 
-export type InvestigationAction =
-  | { type: 'OPEN_ITEM'; itemId: string }
-  | { type: 'VIEW_METADATA'; itemId: string }
-  | { type: 'COMPARE_ITEMS'; itemId: string }
-  | { type: 'VIEW_TRANSCRIPT'; itemId: string }
-  | { type: 'UNLOCK_ITEM'; itemId: string }
-  | { type: 'VIEW_LOG'; itemId: string }
+export type FileClueActionType =
+  | 'OPEN_ITEM'
+  | 'VIEW_METADATA'
+  | 'COMPARE_ITEMS'
+  | 'VIEW_TRANSCRIPT'
+  | 'UNLOCK_ITEM'
+  | 'VIEW_LOG'
 
-export type GameEventType = InvestigationAction['type'] | 'VIEW_MAIL_HEADERS' | 'RESTORE_ITEM' | 'RUN_COMMAND' | 'VIEW_AUDIO_MARKER' | 'COMPARE_AUDIO' | 'VIEW_MAP_LOCATION' | 'VIEW_VERSION_DIFF' | 'CREATE_RELATION'
+export type InvestigationActionType =
+  | FileClueActionType
+  | 'RUN_COMMAND'
+  | 'VIEW_AUDIO_MARKER'
+  | 'VIEW_MAP_LOCATION'
+  | 'VIEW_VERSION_DIFF'
+
+export type InvestigationAction = { type: InvestigationActionType; itemId: string }
+
+export type GameEventType = InvestigationActionType | 'VIEW_MAIL_HEADERS' | 'RESTORE_ITEM' | 'COMPARE_AUDIO' | 'CREATE_RELATION'
 
 export type CaseCondition =
   | { type: 'event'; eventType: GameEventType; targetId: string }
@@ -102,7 +111,7 @@ export interface VirtualFile {
   recoveryPath?: string
   desktopShortcut?: boolean
   metadata?: Record<string, string>
-  clueAction?: InvestigationAction['type']
+  clueAction?: FileClueActionType
 }
 export interface VirtualFolder { id: string; name: string }
 export interface ChatMessage { id: string; sender: string; time: string; text: string; attachmentId?: string; unread?: boolean; clueId?: string }
@@ -132,8 +141,48 @@ export type GameTrigger =
 export interface EvidenceRelation { id: string; from: string; to: string; type: '相互矛盾' | '相互支持' | '时间先后' | '同一人物' }
 export interface DeductionQuestion { id: string; prompt: string; options: { id: string; label: string }[]; correctId: string; points: number }
 export interface DeductionResultLevel { id: string; label: string; minScore: number; maxScore: number; description: string }
+export interface InvestigationObjectiveDefinition {
+  id: string
+  title: string
+  description: string
+  kind: 'primary' | 'optional'
+  condition: CaseCondition
+  revealWhen?: CaseCondition
+}
+export interface InvestigationHintTier { id: string; label: string; text: string; cost: number }
+export interface InvestigationHintDefinition {
+  id: string
+  clueId: string
+  label: string
+  tiers: [InvestigationHintTier, InvestigationHintTier, InvestigationHintTier]
+}
+export type GameplayRequirement =
+  | { type: 'all-clues' }
+  | { type: 'no-hints' }
+  | { type: 'score-at-least'; value: number }
+  | { type: 'relation-count-at-least'; value: number }
+  | { type: 'objective'; objectiveId: string }
+export interface InvestigationChallengeDefinition { id: string; title: string; description: string; requirements: GameplayRequirement[] }
+export interface InvestigationEndingVariant { id: string; title: string; text: string; priority: number; requirements: GameplayRequirement[] }
+export type ArchiveThemeId = 'archive-standard' | 'departure-night' | 'signal-blueprint'
+export interface InvestigationRewardDefinition {
+  id: string
+  kind: 'artifact' | 'badge' | 'theme'
+  title: string
+  description: string
+  requirements: GameplayRequirement[]
+  themeId?: ArchiveThemeId
+}
+export interface InvestigationGameplayDefinition {
+  initialAnalysisPoints: number
+  objectives: InvestigationObjectiveDefinition[]
+  hints: InvestigationHintDefinition[]
+  challenges: InvestigationChallengeDefinition[]
+  endingVariants: InvestigationEndingVariant[]
+  rewards?: InvestigationRewardDefinition[]
+}
 export interface DeductionSubmission { answers: string[]; evidenceIds: string[]; contradictionPairs: [string, string][]; note: string }
-export interface DeductionResult { score: number; level: string; answerScore: number; evidenceScore: number; relationScore: number; note: string }
+export interface DeductionResult { score: number; level: string; answerScore: number; evidenceScore: number; relationScore: number; note: string; challengeIds?: string[]; endingVariantId?: string; rewardIds?: string[]; newRewardKeys?: string[] }
 export interface DeductionDraft { answers: Record<string, string>; note: string }
 export interface WindowSnapshot { id: AppId; x: number; y: number; width: number; height: number; minimized: boolean; maximized: boolean }
 export interface GameSave {
@@ -150,6 +199,8 @@ export interface GameSave {
   evidenceCardPositions: Record<string, { x: number; y: number }>
   evidenceRelations: EvidenceRelation[]
   evidenceNotes: Record<string, string>
+  hintUsage: Record<string, number>
+  bestChallengeIds: string[]
   currentWindows: WindowSnapshot[]
   settings: { sound: boolean; anomalies: boolean; scanlines: number; safeMode: boolean }
   deductionDraft: DeductionDraft
@@ -194,4 +245,5 @@ export interface CaseDefinition {
   coreEvidenceIds: string[]
   correctContradictions: [string, string][]
   ending: string
+  gameplay?: InvestigationGameplayDefinition
 }

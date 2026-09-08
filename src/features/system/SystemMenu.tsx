@@ -7,7 +7,7 @@ import { playArchiveSound } from '../../engine/audioEngine'
 import { ArchiveDialog } from './ArchiveDialog'
 import { SaveIndicator } from './SaveIndicator'
 
-export function SystemMenu({ open, onClose, onReturnMuseum, onOpenSettings }: { open: boolean; onClose: () => void; onReturnMuseum: () => void; onOpenSettings: () => void }) {
+export function SystemMenu({ open, onClose, onReturnMuseum, onOpenSettings, onOpenInvestigationPanel }: { open: boolean; onClose: () => void; onReturnMuseum: () => void; onOpenSettings: () => void; onOpenInvestigationPanel: () => void }) {
   const caseDefinition = useActiveCaseDefinition()
   const { saveNow, resetCase, settings } = useGameStore()
   const [confirmRestart, setConfirmRestart] = useState(false)
@@ -39,6 +39,7 @@ export function SystemMenu({ open, onClose, onReturnMuseum, onOpenSettings }: { 
         <button role="menuitem" onClick={saveAndReturn}><span>保存并返回档案馆</span><small>案件进度不会重置</small></button>
         <button role="menuitem" onClick={() => setConfirmRestart(true)}><span>重新开始本案</span><small>需要再次确认</small></button>
         <hr />
+        <button role="menuitem" onClick={() => { onOpenInvestigationPanel(); onClose() }}><span>调查目标与提示</span><small>目标、分析额度与挑战</small></button>
         <button role="menuitem" onClick={() => setHelp(true)}><span>操作说明</span><small>鼠标、键盘与证据板</small></button>
         <button role="menuitem" onClick={() => { onOpenSettings(); onClose() }}><span>系统设置</span><small>声音、异常、扫描线</small></button>
         <button role="menuitem" onClick={exitFullscreen} disabled={!document.fullscreenElement}><span>退出全屏</span><small>F11 仍由浏览器控制</small></button>

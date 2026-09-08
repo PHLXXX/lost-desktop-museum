@@ -1,11 +1,17 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createFreshSave } from '../engine/persistence'
+import { caseDefinition } from '../cases/case-001/case'
+import { caseDefinition as case003 } from '../cases/case-003/case'
+import { saveGameSave } from '../engine/persistence'
 import { useGameStore } from './gameStore'
+import { defaultRewardProfile } from '../rewards/rewardProfile'
+import { useRewardStore } from '../rewards/rewardStore'
 
 describe('game store persistence and notification policy', () => {
   beforeEach(() => {
     localStorage.clear()
     useGameStore.setState({ ...createFreshSave(), saveStatus: 'idle', notice: null, corruptSave: false })
+    useRewardStore.setState({ ...defaultRewardProfile, unlocks: [] })
   })
 
   afterEach(() => {
@@ -52,5 +58,113 @@ describe('game store persistence and notification policy', () => {
     useGameStore.getState().activateCase('case-002')
 
     expect(useGameStore.getState().onboardingComplete).toBe(true)
+  })
+
+  it('reveals a hint and debounces its persistence', () => {
+    vi.useFakeTimers()
+    const write = vi.spyOn(Storage.prototype, 'setItem')
+
+    const result = useGameStore.getState().revealHint('flight-status-hint')
+
+    expect(result).toMatchObject({ ok: true, remainingPoints: 2 })
+    expect(useGameStore.getState().hintUsage).toEqual({ 'flight-status-hint': 1 })
+    expect(write).not.toHaveBeenCalled()
+    vi.advanceTimersByTime(350)
+    expect(write).toHaveBeenCalledTimes(1)
+  })
+
+  it('does not mutate or save when a hint reveal fails', () => {
+    vi.useFakeTimers()
+    const write = vi.spyOn(Storage.prototype, 'setItem')
+    useGameStore.setState({ hintUsage: { 'flight-status-hint': 3 } })
+
+    const result = useGameStore.getState().revealHint('flight-status-hint')
+
+    expect(result).toMatchObject({ ok: false, code: 'fully-revealed' })
+    expect(useGameStore.getState().hintUsage).toEqual({ 'flight-status-hint': 3 })
+    vi.advanceTimersByTime(1000)
+    expect(write).not.toHaveBeenCalled()
+  })
+
+  it('records current and historical mastery when submitting a complete deduction', () => {
+    useGameStore.setState({
+      discoveredClueIds: caseDefinition.clues.map((clue) => clue.id),
+      pinnedClueIds: caseDefinition.coreEvidenceIds.slice(0, 6),
+      evidenceRelations: caseDefinition.correctContradictions.map(([from, to], index) => ({ id: `relation-${index}`, from, to, type: '相互矛盾' as const })),
+      hintUsage: {},
+    })
+
+    const result = useGameStore.getState().submit(caseDefinition.questions.map((question) => question.correctId), '完整证据链。')
+
+    expect(result.challengeIds).toEqual(expect.arrayContaining(caseDefinition.gameplay!.challenges.map((challenge) => challenge.id)))
+    expect(useGameStore.getState().bestChallengeIds).toEqual(expect.arrayContaining(result.challengeIds ?? []))
+  })
+
+  it('settles completion rewards once and keeps them when restarting the case', () => {
+    useGameStore.setState({
+      discoveredClueIds: caseDefinition.clues.map((clue) => clue.id),
+      pinnedClueIds: caseDefinition.coreEvidenceIds.slice(0, 6),
+      evidenceRelations: caseDefinition.correctContradictions.map(([from, to], index) => ({ id: `reward-relation-${index}`, from, to, type: '相互矛盾' as const })),
+      hintUsage: {},
+    })
+
+    const first = useGameStore.getState().submit(caseDefinition.questions.map((question) => question.correctId), '完成归档。')
+    const second = useGameStore.getState().submit(caseDefinition.questions.map((question) => question.correctId), '再次归档。')
+
+    expect(first.rewardIds).toEqual(expect.arrayContaining(['unused-boarding-pass', 'independent-investigator', 'departure-night-theme']))
+    expect(first.newRewardKeys).toEqual(expect.arrayContaining(['case-001:unused-boarding-pass', 'case-001:independent-investigator', 'case-001:departure-night-theme']))
+    expect(second.newRewardKeys).toEqual([])
+    expect(useRewardStore.getState().unlocks).toHaveLength(3)
+
+    useGameStore.getState().resetCase()
+    expect(useRewardStore.getState().unlocks.map((reward) => reward.key)).toEqual(expect.arrayContaining(first.newRewardKeys ?? []))
+  })
+
+  it('clears current hints but retains earned mastery when restarting', () => {
+    useGameStore.setState({ hintUsage: { 'default-hint-01': 1 }, bestChallengeIds: ['default-complete-archive'] })
+
+    useGameStore.getState().resetCase()
+
+    expect(useGameStore.getState().hintUsage).toEqual({})
+    expect(useGameStore.getState().bestChallengeIds).toEqual(['default-complete-archive'])
+  })
+
+  it('adds newly completed objective feedback to the clue notice', () => {
+    useGameStore.setState({ discoveredClueIds: ['C02', 'C03', 'C04', 'C05', 'C06'] })
+
+    useGameStore.getState().investigate({ type: 'OPEN_ITEM', itemId: 'flight-cancel' })
+
+    expect(useGameStore.getState().notice).toContain('目标完成：核对离开叙述')
+  })
+
+  it('restores case 003 progress without leaking case 001 progress', () => {
+    saveGameSave(localStorage, { ...createFreshSave('case-001'), discoveredClueIds: ['C01'] })
+    saveGameSave(localStorage, { ...createFreshSave('case-003'), discoveredClueIds: ['C02', 'C10'] })
+
+    useGameStore.getState().activateCase('case-003')
+    expect(useGameStore.getState().discoveredClueIds).toEqual(['C02', 'C10'])
+
+    useGameStore.getState().activateCase('case-001')
+    expect(useGameStore.getState().discoveredClueIds).toEqual(['C01'])
+  })
+
+  it('settles case 003 rewards idempotently and preserves them on restart', () => {
+    useGameStore.setState({
+      ...createFreshSave('case-003'),
+      discoveredClueIds: case003.clues.map((clue) => clue.id),
+      pinnedClueIds: case003.coreEvidenceIds.slice(0, 6),
+      evidenceRelations: case003.correctContradictions.map(([from, to], index) => ({ id: `case-003-relation-${index}`, from, to, type: '相互矛盾' as const })),
+      hintUsage: {},
+    })
+
+    const answers = case003.questions.map((question) => question.correctId)
+    const first = useGameStore.getState().submit(answers, '编号、标签与离库路径形成完整保管链。')
+    const second = useGameStore.getState().submit(answers, '重复核验。')
+
+    expect(first.rewardIds).toEqual(['double-layer-accession-tag', 'catalog-auditor', 'silent-reconciliation'])
+    expect(first.newRewardKeys).toHaveLength(3)
+    expect(second.newRewardKeys).toEqual([])
+    useGameStore.getState().resetCase()
+    expect(useRewardStore.getState().unlocks.filter((reward) => reward.caseId === 'case-003')).toHaveLength(3)
   })
 })

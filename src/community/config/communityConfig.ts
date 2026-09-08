@@ -1,4 +1,4 @@
-export const COMMUNITY_CLIENT_VERSION = '0.5.0'
+export const COMMUNITY_CLIENT_VERSION = '0.6.0'
 export const COMMUNITY_AUTO_REFRESH_MS = 6 * 60 * 60 * 1000
 
 export function getCommunityRegistryUrl(): string {

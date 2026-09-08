@@ -17,10 +17,11 @@ class MemoryStorage implements Storage {
 }
 
 describe('strict multi-case runtime foundation', () => {
-  it('registers two independent built-in cases', () => {
-    expect(builtInCaseIds).toEqual(['case-001', 'case-002'])
+  it('registers three independent built-in cases', () => {
+    expect(builtInCaseIds).toEqual(['case-001', 'case-002', 'case-003'])
     expect(getCaseDefinition('case-001').title).toBe('没有出发的旅行')
     expect(getCaseDefinition('case-002').id).toBe('case-002')
+    expect(getCaseDefinition('case-003').title).toBe('编号之外')
   })
 
   it('evaluates nested declarative conditions', () => {
@@ -49,6 +50,19 @@ describe('strict multi-case runtime foundation', () => {
     const executable = structuredClone(case001) as unknown as Record<string, unknown>
     executable.triggers = [{ id: 'unsafe', name: 'unsafe', once: true, condition: { type: 'clue-count', count: 1 }, effects: [{ type: 'javascript', code: 'alert(1)' }] }]
     expect(validateCaseDefinition(executable).some((issue) => issue.category === 'security' || issue.category === 'schema')).toBe(true)
+  })
+
+  it('accepts an optional declarative gameplay layer', () => {
+    const candidate = structuredClone(case001) as CaseDefinition & { gameplay: unknown }
+    candidate.gameplay = {
+      initialAnalysisPoints: 3,
+      objectives: [{ id: 'find-core', title: '形成证据基础', description: '记录关键事实。', kind: 'primary', condition: { type: 'clue-count', count: 3 } }],
+      hints: [],
+      challenges: [{ id: 'all-clues', title: '完整归档', description: '发现全部线索。', requirements: [{ type: 'all-clues' }] }],
+      endingVariants: [],
+    }
+
+    expect(validateCaseDefinition(candidate).filter((issue) => issue.severity === 'error')).toEqual([])
   })
 
   it.each([

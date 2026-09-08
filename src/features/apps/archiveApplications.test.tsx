@@ -3,8 +3,10 @@ import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { caseDefinition as case002 } from '../../cases/case-002/case'
 import { caseDefinition as case001 } from '../../cases/case-001/case'
+import type { CaseDefinition } from '../../cases/types'
 import { registerInstalledCase, unregisterInstalledCase } from '../../cases/registry'
 import { createFreshSave } from '../../engine/persistence'
+import { validateCaseDefinition } from '../../engine/validation'
 import { useGameStore } from '../../store/gameStore'
 import { useApplicationStore } from '../../store/applicationStore'
 import { useWindowStore } from '../../store/windowStore'
@@ -17,7 +19,35 @@ import { MessagesApp } from './MessagesApp'
 import { PhotosApp } from './PhotosApp'
 import { RecycleApp } from './RecycleApp'
 import { SettingsApp } from './SettingsApp'
-import { BroadcastConsoleApp, SitemapApp, VersionDiffApp } from './ExtendedApps'
+import { AudioWorkbenchApp, BroadcastConsoleApp, DataDeskApp, SitemapApp, TerminalApp, VersionDiffApp } from './ExtendedApps'
+
+const extendedEventCaseId = 'test-extended-events'
+
+function createExtendedEventCase(): CaseDefinition {
+  const definition = structuredClone(case002)
+  definition.id = extendedEventCaseId
+  definition.manifest.caseId = extendedEventCaseId
+  const template = definition.clues[0]!
+  definition.clues = [
+    ...definition.clues,
+    ...([
+      { ...template, id: 'audio-event-clue', source: 'audio', discovery: { type: 'VIEW_AUDIO_MARKER', itemId: 'audio-midnight' }, condition: { type: 'event', eventType: 'VIEW_AUDIO_MARKER', targetId: 'audio-midnight' } },
+      { ...template, id: 'broadcast-event-clue', source: 'broadcast', discovery: { type: 'OPEN_ITEM', itemId: 'broadcast-local' }, condition: { type: 'event', eventType: 'OPEN_ITEM', targetId: 'broadcast-local' } },
+      { ...template, id: 'data-event-clue', source: 'data', discovery: { type: 'OPEN_ITEM', itemId: 'data-delay' }, condition: { type: 'event', eventType: 'OPEN_ITEM', targetId: 'data-delay' } },
+      { ...template, id: 'terminal-event-clue', source: 'terminal', discovery: { type: 'RUN_COMMAND', itemId: 'terminal-source' }, condition: { type: 'event', eventType: 'RUN_COMMAND', targetId: 'terminal-source' } },
+      { ...template, id: 'version-event-clue', source: 'versions', discovery: { type: 'VIEW_VERSION_DIFF', itemId: 'version-schedule' }, condition: { type: 'event', eventType: 'VIEW_VERSION_DIFF', targetId: 'version-schedule' } },
+      { ...template, id: 'map-event-clue', source: 'sitemap', discovery: { type: 'VIEW_MAP_LOCATION', itemId: 'site-studio' }, condition: { type: 'event', eventType: 'VIEW_MAP_LOCATION', targetId: 'site-studio' } },
+    ] as unknown as CaseDefinition['clues']),
+  ]
+  return definition
+}
+
+function activateExtendedEventCase() {
+  const definition = createExtendedEventCase()
+  registerInstalledCase(definition)
+  useGameStore.setState({ ...createFreshSave(extendedEventCaseId), saveStatus: 'idle', notice: null, corruptSave: false })
+  return definition
+}
 
 describe('archive applications', () => {
   beforeEach(() => {
@@ -28,7 +58,7 @@ describe('archive applications', () => {
   })
 
   afterEach(() => {
-    for (const caseId of ['test-empty-photos', 'test-empty-logs', 'test-empty-messages', 'test-recycle-metadata', 'test-empty-extended']) {
+    for (const caseId of ['test-empty-photos', 'test-empty-logs', 'test-empty-messages', 'test-recycle-metadata', 'test-empty-extended', extendedEventCaseId]) {
       unregisterInstalledCase(caseId)
     }
   })
@@ -240,6 +270,68 @@ describe('archive applications', () => {
     versions.unmount()
     render(<SitemapApp />)
     expect(screen.getByText('没有恢复到地点记录')).toBeInTheDocument()
+  })
+
+  it('accepts safe extended events in formal clue definitions', () => {
+    const definition = createExtendedEventCase()
+
+    expect(validateCaseDefinition(definition).filter((issue) => issue.severity === 'error')).toEqual([])
+  })
+
+  it('reveals an audio transcript only after inspection and records the event', async () => {
+    const user = userEvent.setup()
+    activateExtendedEventCase()
+    render(<AudioWorkbenchApp />)
+
+    expect(screen.queryByText('如果零点后还有我的声音，那不是直播。')).not.toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: '查看转写' }))
+    expect(screen.getByText('如果零点后还有我的声音，那不是直播。')).toBeInTheDocument()
+    expect(useGameStore.getState().discoveredClueIds).toContain('audio-event-clue')
+  })
+
+  it('records a broadcast row when the player opens it', async () => {
+    const user = userEvent.setup()
+    activateExtendedEventCase()
+    render(<BroadcastConsoleApp />)
+
+    await user.click(screen.getByRole('button', { name: /节目源切换/ }))
+    expect(useGameStore.getState().discoveredClueIds).toContain('broadcast-event-clue')
+  })
+
+  it('records a data table only after the player verifies it', async () => {
+    const user = userEvent.setup()
+    activateExtendedEventCase()
+    render(<DataDeskApp />)
+
+    await user.click(screen.getByRole('button', { name: '核验数据表' }))
+    expect(useGameStore.getState().discoveredClueIds).toContain('data-event-clue')
+  })
+
+  it('records only allowlisted terminal commands', async () => {
+    const user = userEvent.setup()
+    activateExtendedEventCase()
+    render(<TerminalApp />)
+
+    await user.click(screen.getByRole('button', { name: 'source --status' }))
+    expect(useGameStore.getState().discoveredClueIds).toContain('terminal-event-clue')
+  })
+
+  it('records a version diff only after explicit verification', async () => {
+    const user = userEvent.setup()
+    activateExtendedEventCase()
+    render(<VersionDiffApp />)
+
+    await user.click(screen.getByRole('button', { name: '核验差异' }))
+    expect(useGameStore.getState().discoveredClueIds).toContain('version-event-clue')
+  })
+
+  it('records a map location when the player opens its detail', async () => {
+    const user = userEvent.setup()
+    activateExtendedEventCase()
+    render(<SitemapApp />)
+
+    await user.click(screen.getByRole('button', { name: 'A演播室' }))
+    expect(useGameStore.getState().discoveredClueIds).toContain('map-event-clue')
   })
 
   it('searches history by domain and can add the selected record to evidence', async () => {

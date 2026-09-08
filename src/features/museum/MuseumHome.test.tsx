@@ -1,11 +1,19 @@
 import { render, screen, waitFor, within } from '@testing-library/react'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { caseDefinition as case001 } from '../../cases/case-001/case'
 import { caseDefinition as baseDefinition } from '../../cases/case-002/case'
+import { caseDefinition as case003 } from '../../cases/case-003/case'
 import { registerInstalledCase, unregisterInstalledCase } from '../../cases/registry'
 import { communityInstallationRepository } from '../../community/install/communityInstallationRepository'
 import type { CommunityInstallationRecord } from '../../community/types/installedCaseSource'
 import { caseRepository } from '../../storage/caseRepository'
+import { createFreshSave } from '../../engine/persistence'
+import { resolveInvestigationGameplay } from '../../gameplay/defaultGameplay'
+import { useGameStore } from '../../store/gameStore'
 import { MuseumHome } from './MuseumHome'
+import { defaultRewardProfile } from '../../rewards/rewardProfile'
+import { useRewardStore } from '../../rewards/rewardStore'
+import userEvent from '@testing-library/user-event'
 
 const caseId = 'case-community-source-test'
 const definition = {
@@ -32,6 +40,12 @@ const installation: CommunityInstallationRecord = {
 }
 
 describe('MuseumHome case sources', () => {
+  beforeEach(() => {
+    localStorage.clear()
+    useGameStore.setState({ ...createFreshSave(), saveStatus: 'idle', notice: null, corruptSave: false })
+    useRewardStore.setState({ ...defaultRewardProfile, unlocks: [] })
+  })
+
   afterEach(async () => {
     vi.restoreAllMocks()
     unregisterInstalledCase(caseId)
@@ -52,5 +66,36 @@ describe('MuseumHome case sources', () => {
 
     releaseInstallations([installation])
     await waitFor(() => expect(within(row).getByText('社区档案')).toBeInTheDocument())
+  })
+
+  it('shows the best earned investigation mastery for each case', () => {
+    vi.spyOn(caseRepository, 'list').mockReturnValue(new Promise(() => undefined))
+    vi.spyOn(communityInstallationRepository, 'list').mockReturnValue(new Promise(() => undefined))
+    const challenges = resolveInvestigationGameplay(case001).challenges
+    useGameStore.setState({ bestChallengeIds: challenges.slice(0, 2).map((challenge) => challenge.id) })
+
+    render(<MuseumHome onOpenCase={() => undefined} onContinue={() => undefined} />)
+
+    const row = screen.getByRole('region', { name: case001.title })
+    expect(within(row).getByText(`专精 2 / ${challenges.length}`)).toBeInTheDocument()
+    expect(within(row).getByText('奖励 0 / 3')).toBeInTheDocument()
+  })
+
+  it('opens the completion reward collection from museum navigation', async () => {
+    render(<MuseumHome onOpenCase={() => undefined} onContinue={() => undefined} />)
+
+    await userEvent.click(screen.getByRole('button', { name: '馆藏奖励' }))
+
+    expect(screen.getByRole('dialog', { name: '馆藏奖励' })).toBeInTheDocument()
+    expect(screen.getByText('通关藏品、专精徽章与可装备主题只保存在本设备。')).toBeInTheDocument()
+  })
+
+  it('lists case 003 with its independent clue and reward totals', () => {
+    render(<MuseumHome onOpenCase={() => undefined} onContinue={() => undefined} />)
+
+    const row = screen.getByRole('region', { name: case003.title })
+    expect(within(row).getByText('0 / 10')).toBeInTheDocument()
+    expect(within(row).getByText('奖励 0 / 3')).toBeInTheDocument()
+    expect(within(row).getByRole('button', { name: '开始调查 编号之外' })).toBeInTheDocument()
   })
 })

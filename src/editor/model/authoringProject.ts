@@ -1,6 +1,6 @@
 import type { CaseDraft } from './caseDraft'
 
-export type EditorSection = 'overview' | 'metadata' | 'entities' | 'timeline' | 'desktop' | 'applications' | 'files' | 'messages' | 'mail' | 'photos' | 'browser' | 'calendar' | 'logs' | 'audio' | 'broadcast' | 'data' | 'terminal' | 'versions' | 'sitemap' | 'clues' | 'triggers' | 'deduction' | 'assets' | 'validation'
+export type EditorSection = 'overview' | 'metadata' | 'entities' | 'timeline' | 'desktop' | 'applications' | 'files' | 'messages' | 'mail' | 'photos' | 'browser' | 'calendar' | 'logs' | 'audio' | 'broadcast' | 'data' | 'terminal' | 'versions' | 'sitemap' | 'clues' | 'triggers' | 'gameplay' | 'deduction' | 'assets' | 'validation'
 
 export interface EditorProjectSettings { autosaveEnabled: boolean; previewSafeMode: boolean; defaultPreviewWidth: number; defaultPreviewHeight: number }
 export interface EditorUiState { activeSection: EditorSection; expandedTreeIds: string[]; selectedEntityId: string | null; selectedIssueId: string | null; leftPanelWidth: number; rightPanelWidth: number }

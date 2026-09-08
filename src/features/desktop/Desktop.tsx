@@ -7,9 +7,11 @@ import type { AppId } from '../../cases/types'
 import { AppContent } from '../../app/AppContent'
 import { getRuntimeAppRegistry } from '../../app/appRegistry'
 import { playArchiveSound } from '../../engine/audioEngine'
+import { getObjectiveStates } from '../../gameplay/objectiveEngine'
 import { useGameStore } from '../../store/gameStore'
 import { useWindowStore } from '../../store/windowStore'
 import { Onboarding } from '../system/Onboarding'
+import { InvestigationPanel } from '../investigation/InvestigationPanel'
 import { ArchiveDialog } from '../system/ArchiveDialog'
 import { SaveIndicator } from '../system/SaveIndicator'
 import { SystemMenu } from '../system/SystemMenu'
@@ -40,6 +42,8 @@ export function Desktop({
   const { windows, activeWindowId, openWindow, restoreWindow, minimizeWindow } = useWindowStore()
   const {
     discoveredClueIds,
+    completedEventKeys,
+    evidenceRelations,
     unlockedItemIds,
     restoredItemIds,
     triggeredEventIds,
@@ -53,6 +57,7 @@ export function Desktop({
   const runtimeApps = getRuntimeAppRegistry(caseDefinition, { unlockedItemIds, restoredItemIds })
   const [selected, setSelected] = useState<AppId | null>(null)
   const [systemMenu, setSystemMenu] = useState(false)
+  const [investigationPanel, setInvestigationPanel] = useState(false)
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null)
   const [showNote, setShowNote] = useState(Boolean(desktopNote))
   const [caseInfo, setCaseInfo] = useState(false)
@@ -101,18 +106,22 @@ export function Desktop({
       }
       if (event.key !== 'Escape' || document.querySelector('[aria-modal="true"]')) return
       if (contextMenu) { setContextMenu(null); return }
+      if (investigationPanel) { setInvestigationPanel(false); return }
       setSelected(null)
       setSystemMenu((value) => !value)
     }
     window.addEventListener('keydown', handleKeyboard)
     return () => window.removeEventListener('keydown', handleKeyboard)
-  }, [contextMenu, setDesktopNote, showNote])
+  }, [contextMenu, investigationPanel, setDesktopNote, showNote])
   const scriptedClockOffset = caseDefinition.triggers
     .flatMap((trigger) => 'effect' in trigger ? [trigger.effect] : trigger.effects)
     .filter((effect) => effect.type === 'CLOCK_OFFSET' && triggeredEventIds.includes(effect.id))
     .reduce((total, effect) => total + (effect.type === 'CLOCK_OFFSET' ? effect.minutes : 0), 0)
   const displayClock = settings.anomalies && !settings.safeMode ? offsetClock(clock, scriptedClockOffset) : clock
   const lastClue = caseDefinition.clues.find((clue) => clue.id === discoveredClueIds.at(-1))
+  const objectiveStates = getObjectiveStates(caseDefinition, { completedEventKeys, discoveredClueIds, evidenceRelations, triggeredEventIds })
+  const visibleObjectives = objectiveStates.filter((objective) => objective.visible)
+  const completedObjectives = visibleObjectives.filter((objective) => objective.complete).length
   const openSelected = (id: AppId) => {
     playArchiveSound('open', settings.sound)
     openWindow(id)
@@ -254,6 +263,16 @@ export function Desktop({
             )
           })}
         </div>
+        <button
+          className="objective-button"
+          aria-expanded={investigationPanel}
+          aria-label={`调查目标 ${completedObjectives}/${visibleObjectives.length}`}
+          onClick={() => { setSystemMenu(false); setInvestigationPanel((value) => !value) }}
+          type="button"
+        >
+          <span>调查目标</span>
+          <strong>{completedObjectives} / {visibleObjectives.length}</strong>
+        </button>
         <button className="progress-button" onClick={() => openSelected('evidence')}>
           <span>已记录</span>
           <strong>{discoveredClueIds.length} / {caseDefinition.clues.length}</strong>
@@ -261,11 +280,13 @@ export function Desktop({
         <span className="taskbar-sound" aria-label={`音效${settings.sound ? '开启' : '关闭'}`}>{settings.sound ? '音效 开' : '音效 关'}</span>
         <time className="taskbar-clock">{displayClock}</time>
       </footer>
+      <InvestigationPanel open={investigationPanel} onClose={() => setInvestigationPanel(false)} />
       <SystemMenu
         open={systemMenu}
         onClose={() => setSystemMenu(false)}
         onReturnMuseum={onReturnMuseum}
         onOpenSettings={() => openSelected('settings')}
+        onOpenInvestigationPanel={() => setInvestigationPanel(true)}
       />
       <Onboarding />
       {caseInfo && <ArchiveDialog title="案件信息" onClose={() => setCaseInfo(false)} actions={<button className="primary-button" onClick={() => setCaseInfo(false)}>返回桌面</button>}><p>{caseDefinition.id}：{caseDefinition.title}</p><p>已记录 {discoveredClueIds.length} / {caseDefinition.clues.length}。所有调查进度仅保存在当前浏览器。</p></ArchiveDialog>}

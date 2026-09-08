@@ -2,7 +2,8 @@ import { z } from 'zod'
 import type { CaseCondition } from './types'
 
 const appIdSchema = z.enum(['files', 'messages', 'mail', 'photos', 'browser', 'calendar', 'recycle', 'logs', 'audio', 'broadcast', 'data', 'terminal', 'versions', 'sitemap', 'evidence', 'settings'])
-const actionTypeSchema = z.enum(['OPEN_ITEM', 'VIEW_METADATA', 'COMPARE_ITEMS', 'VIEW_TRANSCRIPT', 'UNLOCK_ITEM', 'VIEW_LOG'])
+const fileActionTypeSchema = z.enum(['OPEN_ITEM', 'VIEW_METADATA', 'COMPARE_ITEMS', 'VIEW_TRANSCRIPT', 'UNLOCK_ITEM', 'VIEW_LOG'])
+const actionTypeSchema = z.enum(['OPEN_ITEM', 'VIEW_METADATA', 'COMPARE_ITEMS', 'VIEW_TRANSCRIPT', 'UNLOCK_ITEM', 'VIEW_LOG', 'RUN_COMMAND', 'VIEW_AUDIO_MARKER', 'VIEW_MAP_LOCATION', 'VIEW_VERSION_DIFF'])
 const eventTypeSchema = z.enum(['OPEN_ITEM', 'VIEW_METADATA', 'COMPARE_ITEMS', 'VIEW_TRANSCRIPT', 'UNLOCK_ITEM', 'VIEW_LOG', 'VIEW_MAIL_HEADERS', 'RESTORE_ITEM', 'RUN_COMMAND', 'VIEW_AUDIO_MARKER', 'COMPARE_AUDIO', 'VIEW_MAP_LOCATION', 'VIEW_VERSION_DIFF', 'CREATE_RELATION'])
 const actionSchema = z.object({ type: actionTypeSchema, itemId: z.string().min(1) }).strict()
 
@@ -27,7 +28,7 @@ const desktopSchema = z.object({ systemName: z.string().min(1), bootMessage: z.s
 const applicationSchema = z.object({ id: appIdSchema, componentKey: z.string().regex(/^[a-z0-9-]+$/), title: z.string().min(1), enabled: z.boolean(), desktopX: z.number().finite(), desktopY: z.number().finite() }).strict()
 const assetSchema = z.object({ id: z.string().min(1), kind: z.enum(['image', 'audio', 'text']), mime: z.string().min(1), path: z.string().min(1), size: z.number().int().nonnegative(), sha256: z.string().regex(/^[a-fA-F0-9]{64}$/), alt: z.string() }).strict()
 const folderSchema = z.object({ id: z.string().min(1), name: z.string().min(1) }).strict()
-const fileSchema = z.object({ id: z.string().min(1), name: z.string().min(1), folder: z.string().min(1), originalFolder: z.string().optional(), content: z.string(), kind: z.enum(['text', 'markdown', 'image', 'audio']).optional(), path: z.string().optional(), createdAt: z.string().optional(), modifiedAt: z.string().optional(), size: z.number().int().nonnegative().optional(), owner: z.string().optional(), hash: z.string().optional(), hidden: z.boolean().optional(), locked: z.boolean().optional(), password: z.string().optional(), passwordHint: z.string().optional(), assetId: z.string().optional(), deletedAt: z.string().optional(), recoveryPath: z.string().optional(), desktopShortcut: z.boolean().optional(), metadata: z.record(z.string(), z.string()).optional(), clueAction: actionTypeSchema.optional() }).strict()
+const fileSchema = z.object({ id: z.string().min(1), name: z.string().min(1), folder: z.string().min(1), originalFolder: z.string().optional(), content: z.string(), kind: z.enum(['text', 'markdown', 'image', 'audio']).optional(), path: z.string().optional(), createdAt: z.string().optional(), modifiedAt: z.string().optional(), size: z.number().int().nonnegative().optional(), owner: z.string().optional(), hash: z.string().optional(), hidden: z.boolean().optional(), locked: z.boolean().optional(), password: z.string().optional(), passwordHint: z.string().optional(), assetId: z.string().optional(), deletedAt: z.string().optional(), recoveryPath: z.string().optional(), desktopShortcut: z.boolean().optional(), metadata: z.record(z.string(), z.string()).optional(), clueAction: fileActionTypeSchema.optional() }).strict()
 const messageSchema = z.object({ id: z.string().min(1), sender: z.string().min(1), time: z.string(), text: z.string(), attachmentId: z.string().optional(), unread: z.boolean().optional(), clueId: z.string().optional() }).strict()
 const chatSchema = z.object({ id: z.string().min(1), title: z.string().min(1), messages: z.array(messageSchema) }).strict()
 const emailSchema = z.object({ id: z.string().min(1), folder: z.enum(['收件箱', '草稿']), from: z.string(), subject: z.string(), time: z.string(), body: z.string(), attachmentName: z.string().optional(), clueId: z.string().optional() }).strict()
@@ -53,11 +54,72 @@ const legacyTriggerSchema = z.object({ id: z.string().min(1), kind: z.enum(['clu
 const declarativeTriggerSchema = z.object({ id: z.string().min(1), name: z.string().min(1), once: z.boolean(), condition: conditionSchema, effects: z.array(effectSchema), reducedMotionEffects: z.array(effectSchema), safeModeEffects: z.array(effectSchema) }).strict()
 const questionSchema = z.object({ id: z.string().min(1), prompt: z.string().min(1), options: z.array(z.object({ id: z.string().min(1), label: z.string().min(1) }).strict()).min(2), correctId: z.string().min(1), points: z.number().int().nonnegative() }).strict()
 const resultLevelSchema = z.object({ id: z.string().min(1), label: z.string().min(1), minScore: z.number().int().min(0).max(100), maxScore: z.number().int().min(0).max(100), description: z.string() }).strict()
+const gameplayIdSchema = z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/)
+const gameplayRequirementSchema = z.discriminatedUnion('type', [
+  z.object({ type: z.literal('all-clues') }).strict(),
+  z.object({ type: z.literal('no-hints') }).strict(),
+  z.object({ type: z.literal('score-at-least'), value: z.number().int().min(0).max(100) }).strict(),
+  z.object({ type: z.literal('relation-count-at-least'), value: z.number().int().min(0).max(100) }).strict(),
+  z.object({ type: z.literal('objective'), objectiveId: gameplayIdSchema }).strict(),
+])
+const objectiveSchema = z.object({
+  id: gameplayIdSchema,
+  title: z.string().trim().min(1).max(120),
+  description: z.string().trim().min(1).max(500),
+  kind: z.enum(['primary', 'optional']),
+  condition: conditionSchema,
+  revealWhen: conditionSchema.optional(),
+}).strict()
+const hintTierSchema = z.object({
+  id: gameplayIdSchema,
+  label: z.string().trim().min(1).max(80),
+  text: z.string().trim().min(1).max(500),
+  cost: z.number().int().positive().max(9),
+}).strict()
+const hintSchema = z.object({
+  id: gameplayIdSchema,
+  clueId: z.string().min(1),
+  label: z.string().trim().min(1).max(120),
+  tiers: z.tuple([hintTierSchema, hintTierSchema, hintTierSchema]),
+}).strict()
+const challengeSchema = z.object({
+  id: gameplayIdSchema,
+  title: z.string().trim().min(1).max(120),
+  description: z.string().trim().min(1).max(500),
+  requirements: z.array(gameplayRequirementSchema).min(1).max(12),
+}).strict()
+const endingVariantSchema = z.object({
+  id: gameplayIdSchema,
+  title: z.string().trim().min(1).max(120),
+  text: z.string().trim().min(1).max(2000),
+  priority: z.number().int().min(-100).max(100),
+  requirements: z.array(gameplayRequirementSchema).min(1).max(12),
+}).strict()
+const archiveThemeIdSchema = z.enum(['archive-standard', 'departure-night', 'signal-blueprint'])
+const rewardSchema = z.object({
+  id: gameplayIdSchema,
+  kind: z.enum(['artifact', 'badge', 'theme']),
+  title: z.string().trim().min(1).max(120),
+  description: z.string().trim().min(1).max(500),
+  requirements: z.array(gameplayRequirementSchema).max(12),
+  themeId: archiveThemeIdSchema.optional(),
+}).strict().superRefine((reward, context) => {
+  if (reward.kind === 'theme' && !reward.themeId) context.addIssue({ code: 'custom', path: ['themeId'], message: '主题奖励必须选择内置主题。' })
+  if (reward.kind !== 'theme' && reward.themeId) context.addIssue({ code: 'custom', path: ['themeId'], message: '只有主题奖励可以指定主题。' })
+})
+const gameplaySchema = z.object({
+  initialAnalysisPoints: z.number().int().min(0).max(9),
+  objectives: z.array(objectiveSchema).max(24),
+  hints: z.array(hintSchema).max(128),
+  challenges: z.array(challengeSchema).max(24),
+  endingVariants: z.array(endingVariantSchema).max(12),
+  rewards: z.array(rewardSchema).max(24).optional(),
+}).strict()
 
 export const caseDefinitionSchema = z.object({
   formatVersion: z.literal(1), id: z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/), title: z.string().min(1), owner: z.string().min(1), manifest: manifestSchema, subject: subjectSchema,
   entities: z.array(entitySchema), desktop: desktopSchema, applications: z.array(applicationSchema).min(2), assets: z.array(assetSchema), timeline: z.array(z.object({ time: z.string(), text: z.string() }).strict()),
   folders: z.array(folderSchema), files: z.array(fileSchema), chats: z.array(chatSchema), emails: z.array(emailSchema), browser: z.array(browserSchema), calendar: z.array(calendarSchema), photos: z.array(photoSchema), logs: z.array(logSchema),
   audioTracks: z.array(audioSchema), broadcastEvents: z.array(broadcastSchema), dataTables: z.array(dataTableSchema), terminalEntries: z.array(terminalEntrySchema), versionDiffs: z.array(versionDiffSchema), sitemap: z.array(sitemapNodeSchema),
-  clues: z.array(clueSchema).min(1), triggers: z.array(z.union([legacyTriggerSchema, declarativeTriggerSchema])), questions: z.array(questionSchema).min(1), resultLevels: z.array(resultLevelSchema).min(1), coreEvidenceIds: z.array(z.string()), correctContradictions: z.array(z.tuple([z.string(), z.string()])), ending: z.string(),
+  clues: z.array(clueSchema).min(1), triggers: z.array(z.union([legacyTriggerSchema, declarativeTriggerSchema])), questions: z.array(questionSchema).min(1), resultLevels: z.array(resultLevelSchema).min(1), coreEvidenceIds: z.array(z.string()), correctContradictions: z.array(z.tuple([z.string(), z.string()])), ending: z.string(), gameplay: gameplaySchema.optional(),
 }).strict()

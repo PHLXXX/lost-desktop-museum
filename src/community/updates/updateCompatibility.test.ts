@@ -6,7 +6,7 @@ import { analyzeUpdateCompatibility } from './updateCompatibility'
 
 function definition(removeClue = false) {
   const draft = createMinimalTemplateDraft(); draft.manifest.caseId = 'case-community-sample-001'; draft.manifest.author = 'ldm-team'; draft.assets = []; delete draft.desktop.wallpaperAssetId
-  if (removeClue) { draft.clues = draft.clues.filter((clue) => clue.id !== 'clue-handover'); draft.deduction.coreEvidenceIds = draft.clues.map((clue) => clue.id) }
+  if (removeClue) { draft.clues = draft.clues.filter((clue) => clue.id !== 'clue-handover'); draft.deduction.coreEvidenceIds = draft.clues.map((clue) => clue.id); draft.gameplay = undefined }
   const result = compileCaseDraft(draft, []); if (!result.ok) throw new Error('fixture failed')
   return result.caseDefinition
 }

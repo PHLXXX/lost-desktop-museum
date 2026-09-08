@@ -28,7 +28,7 @@ for (const [path, bytes] of artifacts) await put(path, bytes)
 const baseBytes = artifacts.get('packages/valid-1.0.0.ldmcase')!
 const updateBytes = artifacts.get('packages/valid-1.1.0.ldmcase')!
 const incompatibleBytes = artifacts.get('packages/incompatible-2.0.0.ldmcase')!
-const coverBytes = new Uint8Array(await readFile(resolve('docs/images/stage4-live-preview.png')))
+const coverBytes = new Uint8Array(await readFile(resolve('tests/fixtures/community/screenshots/cover.png')))
 await put('screenshots/cover.png', coverBytes)
 
 const publisher = parseCommunityPublisher({

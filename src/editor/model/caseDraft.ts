@@ -15,6 +15,8 @@ import type {
   DesktopDefinition,
   EmailMessage,
   GameTrigger,
+  InvestigationGameplayDefinition,
+  InvestigationHintDefinition,
   PhotoAsset,
   SystemLog,
   SitemapNode,
@@ -56,8 +58,36 @@ export interface CaseDraft {
   sitemap: SitemapNode[]
   clues: ClueDefinition[]
   triggers: GameTrigger[]
+  gameplay?: InvestigationGameplayDefinition
   deduction: DraftDeductionDefinition
   assets: CaseAssetReference[]
+}
+
+export function createInitialGameplayDraft(draft: CaseDraft): InvestigationGameplayDefinition {
+  const clueThreshold = Math.max(1, Math.min(6, draft.clues.length))
+  return {
+    initialAnalysisPoints: 3,
+    objectives: [{ id: 'investigation-basics', title: '建立案件基础', description: `记录至少 ${clueThreshold} 条可验证线索。`, kind: 'primary', condition: { type: 'clue-count', count: clueThreshold } }],
+    hints: [],
+    challenges: [
+      { id: 'independent-analysis', title: '独立分析', description: '不使用分析提示完成推理。', requirements: [{ type: 'no-hints' }] },
+      { id: 'complete-archive', title: '完整归档', description: '发现案件中的全部线索。', requirements: [{ type: 'all-clues' }] },
+      { id: 'precise-conclusion', title: '精准结案', description: '推理可信度达到 90 分。', requirements: [{ type: 'score-at-least', value: 90 }] },
+    ],
+    endingVariants: [],
+    rewards: [
+      { id: 'completion-record', kind: 'artifact', title: '案件结案记录', description: '完成案件后归入本机馆藏。', requirements: [] },
+      { id: 'complete-archive-badge', kind: 'badge', title: '完整归档徽章', description: '发现全部线索并完成最终推理。', requirements: [{ type: 'all-clues' }] },
+    ],
+  }
+}
+
+function templateHint(id: string, clueId: string, label: string, direction: string, action: string, location: string): InvestigationHintDefinition {
+  return { id, clueId, label, tiers: [
+    { id: 'direction', label: '调查方向', text: direction, cost: 1 },
+    { id: 'action', label: '操作建议', text: action, cost: 1 },
+    { id: 'location', label: '精确定位', text: location, cost: 1 },
+  ] }
 }
 
 const enabledAppEntries = [
@@ -121,6 +151,33 @@ export function createMinimalTemplateDraft(): CaseDraft {
       { id: 'result-low', label: '记录员', minScore: 0, maxScore: 49, description: '部分时间线仍未闭合。' },
       { id: 'result-mid', label: '调查员', minScore: 50, maxScore: 84, description: '关键时间窗口已经确定。' },
       { id: 'result-high', label: '首席归档员', minScore: 85, maxScore: 100, description: '证据关系完整。' },
+    ],
+  }
+  draft.gameplay = {
+    initialAnalysisPoints: 3,
+    objectives: [
+      { id: 'rebuild-key-window', title: '锁定钥匙消失时段', description: '用交接、清洁和门禁记录缩小钥匙消失的时间窗口。', kind: 'primary', condition: { type: 'all', conditions: [{ type: 'clue', clueId: 'clue-handover' }, { type: 'clue', clueId: 'clue-cleaning' }, { type: 'clue', clueId: 'clue-access' }] } },
+      { id: 'verify-testimony', title: '核对人员说法', description: '把讯息中的说法与独立门禁记录建立矛盾关系。', kind: 'optional', revealWhen: { type: 'clue-count', count: 2 }, condition: { type: 'relation', from: 'clue-message', to: 'clue-access', relationType: '相互矛盾' } },
+      { id: 'complete-key-archive', title: '完整钥匙档案', description: '记录教学案件中的全部六条线索。', kind: 'optional', condition: { type: 'clue-count', count: 6 } },
+    ],
+    hints: [
+      templateHint('handover-hint', 'clue-handover', '交接起点', '先确认钥匙最后一次被明确看见的时间。', '打开交接记录中的文本文件。', '查看“钥匙交接.txt”。'),
+      templateHint('cleaning-hint', 'clue-cleaning', '抽屉状态', '清洁记录提供了稍晚的办公室状态。', '打开便笺目录中的清洁记录。', '查看“清洁备注.txt”。'),
+      templateHint('message-hint', 'clue-message', '人员说法', '夜班保安在讯息里描述过钥匙盒。', '阅读罗宇会话中的完整时间线。', '查看 18:45 的消息。'),
+      templateHint('access-hint', 'clue-access', '实际进入', '门禁系统能独立验证人员进入办公室的时间。', '打开系统通知邮件。', '查看“办公室临时通行记录”。'),
+      templateHint('calendar-hint', 'clue-calendar', '交接期限', '次日安排说明这把钥匙为什么必须被找到。', '打开日历事件详情。', '查看 6 月 18 日“备用钥匙交接”。'),
+      templateHint('print-hint', 'clue-print', '补领动作', '系统日志保留了钥匙丢失后的后续动作。', '筛选文档事件并打开详情。', '查看 19:12 的“文档打印”日志。'),
+    ],
+    challenges: [
+      { id: 'independent-trainee', title: '独立受训员', description: '不使用分析提示完成教学案件。', requirements: [{ type: 'no-hints' }] },
+      { id: 'complete-training-file', title: '完整训练档案', description: '发现全部六条线索。', requirements: [{ type: 'all-clues' }] },
+      { id: 'timeline-specialist', title: '时间线核验员', description: '建立关键矛盾关系。', requirements: [{ type: 'relation-count-at-least', value: 1 }] },
+      { id: 'precise-training-report', title: '精准训练报告', description: '推理可信度达到九十分。', requirements: [{ type: 'score-at-least', value: 90 }] },
+    ],
+    endingVariants: [{ id: 'complete-training-note', title: '完整训练注记', text: '交接、门禁与补领动作已经形成一条可复核的时间线；备用钥匙的消失不再只是某个人的单方面说法。', priority: 20, requirements: [{ type: 'all-clues' }, { type: 'score-at-least', value: 90 }, { type: 'relation-count-at-least', value: 1 }] }],
+    rewards: [
+      { id: 'spare-key-tag', kind: 'artifact', title: '备用钥匙编号牌', description: '从完成的教学档案中保存下来的金属编号牌。', requirements: [] },
+      { id: 'timeline-trainee-badge', kind: 'badge', title: '时间线受训员', description: '发现全部线索并建立关键矛盾关系。', requirements: [{ type: 'all-clues' }, { type: 'relation-count-at-least', value: 1 }] },
     ],
   }
   return draft

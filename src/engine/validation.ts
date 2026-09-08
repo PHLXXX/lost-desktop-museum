@@ -1,5 +1,6 @@
 import { caseDefinitionSchema } from '../cases/schema'
 import { supportedAppComponentKeys } from '../app/supportedAppKeys'
+import { validateGameplayDefinition } from '../gameplay/gameplayValidation'
 
 export interface ValidationIssue {
   id: string
@@ -102,6 +103,7 @@ export function validateCaseDefinition(input: unknown): ValidationIssue[] {
   const levels = [...definition.resultLevels].sort((a, b) => a.minScore - b.minScore)
   if (levels[0]?.minScore !== 0 || levels.at(-1)?.maxScore !== 100 || levels.some((level, index) => level.minScore > level.maxScore || (index > 0 && levels[index - 1]!.maxScore + 1 !== level.minScore))) issues.push({ id: 'result-level-coverage', severity: 'error', category: 'deduction', code: 'RESULT_LEVEL_COVERAGE', message: '结果等级必须无重叠、无缺口地覆盖0至100分。', path: 'resultLevels' })
   definition.questions.forEach((question, index) => { if (!question.options.some((option) => option.id === question.correctId)) issues.push({ id: `question-answer-${question.id}`, severity: 'error', category: 'deduction', code: 'MISSING_CORRECT_OPTION', message: '推理题正确答案必须引用现有选项。', path: `questions.${index}.correctId`, entityId: question.id }) })
+  issues.push(...validateGameplayDefinition(definition))
   if (!definition.manifest.builtIn) definition.assets.forEach((asset, index) => { if (asset.mime === 'image/svg+xml' || asset.path.toLowerCase().endsWith('.svg')) issues.push({ id: `asset-svg-${asset.id}`, severity: 'error', category: 'security', code: 'SVG_BLOCKED', message: '第三方案件包禁止SVG资源。', path: `assets.${index}`, entityId: asset.id }) })
   return issues
 }

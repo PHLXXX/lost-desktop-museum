@@ -1,5 +1,5 @@
 import archiveImage from '../../assets/illustrations/airport.svg'
-import type { CaseDefinition, ClueDefinition } from '../types'
+import type { CaseDefinition, ClueDefinition, InvestigationHintDefinition } from '../types'
 
 const clue = (
   id: string,
@@ -22,6 +22,12 @@ const clue = (
   isCore: true,
   isRedHerring: false,
 })
+
+const hint = (id: string, clueId: string, label: string, direction: string, action: string, location: string): InvestigationHintDefinition => ({ id, clueId, label, tiers: [
+  { id: 'direction', label: '调查方向', text: direction, cost: 1 },
+  { id: 'action', label: '操作建议', text: action, cost: 1 },
+  { id: 'location', label: '精确定位', text: location, cost: 1 },
+] })
 
 const applications = ([
   ['files', '我的文件'], ['messages', '讯息'], ['mail', '邮件'], ['photos', '照片'], ['browser', '浏览记录'],
@@ -102,4 +108,38 @@ export const caseDefinition: CaseDefinition = {
   coreEvidenceIds: ['C01', 'C02', 'C03', 'C04', 'C05', 'C06'],
   correctContradictions: [['C01', 'C02'], ['C05', 'C06']],
   ending: '声音可以继续留在节目里，但它不能证明说话的人仍在那里。',
+  gameplay: {
+    initialAnalysisPoints: 3,
+    objectives: [
+      { id: 'separate-voice-and-presence', title: '区分声音与在场', description: '分别验证节目声音的来源和主持人的实际在场记录。', kind: 'primary', condition: { type: 'all', conditions: [{ type: 'clue', clueId: 'C02' }, { type: 'clue', clueId: 'C03' }, { type: 'clue', clueId: 'C06' }] } },
+      { id: 'rebuild-broadcast-switch', title: '还原节目源切换', description: '把节目单、排期与延迟记录拼成可核验的播出链路。', kind: 'optional', revealWhen: { type: 'clue-count', count: 2 }, condition: { type: 'all', conditions: [{ type: 'clue', clueId: 'C01' }, { type: 'clue', clueId: 'C03' }, { type: 'clue', clueId: 'C04' }] } },
+      { id: 'verify-studio-absence', title: '核验演播室缺席', description: '确认计划记录和门禁记录是否互相支持。', kind: 'optional', revealWhen: { type: 'clue', clueId: 'C05' }, condition: { type: 'all', conditions: [{ type: 'clue', clueId: 'C05' }, { type: 'clue', clueId: 'C06' }] } },
+      { id: 'link-broadcast-contradictions', title: '建立广播矛盾关系', description: '在证据板建立两组关键矛盾关系。', kind: 'optional', condition: { type: 'all', conditions: [{ type: 'relation', from: 'C01', to: 'C02', relationType: '相互矛盾' }, { type: 'relation', from: 'C05', to: 'C06', relationType: '相互矛盾' }] } },
+      { id: 'complete-broadcast-archive', title: '完整广播归档', description: '记录本案全部六条线索。', kind: 'optional', condition: { type: 'clue-count', count: 6 } },
+    ],
+    hints: [
+      hint('unsigned-script-hint', 'C01', '节目单状态', '正式节目单能说明直播流程是否完成。', '打开节目文件，留意需要人工确认的栏目。', '检查“零点节目单.md”的主持人签字栏。'),
+      hint('last-message-hint', 'C02', '最后留言', '主持人曾提前解释零点后的声音。', '打开与制作人的讯息并按时间阅读。', '查看林默 23:52 发给乔安的消息。'),
+      hint('source-switch-hint', 'C03', '节目源设置', '排期系统记录了声音进入主输出的方式。', '在邮件中打开节目播出方式变更通知。', '查看“零点节目改为预录”。'),
+      hint('delay-search-hint', 'C04', '延迟线索', '技术搜索可能说明主人关注过怎样区分信号。', '查看零点前与广播延迟相关的浏览记录。', '打开“数字广播延迟如何测量”。'),
+      hint('calendar-studio-hint', 'C05', '演播室计划', '日历备注比事件标题包含更多现场安排。', '打开零点特别节目的事件详情。', '查看 4 月 9 日“零点特别节目”的备注。'),
+      hint('door-log-hint', 'C06', '实际进入记录', '计划需要由独立的物理访问记录验证。', '在系统日志中打开门禁事件详情。', '检查 00:01 的 A 演播室门禁记录。'),
+    ],
+    challenges: [
+      { id: 'independent-producer', title: '独立制作人', description: '不使用分析提示完成推理。', requirements: [{ type: 'no-hints' }] },
+      { id: 'complete-broadcast-log', title: '完整节目日志', description: '发现全部六条线索。', requirements: [{ type: 'all-clues' }] },
+      { id: 'signal-crosscheck', title: '信号交叉核验', description: '建立两组案件关键矛盾关系。', requirements: [{ type: 'relation-count-at-least', value: 2 }] },
+      { id: 'precise-broadcast-report', title: '精确播出报告', description: '推理可信度达到九十分。', requirements: [{ type: 'score-at-least', value: 90 }] },
+      { id: 'presence-auditor', title: '在场审计员', description: '完成演播室缺席核验目标。', requirements: [{ type: 'objective', objectiveId: 'verify-studio-absence' }] },
+    ],
+    endingVariants: [
+      { id: 'independent-signal-note', title: '首席信号注记', text: '你没有让熟悉的声音替代在场证明。节目源、排期与门禁记录被分别归档，零点后的回声因此只能证明一段预先安排的播出。', priority: 30, requirements: [{ type: 'all-clues' }, { type: 'no-hints' }, { type: 'score-at-least', value: 90 }, { type: 'relation-count-at-least', value: 2 }] },
+      { id: 'complete-signal-note', title: '完整信号注记', text: '完整档案把广播信号和人员轨迹分成了两条时间线：前者按计划抵达零点，后者没有进入 A 演播室。', priority: 20, requirements: [{ type: 'all-clues' }, { type: 'score-at-least', value: 85 }, { type: 'relation-count-at-least', value: 2 }] },
+    ],
+    rewards: [
+      { id: 'final-program-sheet', kind: 'artifact', title: '停播节目单', description: '签字栏仍然空白的零点节目单原件。', requirements: [] },
+      { id: 'complete-broadcast-record', kind: 'badge', title: '完整广播记录', description: '发现全部线索，并建立两组关键矛盾关系。', requirements: [{ type: 'all-clues' }, { type: 'relation-count-at-least', value: 2 }] },
+      { id: 'signal-blueprint-theme', kind: 'theme', title: '信号室蓝图', description: '以广播控制室技术图纸为灵感的档案馆配色。', themeId: 'signal-blueprint', requirements: [{ type: 'all-clues' }, { type: 'score-at-least', value: 90 }, { type: 'no-hints' }] },
+    ],
+  },
 }

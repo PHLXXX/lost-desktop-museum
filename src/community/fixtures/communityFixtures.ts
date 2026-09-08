@@ -4,6 +4,7 @@ import { exportCasePackage } from '../../packages/casePackage'
 
 async function buildVersion(version: '1.0.0' | '1.1.0' | '2.0.0') {
   const draft = createMinimalTemplateDraft()
+  draft.gameplay = undefined
   draft.manifest.caseId = 'case-community-sample-001'
   draft.manifest.version = version
   draft.manifest.author = 'ldm-team'

@@ -1,7 +1,13 @@
 import airportImage from '../../assets/illustrations/airport.svg'
-import type { CaseDefinition, ClueDefinition } from '../types'
+import type { CaseDefinition, ClueDefinition, InvestigationHintDefinition } from '../types'
 
 const clue = (id: string, title: string, summary: string, explanation: string, source: ClueDefinition['source'], type: ClueDefinition['discovery']['type'], itemId: string, people: string[], times: string[], places: string[], isCore = true, isRedHerring = false): ClueDefinition => ({ id, title, summary, explanation, source, discovery: { type, itemId }, condition: { type: 'event', eventType: type, targetId: itemId }, people, times, places, isCore, isRedHerring })
+
+const hint = (id: string, clueId: string, label: string, direction: string, action: string, location: string): InvestigationHintDefinition => ({ id, clueId, label, tiers: [
+  { id: 'direction', label: '调查方向', text: direction, cost: 1 },
+  { id: 'action', label: '操作建议', text: action, cost: 1 },
+  { id: 'location', label: '精确定位', text: location, cost: 1 },
+] })
 
 const applications = ([
   ['files', '我的文件'], ['messages', '讯息'], ['mail', '邮件'], ['photos', '照片'], ['browser', '浏览记录'],
@@ -124,4 +130,44 @@ export const caseDefinition: CaseDefinition = {
   ],
   coreEvidenceIds: ['C01', 'C02', 'C03', 'C05', 'C08', 'C09'], correctContradictions: [['C01', 'C02'], ['C03', 'C04']],
   ending: '你找到的不是答案，只是一种能让这些文件说得通的顺序。',
+  gameplay: {
+    initialAnalysisPoints: 3,
+    objectives: [
+      { id: 'verify-departure-story', title: '核对离开叙述', description: '确认行程状态、对外说法与照片记录是否一致。', kind: 'primary', condition: { type: 'all', conditions: [{ type: 'clue', clueId: 'C01' }, { type: 'clue', clueId: 'C02' }, { type: 'clue', clueId: 'C03' }] } },
+      { id: 'trace-second-identity', title: '追踪第二身份', description: '梳理另一个名字出现、建立与使用的轨迹。', kind: 'optional', revealWhen: { type: 'clue-count', count: 3 }, condition: { type: 'all', conditions: [{ type: 'clue', clueId: 'C05' }, { type: 'clue', clueId: 'C06' }, { type: 'clue', clueId: 'C07' }, { type: 'clue', clueId: 'C08' }, { type: 'clue', clueId: 'C09' }] } },
+      { id: 'locate-final-session', title: '确认最后会话环境', description: '用独立记录判断最后登录发生时电脑所在的环境。', kind: 'optional', revealWhen: { type: 'clue', clueId: 'C10' }, condition: { type: 'all', conditions: [{ type: 'clue', clueId: 'C08' }, { type: 'clue', clueId: 'C10' }, { type: 'clue', clueId: 'C12' }] } },
+      { id: 'verify-key-contradictions', title: '验证关键矛盾', description: '在证据板建立两组能够互相校验的矛盾关系。', kind: 'optional', condition: { type: 'all', conditions: [{ type: 'relation', from: 'C01', to: 'C02', relationType: '相互矛盾' }, { type: 'relation', from: 'C03', to: 'C04', relationType: '相互矛盾' }] } },
+      { id: 'complete-digital-archive', title: '完整数字归档', description: '记录档案中的全部十二条线索，包括可能的干扰信息。', kind: 'optional', condition: { type: 'clue-count', count: 12 } },
+    ],
+    hints: [
+      hint('flight-status-hint', 'C01', '行程状态', '先确认计划中的交通工具是否仍然有效。', '在邮件中打开与航班订单状态有关的正式通知。', '查看收件箱中的“HX217 订单取消成功”。'),
+      hint('airport-claim-hint', 'C02', '对外说法', '留意主人向熟人描述自己位置的时间。', '把讯息中的位置说法与较早的行程状态对照。', '查看唐遥会话中 23:12 的回复。'),
+      hint('photo-date-hint', 'C03', '照片时间', '照片画面和文件时间可能不是同一回事。', '打开照片的信息侧栏，主动查看原始元数据。', '检查“IMG_1117_发给唐遥”的原始拍摄时间。'),
+      hint('photo-search-hint', 'C04', '编辑意图', '浏览记录可能解释为什么文件时间值得怀疑。', '查找发送照片之前出现的图片时间相关搜索。', '查看“如何保留照片画面但更改拍摄时间”。'),
+      hint('farewell-version-hint', 'C05', '文本变化', '被删除的多个版本比单独一份文本更有意义。', '在回收站预览并比较告别信版本措辞。', '比较“告别信_v3.txt”与早期版本。'),
+      hint('birthday-hint', 'C06', '特殊日期', '日历里有一个与公开身份无关的私人日期。', '打开事件详情，阅读日期旁的备注。', '查看 11 月 19 日的“林然生日”。'),
+      hint('hidden-account-hint', 'C07', '账户来源', '系统日志能说明另一个账户并非临时出现。', '筛选账户事件并打开创建记录详情。', '查看 10 月 8 日创建隐藏用户 LINRAN 的日志。'),
+      hint('local-login-hint', 'C08', '登录位置', '账户名之外，登录来源网络同样重要。', '打开最后一条 LINRAN 登录事件的详情。', '检查 23:48 登录使用的 HOME-NET-5G。'),
+      hint('draft-mail-hint', 'C09', '未寄出的文字', '已发送信息之外，草稿箱也保留了意图。', '切换到邮件草稿箱并阅读完整正文。', '打开草稿“给妈妈”。'),
+      hint('landlord-hint', 'C10', '外部目击', '一条未读消息提供了住所状态的外部观察。', '在讯息联系人中查看未读会话。', '阅读房东陈女士 23:31 的消息。'),
+      hint('hotel-hint', 'C11', '保留的预订', '不同旅行订单可能处于不同状态。', '把酒店确认与航班取消记录分开核对。', '查看“北岸酒店预订成功”邮件。'),
+      hint('recording-hint', 'C12', '环境声音', '背景声音可以定位录音所在的环境。', '在文件预览中使用辅助转写，而不只阅读文件名。', '检查“录音_2316.rec”的转写内容。'),
+    ],
+    challenges: [
+      { id: 'independent-archivist', title: '独立归档员', description: '不使用任何分析提示完成推理。', requirements: [{ type: 'no-hints' }] },
+      { id: 'complete-archive', title: '完整归档', description: '发现案件中的全部十二条线索。', requirements: [{ type: 'all-clues' }] },
+      { id: 'contradiction-specialist', title: '矛盾核验员', description: '建立两组案件关键矛盾关系。', requirements: [{ type: 'relation-count-at-least', value: 2 }] },
+      { id: 'precise-conclusion', title: '精准结案', description: '推理可信度达到九十分。', requirements: [{ type: 'score-at-least', value: 90 }] },
+      { id: 'identity-archivist', title: '身份档案员', description: '完成第二身份的完整轨迹目标。', requirements: [{ type: 'objective', objectiveId: 'trace-second-identity' }] },
+    ],
+    endingVariants: [
+      { id: 'independent-complete-note', title: '首席归档注记', text: '没有提示替你决定方向。你让取消的行程、旧照片、住所里的声音和第二个名字彼此作证；档案因此保留了事实之间的距离。', priority: 30, requirements: [{ type: 'all-clues' }, { type: 'no-hints' }, { type: 'score-at-least', value: 90 }, { type: 'relation-count-at-least', value: 2 }] },
+      { id: 'complete-note', title: '完整归档注记', text: '所有可读取记录都已归档。它们仍不能替周屿说出唯一动机，却足以说明这场“旅行”从未按公开叙述发生。', priority: 20, requirements: [{ type: 'all-clues' }, { type: 'score-at-least', value: 90 }, { type: 'relation-count-at-least', value: 2 }] },
+    ],
+    rewards: [
+      { id: 'unused-boarding-pass', kind: 'artifact', title: '未启程登机牌', description: '一张已经失效，却仍被夹在档案中的 HX217 登机牌。', requirements: [] },
+      { id: 'independent-investigator', kind: 'badge', title: '独立调查员', description: '发现全部线索，并在未使用分析提示的情况下完成调查。', requirements: [{ type: 'all-clues' }, { type: 'no-hints' }] },
+      { id: 'departure-night-theme', kind: 'theme', title: '候机厅夜色', description: '以深夜航站楼信息屏为灵感的档案馆配色。', themeId: 'departure-night', requirements: [{ type: 'score-at-least', value: 90 }, { type: 'no-hints' }, { type: 'relation-count-at-least', value: 2 }] },
+    ],
+  },
 }

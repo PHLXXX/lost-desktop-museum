@@ -27,3 +27,31 @@
   --font-data: Consolas, "Cascadia Mono", "Courier New", monospace;
   font-family: var(--font-ui);
 }
+
+:root[data-archive-theme='departure-night'] {
+  --base-0: #070914;
+  --base-1: #0d1020;
+  --base-2: #13182a;
+  --base-3: #1b2238;
+  --base-4: #252e48;
+  --line-weak: #29334c;
+  --line: #485779;
+  --line-strong: #7886a4;
+  --amber: #d8aa5d;
+  --amber-bright: #f1cb7b;
+  --cyan: #7fb7c8;
+}
+
+:root[data-archive-theme='signal-blueprint'] {
+  --base-0: #041014;
+  --base-1: #07181e;
+  --base-2: #0b222a;
+  --base-3: #11303a;
+  --base-4: #183e48;
+  --line-weak: #1e3e47;
+  --line: #38616b;
+  --line-strong: #6b8e95;
+  --amber: #b4bf77;
+  --amber-bright: #d9df96;
+  --cyan: #74cfca;
+}

@@ -1,6 +1,15 @@
 import { useActiveCaseDefinition } from '../../cases/useActiveCase'
 import { caseDisplayId } from '../../cases/casePresentation'
+import { resolveInvestigationGameplay } from '../../gameplay/defaultGameplay'
+import { getHintState } from '../../gameplay/hintEngine'
+import { getObjectiveStates } from '../../gameplay/objectiveEngine'
 import { useGameStore } from '../../store/gameStore'
+import { evaluateRewards, resolveInvestigationRewards } from '../../gameplay/rewardEngine'
+
+function formatPlayTime(seconds: number) {
+  const minutes = Math.floor(seconds / 60)
+  return `${String(minutes).padStart(2, '0')}:${String(seconds % 60).padStart(2, '0')}`
+}
 
 export function ResultScreen({
   onReturnMuseum,
@@ -10,8 +19,31 @@ export function ResultScreen({
   onReviewEvidence: () => void
 }) {
   const caseDefinition = useActiveCaseDefinition()
-  const { deductionResult: result, discoveredClueIds, pinnedClueIds, saveNow } = useGameStore()
+  const {
+    deductionResult: result,
+    discoveredClueIds,
+    pinnedClueIds,
+    completedEventKeys,
+    evidenceRelations,
+    triggeredEventIds,
+    hintUsage,
+    playTime,
+    saveNow,
+  } = useGameStore()
   if (!result) return null
+  const gameplay = resolveInvestigationGameplay(caseDefinition)
+  const saveState = { completedEventKeys, discoveredClueIds, evidenceRelations, triggeredEventIds, hintUsage }
+  const objectives = getObjectiveStates(caseDefinition, saveState).filter((objective) => objective.visible)
+  const completedObjectives = objectives.filter((objective) => objective.complete)
+  const hintLayers = getHintState(caseDefinition, saveState).hints.reduce((total, hint) => total + hint.revealedCount, 0)
+  const earnedChallenges = gameplay.challenges.filter((challenge) => result.challengeIds?.includes(challenge.id))
+  const earnedRewardIds = new Set(result.rewardIds ?? evaluateRewards(caseDefinition, saveState, result).map((reward) => reward.id))
+  const earnedRewards = resolveInvestigationRewards(caseDefinition).filter((reward) => earnedRewardIds.has(reward.id))
+  const newRewardKeys = new Set(result.newRewardKeys ?? [])
+  const endingVariant = gameplay.endingVariants.find((ending) => ending.id === result.endingVariantId)
+  const ending = endingVariant
+    ? { title: endingVariant.title, text: endingVariant.text }
+    : { title: '档案结论', text: caseDefinition.ending }
   return (
     <main className="result-screen">
       <header>
@@ -45,10 +77,42 @@ export function ResultScreen({
             已发现 {discoveredClueIds.length}/{caseDefinition.clues.length} 条线索；标记的关键证据为{' '}
             {pinnedClueIds.join('、') || '无'}。
           </p>
+          <section className="result-investigation-stats" aria-label="深度调查统计">
+            <div><span>目标完成</span>{' '}<strong>{completedObjectives.length} / {objectives.length}</strong></div>
+            <div><span>本次挑战</span>{' '}<strong>{earnedChallenges.length} / {gameplay.challenges.length}</strong></div>
+            <div><span>使用提示</span>{' '}<strong>{hintLayers} 层</strong></div>
+            <div><span>调查用时</span>{' '}<strong>{formatPlayTime(playTime)}</strong></div>
+          </section>
+          <section className="result-review-section" aria-labelledby="result-objectives-title">
+            <h2 id="result-objectives-title">目标复盘</h2>
+            <div className="result-record-list">
+              {objectives.map((objective) => <article data-complete={objective.complete} key={objective.id}><span>{objective.complete ? '完成' : '未完成'}</span><div><strong>{objective.title}</strong><p>{objective.description}</p></div></article>)}
+            </div>
+          </section>
+          <section className="result-review-section" aria-labelledby="result-challenges-title">
+            <h2 id="result-challenges-title">调查挑战</h2>
+            <div className="result-challenge-badges">
+              {gameplay.challenges.map((challenge) => <span data-earned={result.challengeIds?.includes(challenge.id) ?? false} key={challenge.id}>{result.challengeIds?.includes(challenge.id) ? '已达成' : '未达成'} · {challenge.title}</span>)}
+            </div>
+          </section>
+          <section className="result-review-section result-rewards" aria-labelledby="result-rewards-title">
+            <h2 id="result-rewards-title">本次通关奖励</h2>
+            {earnedRewards.length ? <div className="result-reward-list">
+              {earnedRewards.map((reward) => {
+                const isNew = newRewardKeys.has(`${caseDefinition.id}:${reward.id}`)
+                return <article data-new={isNew} key={reward.id}>
+                  <span>{reward.kind === 'artifact' ? '纪念藏品' : reward.kind === 'badge' ? '专精徽章' : '系统主题'}</span>
+                  <div><strong>{reward.title}</strong><p>{reward.description}</p></div>
+                  <b>{isNew ? '首次解锁' : '已收藏'}</b>
+                </article>
+              })}
+            </div> : <p className="result-reward-empty">本次没有获得新奖励。完成更多线索、减少提示或提高可信度后再次调查。</p>}
+          </section>
           {result.note && <blockquote>{result.note}</blockquote>}
           <div className="ending">
             <p>推理结果与证据引用已写入本地案件存档。</p>
-            <strong>{caseDefinition.ending}</strong>
+            <span>{ending.title}</span>
+            <strong>{ending.text}</strong>
           </div>
           <div className="result-actions">
             <button onClick={onReviewEvidence}>返回证据板</button>

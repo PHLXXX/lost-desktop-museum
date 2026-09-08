@@ -14,6 +14,7 @@ describe('deterministic community fixtures', () => {
     const incompatible = await importCasePackage(first.get('packages/incompatible-2.0.0.ldmcase')!, 'incompatible-2.0.0.ldmcase')
     expect(base.caseDefinition.id).toBe('case-community-sample-001')
     expect(base.caseDefinition.clues).toHaveLength(6)
+    expect(base.caseDefinition.gameplay).toBeUndefined()
     expect(base.caseDefinition.questions.reduce((sum, question) => sum + question.points, 0)).toBe(100)
     expect(compatible.caseDefinition.clues.map((clue) => clue.id)).toContain('clue-handover')
     expect(incompatible.caseDefinition.clues.map((clue) => clue.id)).not.toContain('clue-handover')
