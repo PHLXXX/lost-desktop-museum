@@ -1,6 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createFreshSave } from '../engine/persistence'
 import { caseDefinition } from '../cases/case-001/case'
+import { caseDefinition as case003 } from '../cases/case-003/case'
+import { saveGameSave } from '../engine/persistence'
 import { useGameStore } from './gameStore'
 import { defaultRewardProfile } from '../rewards/rewardProfile'
 import { useRewardStore } from '../rewards/rewardStore'
@@ -133,5 +135,36 @@ describe('game store persistence and notification policy', () => {
     useGameStore.getState().investigate({ type: 'OPEN_ITEM', itemId: 'flight-cancel' })
 
     expect(useGameStore.getState().notice).toContain('目标完成：核对离开叙述')
+  })
+
+  it('restores case 003 progress without leaking case 001 progress', () => {
+    saveGameSave(localStorage, { ...createFreshSave('case-001'), discoveredClueIds: ['C01'] })
+    saveGameSave(localStorage, { ...createFreshSave('case-003'), discoveredClueIds: ['C02', 'C10'] })
+
+    useGameStore.getState().activateCase('case-003')
+    expect(useGameStore.getState().discoveredClueIds).toEqual(['C02', 'C10'])
+
+    useGameStore.getState().activateCase('case-001')
+    expect(useGameStore.getState().discoveredClueIds).toEqual(['C01'])
+  })
+
+  it('settles case 003 rewards idempotently and preserves them on restart', () => {
+    useGameStore.setState({
+      ...createFreshSave('case-003'),
+      discoveredClueIds: case003.clues.map((clue) => clue.id),
+      pinnedClueIds: case003.coreEvidenceIds.slice(0, 6),
+      evidenceRelations: case003.correctContradictions.map(([from, to], index) => ({ id: `case-003-relation-${index}`, from, to, type: '相互矛盾' as const })),
+      hintUsage: {},
+    })
+
+    const answers = case003.questions.map((question) => question.correctId)
+    const first = useGameStore.getState().submit(answers, '编号、标签与离库路径形成完整保管链。')
+    const second = useGameStore.getState().submit(answers, '重复核验。')
+
+    expect(first.rewardIds).toEqual(['double-layer-accession-tag', 'catalog-auditor', 'silent-reconciliation'])
+    expect(first.newRewardKeys).toHaveLength(3)
+    expect(second.newRewardKeys).toEqual([])
+    useGameStore.getState().resetCase()
+    expect(useRewardStore.getState().unlocks.filter((reward) => reward.caseId === 'case-003')).toHaveLength(3)
   })
 })

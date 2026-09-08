@@ -1,6 +1,7 @@
 import { render, screen } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { caseDefinition as case002 } from '../../cases/case-002/case'
+import { caseDefinition as case003 } from '../../cases/case-003/case'
 import { registerInstalledCase, unregisterInstalledCase } from '../../cases/registry'
 import { createFreshSave } from '../../engine/persistence'
 import { resolveInvestigationGameplay } from '../../gameplay/defaultGameplay'
@@ -83,5 +84,34 @@ describe('ResultScreen', () => {
     expect(screen.getByRole('heading', { name: '本次通关奖励' })).toBeInTheDocument()
     expect(screen.getByText('首次解锁')).toBeInTheDocument()
     expect(screen.getByText('已收藏')).toBeInTheDocument()
+  })
+
+  it('renders case 003 identity, complete archive and earned artifact', () => {
+    useGameStore.setState({
+      ...createFreshSave('case-003'),
+      discoveredClueIds: case003.clues.map((clue) => clue.id),
+      pinnedClueIds: case003.coreEvidenceIds,
+      evidenceRelations: case003.correctContradictions.map(([from, to], index) => ({ id: `case-003-result-relation-${index}`, from, to, type: '相互矛盾' as const })),
+      deductionResult: {
+        score: 100,
+        level: '馆藏链已还原',
+        answerScore: 65,
+        evidenceScore: 30,
+        relationScore: 5,
+        note: '数字操作链与实物搬运责任分开陈述。',
+        rewardIds: ['double-layer-accession-tag'],
+        newRewardKeys: ['case-003:double-layer-accession-tag'],
+      },
+      saveStatus: 'idle',
+      notice: null,
+      corruptSave: false,
+    })
+
+    const result = render(<ResultScreen onReturnMuseum={vi.fn()} onReviewEvidence={vi.fn()} />)
+
+    expect(result.container).toHaveTextContent('CASE 003 / LOCAL RESULT')
+    expect(result.container).toHaveTextContent('已发现 10/10 条线索')
+    expect(result.container).toHaveTextContent('馆藏链已还原')
+    expect(screen.getByText('双层藏品标签')).toBeInTheDocument()
   })
 })

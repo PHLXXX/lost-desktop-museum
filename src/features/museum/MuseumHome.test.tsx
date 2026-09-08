@@ -2,6 +2,7 @@ import { render, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { caseDefinition as case001 } from '../../cases/case-001/case'
 import { caseDefinition as baseDefinition } from '../../cases/case-002/case'
+import { caseDefinition as case003 } from '../../cases/case-003/case'
 import { registerInstalledCase, unregisterInstalledCase } from '../../cases/registry'
 import { communityInstallationRepository } from '../../community/install/communityInstallationRepository'
 import type { CommunityInstallationRecord } from '../../community/types/installedCaseSource'
@@ -87,5 +88,14 @@ describe('MuseumHome case sources', () => {
 
     expect(screen.getByRole('dialog', { name: '馆藏奖励' })).toBeInTheDocument()
     expect(screen.getByText('通关藏品、专精徽章与可装备主题只保存在本设备。')).toBeInTheDocument()
+  })
+
+  it('lists case 003 with its independent clue and reward totals', () => {
+    render(<MuseumHome onOpenCase={() => undefined} onContinue={() => undefined} />)
+
+    const row = screen.getByRole('region', { name: case003.title })
+    expect(within(row).getByText('0 / 10')).toBeInTheDocument()
+    expect(within(row).getByText('奖励 0 / 3')).toBeInTheDocument()
+    expect(within(row).getByRole('button', { name: '开始调查 编号之外' })).toBeInTheDocument()
   })
 })
