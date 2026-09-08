@@ -151,6 +151,48 @@ test('objectives, finite hints, mastery report and restart form a replayable loo
   expect(errors).toEqual([])
 })
 
+test('completion rewards persist across theme reload and case restart', async ({ page }) => {
+  test.setTimeout(75_000)
+  const errors = watchErrors(page)
+  await enterFirstCase(page)
+  await discoverAllClues(page)
+  await buildCompleteDeduction(page)
+
+  const result = page.locator('.result-screen')
+  await expect(result).toContainText('本次通关奖励')
+  await expect(result).toContainText('未启程登机牌')
+  await expect(result).toContainText('独立调查员')
+  await expect(result).toContainText('候机厅夜色')
+  await expect(result.getByText('首次解锁')).toHaveCount(3)
+  await result.locator('.result-rewards').scrollIntoViewIfNeeded()
+  await page.screenshot({ path: 'docs/images/stage6-completion-rewards.png', fullPage: true })
+
+  await page.getByRole('button', { name: '保存并返回档案馆' }).click()
+  const caseRow = page.locator('.exhibit-row').filter({ hasText: '没有出发的旅行' })
+  await expect(caseRow).toContainText('奖励 3 / 3')
+  await page.getByRole('button', { name: '馆藏奖励' }).click()
+  const collection = page.getByRole('dialog', { name: '馆藏奖励' })
+  await expect(collection.getByText('3 / 6', { exact: true })).toBeVisible()
+  await collection.getByRole('button', { name: '装备 候机厅夜色' }).click()
+  await expect(collection.getByRole('button', { name: '当前使用 候机厅夜色' })).toBeVisible()
+  await expect.poll(() => page.locator('html').getAttribute('data-archive-theme')).toBe('departure-night')
+  await page.screenshot({ path: 'docs/images/stage6-reward-collection.png', fullPage: true })
+
+  await page.reload()
+  await expect.poll(() => page.locator('html').getAttribute('data-archive-theme')).toBe('departure-night')
+  await page.getByRole('button', { name: '馆藏奖励' }).click()
+  await expect(page.getByRole('dialog', { name: '馆藏奖励' }).getByRole('button', { name: '当前使用 候机厅夜色' })).toBeVisible()
+  await page.getByRole('dialog', { name: '馆藏奖励' }).getByRole('button', { name: '返回档案馆' }).click()
+
+  await caseRow.getByRole('button', { name: '重新调查' }).click()
+  await page.getByRole('dialog', { name: '重新开始调查？' }).getByRole('button', { name: '清除进度并重新开始' }).click()
+  await page.getByRole('button', { name: '← 返回档案馆' }).click()
+  await expect(caseRow).toContainText('奖励 3 / 3')
+  await page.getByRole('button', { name: '馆藏奖励' }).click()
+  await expect(page.getByRole('dialog', { name: '馆藏奖励' })).toContainText('未启程登机牌')
+  expect(errors).toEqual([])
+})
+
 test('a pre-gameplay ldmcase imports with generated objectives and hints', async ({ page }) => {
   const errors = watchErrors(page)
   await page.goto('/')

@@ -109,10 +109,10 @@ describe('game store persistence and notification policy', () => {
     const first = useGameStore.getState().submit(caseDefinition.questions.map((question) => question.correctId), '完成归档。')
     const second = useGameStore.getState().submit(caseDefinition.questions.map((question) => question.correctId), '再次归档。')
 
-    expect(first.rewardIds).toEqual(expect.arrayContaining(['default-case-archive', 'default-complete-record']))
-    expect(first.newRewardKeys).toEqual(expect.arrayContaining(['case-001:default-case-archive', 'case-001:default-complete-record']))
+    expect(first.rewardIds).toEqual(expect.arrayContaining(['unused-boarding-pass', 'independent-investigator', 'departure-night-theme']))
+    expect(first.newRewardKeys).toEqual(expect.arrayContaining(['case-001:unused-boarding-pass', 'case-001:independent-investigator', 'case-001:departure-night-theme']))
     expect(second.newRewardKeys).toEqual([])
-    expect(useRewardStore.getState().unlocks).toHaveLength(2)
+    expect(useRewardStore.getState().unlocks).toHaveLength(3)
 
     useGameStore.getState().resetCase()
     expect(useRewardStore.getState().unlocks.map((reward) => reward.key)).toEqual(expect.arrayContaining(first.newRewardKeys ?? []))

@@ -73,8 +73,8 @@ describe('ResultScreen', () => {
     useGameStore.setState({
       deductionResult: {
         ...useGameStore.getState().deductionResult!,
-        rewardIds: ['default-case-archive', 'default-complete-record'],
-        newRewardKeys: ['case-002:default-case-archive'],
+        rewardIds: ['final-program-sheet', 'complete-broadcast-record'],
+        newRewardKeys: ['case-002:final-program-sheet'],
       },
     })
 

@@ -68,6 +68,8 @@ describe('MuseumHome case sources', () => {
   })
 
   it('shows the best earned investigation mastery for each case', () => {
+    vi.spyOn(caseRepository, 'list').mockReturnValue(new Promise(() => undefined))
+    vi.spyOn(communityInstallationRepository, 'list').mockReturnValue(new Promise(() => undefined))
     const challenges = resolveInvestigationGameplay(case001).challenges
     useGameStore.setState({ bestChallengeIds: challenges.slice(0, 2).map((challenge) => challenge.id) })
 
@@ -75,7 +77,7 @@ describe('MuseumHome case sources', () => {
 
     const row = screen.getByRole('region', { name: case001.title })
     expect(within(row).getByText(`专精 2 / ${challenges.length}`)).toBeInTheDocument()
-    expect(within(row).getByText('奖励 0 / 2')).toBeInTheDocument()
+    expect(within(row).getByText('奖励 0 / 3')).toBeInTheDocument()
   })
 
   it('opens the completion reward collection from museum navigation', async () => {
