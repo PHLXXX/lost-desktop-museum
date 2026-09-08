@@ -10,6 +10,10 @@
 
 ![深度调查报告](docs/images/stage6-investigation-report.png)
 
+![通关奖励](docs/images/stage6-completion-rewards.png)
+
+![个人馆藏奖励](docs/images/stage6-reward-collection.png)
+
 ![玩法设计编辑器](docs/images/stage6-gameplay-editor.png)
 
 ## 当前内容
@@ -18,6 +22,7 @@
 - 档案馆、案件详情、启动、调查、推理、结算的完整生命周期
 - 数据驱动的主要/可选调查目标、每案 3 点有限分析额度和逐层提示
 - 结案挑战、跨周目专精记录，以及按调查表现选择的补充档案注记
+- 通关纪念藏品、专精徽章与两套可解锁 ARCHIVE/OS 主题；重开案件后仍保留
 - `ARCHIVE/OS 3.1` 桌面、窗口系统、证据板和 16 类可注册应用
 - 每案件独立存档、`.ldmsave` 进度导入/导出及旧存档迁移
 - 本地“档案工坊”：从工程创建到 `.ldmcase` 发布的完整闭环
@@ -88,6 +93,7 @@ flowchart LR
   B --> C[严格 CaseDefinition + Zod]
   C --> D[共享校验 / 事件 / 条件 / 触发器]
   D --> M[目标 / 提示 / 挑战 / 条件结局]
+  M --> R[通关藏品 / 徽章 / 白名单主题]
   M --> E[正式 ARCHIVE/OS 运行时]
   A <--> F[IndexedDB 工程 / 资源 / 快照]
   C --> G[隔离 PreviewSession]
@@ -100,7 +106,8 @@ flowchart LR
 
 - `src/cases/`：严格 Schema、两宗内置案件与内存/已安装案件注册表
 - `src/engine/`：线索、条件、触发、评分、验证与存档逻辑
-- `src/gameplay/`：兼容玩法生成、目标、提示、挑战与结局选择引擎
+- `src/gameplay/`：兼容玩法生成、目标、提示、挑战、奖励与结局选择引擎
+- `src/rewards/`：跨案件本地馆藏、奖励去重与预置主题白名单
 - `src/app/`、`src/features/`：应用生命周期、档案馆与真实调查运行时
 - `src/editor/`：草稿编译、存储、历史、注册表和可视化编辑模块
 - `src/preview/`：隔离试玩与调试
@@ -119,6 +126,8 @@ flowchart LR
 - “分析提示”按调查方向、操作建议、精确定位逐层显示，每层消耗 1 点；提示使用会随当前调查存档。
 - 任务栏同时显示运行应用、保存状态和线索数；证据板用于建立关系并提交推理。
 - 结案后会记录本次目标、挑战与提示使用。重新调查会清空本轮提示和进度，但保留最高分与历史专精。
+- 结案页会列出本次获得的藏品、徽章和主题；在档案馆打开“馆藏奖励”可查看条件并装备已解锁主题。
+- 奖励只影响收藏展示与界面配色，不增加提示、不提供答案，也不随案件重新调查或卸载而消失。
 - 档案馆可区分内置、社区安装与本地导入案件；社区详情链接不会自动下载或安装。
 
 ## 隐私与安全
@@ -157,4 +166,4 @@ Vite 本地 `base` 为 `/`；Actions 根据 `GITHUB_REPOSITORY` 自动推导仓�
 
 ## English
 
-**Lost Desktop Museum** is a static browser mystery anthology with data-driven objectives, finite progressive hints, replayable mastery challenges, two built-in cases, a local visual workshop, and a GitHub-backed community registry. It runs without accounts, telemetry, or a centralized server.
+**Lost Desktop Museum** is a static browser mystery anthology with data-driven objectives, finite progressive hints, replayable mastery challenges, local completion collectibles and allowlisted themes, two built-in cases, a local visual workshop, and a GitHub-backed community registry. It runs without accounts, telemetry, or a centralized server.

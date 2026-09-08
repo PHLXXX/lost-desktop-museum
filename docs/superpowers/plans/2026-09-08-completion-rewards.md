@@ -301,21 +301,21 @@ Commit: `feat: author completion rewards in workshop`
 - Consumes: all completed reward behavior.
 - Produces: browser-level regression evidence and release documentation.
 
-- [ ] **Step 1: Add a failing Playwright reward journey**
+- [x] **Step 1: Add a failing Playwright reward journey**
 
 Complete a deterministic deduction, verify a first-unlock reward, return to the museum, open “馆藏奖励”, equip the unlocked theme, reload, verify the theme remains selected, restart the case, and verify the reward remains.
 
-- [ ] **Step 2: Run the new Playwright test and verify RED**
+- [x] **Step 2: Run the new Playwright test and verify RED**
 
 Run: `npx playwright test e2e/deep-investigation.spec.ts --grep "completion rewards"`
 
 Expected: FAIL before the new reward UI is wired.
 
-- [ ] **Step 3: Update documentation and capture real 1440×900 screenshots**
+- [x] **Step 3: Update documentation and capture real 1440×900 screenshots**
 
 Document local-only persistence, reward types, theme safety, replay behavior, and Workshop authoring. Capture the real result reward section and museum collection; do not use mock DOM text.
 
-- [ ] **Step 4: Run the full quality gate**
+- [x] **Step 4: Run the full quality gate**
 
 Run: `npm run test:coverage`
 
@@ -329,11 +329,11 @@ Run: `npm run e2e`
 
 Expected: all commands exit 0; the historical optional screenshot baseline may remain skipped, with no failures.
 
-- [ ] **Step 5: Inspect production preview**
+- [x] **Step 5: Inspect production preview**
 
 At 1440×900 and 1280×720 verify result rewards, collection navigation, theme switching, keyboard focus, reload persistence, case restart persistence, console errors, and unchanged built-in/community entry flows.
 
-- [ ] **Step 6: Mark this plan complete and commit**
+- [x] **Step 6: Mark this plan complete and commit**
 
 Commit: `docs: document completion rewards`
 
