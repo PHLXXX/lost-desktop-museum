@@ -16,9 +16,17 @@
 
 ![玩法设计编辑器](docs/images/stage6-gameplay-editor.png)
 
+### 档案 003 实机记录
+
+![档案馆中的档案003《编号之外》](docs/images/stage6-case003-museum.png)
+
+![档案003维护终端调查](docs/images/stage6-case003-investigation.png)
+
+![档案003满分结案与通关奖励](docs/images/stage6-case003-result.png)
+
 ## 当前内容
 
-- 两宗内置完整案件：《没有出发的旅行》与《零点后的回声》
+- 三宗内置完整案件：《没有出发的旅行》、《零点后的回声》与《编号之外》，合计 28 条可达线索
 - 档案馆、案件详情、启动、调查、推理、结算的完整生命周期
 - 数据驱动的主要/可选调查目标、每案 3 点有限分析额度和逐层提示
 - 结案挑战、跨周目专精记录，以及按调查表现选择的补充档案注记
@@ -104,7 +112,7 @@ flowchart LR
   E <--> J[per-case GameSave / .ldmsave]
 ```
 
-- `src/cases/`：严格 Schema、两宗内置案件与内存/已安装案件注册表
+- `src/cases/`：严格 Schema、三宗内置案件与内存/已安装案件注册表
 - `src/engine/`：线索、条件、触发、评分、验证与存档逻辑
 - `src/gameplay/`：兼容玩法生成、目标、提示、挑战、奖励与结局选择引擎
 - `src/rewards/`：跨案件本地馆藏、奖励去重与预置主题白名单
@@ -166,4 +174,4 @@ Vite 本地 `base` 为 `/`；Actions 根据 `GITHUB_REPOSITORY` 自动推导仓�
 
 ## English
 
-**Lost Desktop Museum** is a static browser mystery anthology with data-driven objectives, finite progressive hints, replayable mastery challenges, local completion collectibles and allowlisted themes, two built-in cases, a local visual workshop, and a GitHub-backed community registry. It runs without accounts, telemetry, or a centralized server.
+**Lost Desktop Museum** is a static browser mystery anthology with data-driven objectives, finite progressive hints, replayable mastery challenges, local completion collectibles and allowlisted themes, three built-in cases, a local visual workshop, and a GitHub-backed community registry. It runs without accounts, telemetry, or a centralized server.

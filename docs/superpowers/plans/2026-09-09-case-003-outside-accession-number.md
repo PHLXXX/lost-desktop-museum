@@ -80,13 +80,15 @@ Expected: FAIL because the extended action is rejected by the discovery type/sch
 Use one explicit union in `src/cases/types.ts`:
 
 ```ts
-export type InvestigationActionType =
+export type FileClueActionType =
   | 'OPEN_ITEM' | 'VIEW_METADATA' | 'COMPARE_ITEMS' | 'VIEW_TRANSCRIPT' | 'UNLOCK_ITEM' | 'VIEW_LOG'
-  | 'VIEW_MAIL_HEADERS' | 'RESTORE_ITEM' | 'RUN_COMMAND' | 'VIEW_AUDIO_MARKER'
-  | 'COMPARE_AUDIO' | 'VIEW_MAP_LOCATION' | 'VIEW_VERSION_DIFF'
+
+export type InvestigationActionType =
+  | FileClueActionType
+  | 'RUN_COMMAND' | 'VIEW_AUDIO_MARKER' | 'VIEW_MAP_LOCATION' | 'VIEW_VERSION_DIFF'
 
 export type InvestigationAction = { type: InvestigationActionType; itemId: string }
-export type GameEventType = InvestigationActionType | 'CREATE_RELATION'
+export type GameEventType = InvestigationActionType | 'VIEW_MAIL_HEADERS' | 'RESTORE_ITEM' | 'COMPARE_AUDIO' | 'CREATE_RELATION'
 ```
 
 Mirror this allowlist in `src/cases/schema.ts`. Keep `VirtualFile.clueAction` restricted to the original file-relevant actions while `clue.discovery` accepts every `InvestigationActionType`.
