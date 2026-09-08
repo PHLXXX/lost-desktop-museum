@@ -2,7 +2,7 @@ import type { GameSave } from '../cases/types'
 
 export const SAVE_KEY = 'archive-os:case-001'
 export const CORRUPT_PREFIX = 'archive-os:case:corrupt:'
-export const CURRENT_SAVE_VERSION = 3
+export const CURRENT_SAVE_VERSION = 4
 
 export function getSaveKey(caseId: string): string {
   if (caseId.startsWith('preview-')) return `archive-workshop:preview:${caseId}`
@@ -24,6 +24,8 @@ export function createFreshSave(caseId = 'case-001'): GameSave {
     evidenceCardPositions: {},
     evidenceRelations: [],
     evidenceNotes: {},
+    hintUsage: {},
+    bestChallengeIds: [],
     currentWindows: [],
     settings: { sound: true, anomalies: true, scanlines: 0.08, safeMode: false },
     deductionDraft: { answers: {}, note: '' },
@@ -52,6 +54,12 @@ export function migrateGameSave(input: unknown, caseId = 'case-001'): GameSave {
     value.currentWindows?.length ||
     value.deductionResult,
   )
+  const hintUsage = value.hintUsage && typeof value.hintUsage === 'object' && !Array.isArray(value.hintUsage)
+    ? Object.fromEntries(Object.entries(value.hintUsage).flatMap(([id, count]) => typeof count === 'number' && Number.isFinite(count) ? [[id, Math.max(0, Math.floor(count))]] : []))
+    : {}
+  const bestChallengeIds = Array.isArray(value.bestChallengeIds)
+    ? [...new Set(value.bestChallengeIds.filter((id): id is string => typeof id === 'string'))]
+    : []
   return {
     ...fresh,
     ...value,
@@ -60,6 +68,8 @@ export function migrateGameSave(input: unknown, caseId = 'case-001'): GameSave {
     restoredItemIds: value.restoredItemIds ?? fresh.restoredItemIds,
     completedEventKeys: value.completedEventKeys ?? fresh.completedEventKeys,
     evidenceNotes: value.evidenceNotes ?? fresh.evidenceNotes,
+    hintUsage,
+    bestChallengeIds,
     deductionDraft: {
       answers: value.deductionDraft?.answers ?? fresh.deductionDraft.answers,
       note: value.deductionDraft?.note ?? fresh.deductionDraft.note,

@@ -105,7 +105,7 @@ Evaluate all requirements with AND semantics. Require an existing result for sco
 Run: `npm test -- src/gameplay`  
 Expected: PASS.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 Commit: `feat: add investigation gameplay engines`
 
@@ -123,28 +123,28 @@ Commit: `feat: add investigation gameplay engines`
 - Adds store action: `revealHint(hintId: string): HintRevealResult`.
 - Extends `DeductionResult` with optional `challengeIds` and `endingVariantId`.
 
-- [ ] **Step 1: Write failing migration and store tests**
+- [x] **Step 1: Write failing migration and store tests**
 
 Test v3 defaults, malformed negative/fractional hint normalization, debounced persistence after hint reveal, no mutation when reveal fails, challenge recording on submit, and reset retaining mastery while clearing current hint use.
 
-- [ ] **Step 2: Run focused tests and verify RED**
+- [x] **Step 2: Run focused tests and verify RED**
 
 Run: `npm test -- src/engine/persistence.test.ts src/store/gameStore.test.ts`  
 Expected: FAIL because save v4 fields and actions are absent.
 
-- [ ] **Step 3: Implement save v4 migration**
+- [x] **Step 3: Implement save v4 migration**
 
 Set `CURRENT_SAVE_VERSION = 4`, create empty defaults, normalize all hint values with `Math.max(0, Math.floor(value))`, de-duplicate best challenge IDs, and retain all existing migration behavior.
 
-- [ ] **Step 4: Integrate hint reveal and objective feedback into the store**
+- [x] **Step 4: Integrate hint reveal and objective feedback into the store**
 
 Apply successful pure-engine results, persist with the existing 350 ms debounce, play the existing low-volume clue sound, and return exact failure reasons. Append newly completed objective titles to the current evidence notice without forcing navigation.
 
-- [ ] **Step 5: Integrate challenges and endings into deduction submission**
+- [x] **Step 5: Integrate challenges and endings into deduction submission**
 
 Score first, evaluate challenges, select the ending, save current-run IDs in the result, and merge them into `bestChallengeIds`.
 
-- [ ] **Step 6: Run focused tests and verify GREEN**
+- [x] **Step 6: Run focused tests and verify GREEN**
 
 Run: `npm test -- src/engine/persistence.test.ts src/store/gameStore.test.ts`  
 Expected: PASS.

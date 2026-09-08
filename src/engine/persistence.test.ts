@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { CORRUPT_PREFIX, createFreshSave, loadGameSave, migrateGameSave, saveGameSave } from './persistence'
+import { CORRUPT_PREFIX, CURRENT_SAVE_VERSION, createFreshSave, loadGameSave, migrateGameSave, saveGameSave } from './persistence'
 
 class MemoryStorage implements Storage {
   private data = new Map<string, string>()
@@ -21,7 +21,7 @@ describe('persistence', () => {
 
   it('migrates version zero and recovers corrupt data', () => {
     const migrated = migrateGameSave({ saveVersion: 1, discoveredClueIds: ['C02'], currentWindows: ['mail'] })
-    expect(migrated.saveVersion).toBe(3)
+    expect(migrated.saveVersion).toBe(4)
     expect(migrated.discoveredClueIds).toEqual(['C02'])
     expect(migrated.currentWindows[0]).toMatchObject({ id: 'mail' })
     expect(migrated.restoredItemIds).toEqual([])
@@ -33,5 +33,17 @@ describe('persistence', () => {
     storage.setItem('archive-os:case-001', '{broken')
     expect(loadGameSave(storage).status).toBe('corrupt')
     expect([...Array(storage.length)].map((_, index) => storage.key(index)).some((key) => key?.startsWith(CORRUPT_PREFIX))).toBe(true)
+  })
+
+  it('migrates v3 gameplay records and normalizes malformed hint usage', () => {
+    const migrated = migrateGameSave({
+      saveVersion: 3,
+      hintUsage: { valid: 2.9, negative: -4, invalid: 'three' },
+      bestChallengeIds: ['complete', 'complete', 'solo', 42],
+    })
+
+    expect(CURRENT_SAVE_VERSION).toBe(4)
+    expect(migrated.hintUsage).toEqual({ valid: 2, negative: 0 })
+    expect(migrated.bestChallengeIds).toEqual(['complete', 'solo'])
   })
 })

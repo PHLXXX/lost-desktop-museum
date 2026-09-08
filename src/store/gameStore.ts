@@ -8,12 +8,17 @@ import { scoreDeduction } from '../engine/scoringEngine'
 import { evaluateTriggers } from '../engine/triggerEngine'
 import { eventKey } from '../engine/conditionEngine'
 import { loadGlobalPreferences, saveGlobalOnboardingPreference } from '../engine/globalPreferences'
+import { evaluateChallenges } from '../gameplay/challengeEngine'
+import { selectEnding } from '../gameplay/endingEngine'
+import { revealNextHint, type HintRevealResult } from '../gameplay/hintEngine'
+import { getObjectiveStates } from '../gameplay/objectiveEngine'
 
 type GameState = ReturnType<typeof createFreshSave> & {
   saveStatus: 'idle' | 'saving' | 'saved' | 'error'
   notice: string | null
   corruptSave: boolean
   investigate: (action: InvestigationAction) => void
+  revealHint: (hintId: string) => HintRevealResult
   unlockMirror: () => void
   openIdentityDraft: () => void
   togglePinned: (id: string) => void
@@ -53,6 +58,15 @@ function persist(state: GameState, setStatus: (status: GameState['saveStatus']) 
   saveTimer = setTimeout(() => saveImmediately(state, setStatus), 350)
 }
 
+function completedObjectiveIds(caseId: string, state: GameState): Set<string> {
+  return new Set(getObjectiveStates(getCaseDefinition(caseId), state).filter((objective) => objective.visible && objective.complete).map((objective) => objective.id))
+}
+
+function objectiveCompletionNotice(caseId: string, before: Set<string>, state: GameState): string | undefined {
+  const completed = getObjectiveStates(getCaseDefinition(caseId), state).filter((objective) => objective.visible && objective.complete && !before.has(objective.id))
+  return completed.length ? `目标完成：${completed.map((objective) => objective.title).join('、')}` : undefined
+}
+
 export const useGameStore = create<GameState>((set, get) => ({
   ...loaded.save,
   onboardingComplete,
@@ -62,6 +76,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   investigate: (action) => {
     const state = get()
     const caseDefinition = getCaseDefinition(state.caseId)
+    const completedBefore = completedObjectiveIds(state.caseId, state)
     const completedEventKeys = [...new Set([...state.completedEventKeys, eventKey(action.type, action.itemId)])]
     const newIds = discoverClues(caseDefinition, action, state.discoveredClueIds, completedEventKeys)
     const discoveredClueIds = [...state.discoveredClueIds, ...newIds]
@@ -72,9 +87,22 @@ export const useGameStore = create<GameState>((set, get) => ({
     if (newIds.length) playArchiveSound('clue', state.settings.sound)
     const clueTitle = newIds.length ? caseDefinition.clues.find((clue) => clue.id === newIds[0])?.title : null
     const eventMessage = effects.at(-1)?.message
-    const notice = clueTitle ? `发现线索：${clueTitle}${eventMessage ? `｜${eventMessage}` : ''}` : eventMessage ?? state.notice
-    set({ discoveredClueIds, triggeredEventIds, unlockedItemIds, openedItems, completedEventKeys, notice })
+    set({ discoveredClueIds, triggeredEventIds, unlockedItemIds, openedItems, completedEventKeys })
+    const objectiveMessage = objectiveCompletionNotice(state.caseId, completedBefore, get())
+    const notice = clueTitle
+      ? `发现线索：${clueTitle}${eventMessage ? `｜${eventMessage}` : ''}${objectiveMessage ? `｜${objectiveMessage}` : ''}`
+      : [eventMessage, objectiveMessage].filter(Boolean).join('｜') || state.notice
+    set({ notice })
     persist(get(), (saveStatus) => set({ saveStatus }))
+  },
+  revealHint: (hintId) => {
+    const state = get()
+    const result = revealNextHint(getCaseDefinition(state.caseId), state, hintId)
+    if (!result.ok) return result
+    set({ hintUsage: result.hintUsage, notice: `分析提示：${result.tier.label}｜${result.tier.text}` })
+    playArchiveSound('click', state.settings.sound)
+    persist(get(), (saveStatus) => set({ saveStatus }))
+    return result
   },
   unlockMirror: () => {
     const ids = ['identity-draft', 'linran-config', 'rename-todo']
@@ -89,17 +117,29 @@ export const useGameStore = create<GameState>((set, get) => ({
   },
   togglePinned: (id) => { set((state) => ({ pinnedClueIds: state.pinnedClueIds.includes(id) ? state.pinnedClueIds.filter((item) => item !== id) : [...state.pinnedClueIds, id].slice(0, 6) })); persist(get(), (saveStatus) => set({ saveStatus })) },
   setCardPosition: (id, x, y) => { set((state) => ({ evidenceCardPositions: { ...state.evidenceCardPositions, [id]: { x, y } } })); persist(get(), (saveStatus) => set({ saveStatus })) },
-  addRelation: (from, to, type) => { if (from === to) return; set((state) => ({ evidenceRelations: [...state.evidenceRelations, { id: `${from}-${to}-${Date.now()}`, from, to, type }] })); persist(get(), (saveStatus) => set({ saveStatus })) },
+  addRelation: (from, to, type) => {
+    if (from === to) return
+    const state = get()
+    const completedBefore = completedObjectiveIds(state.caseId, state)
+    set({ evidenceRelations: [...state.evidenceRelations, { id: `${from}-${to}-${Date.now()}`, from, to, type }] })
+    const objectiveMessage = objectiveCompletionNotice(state.caseId, completedBefore, get())
+    if (objectiveMessage) set({ notice: objectiveMessage })
+    persist(get(), (saveStatus) => set({ saveStatus }))
+  },
   removeRelation: (id) => { set((state) => ({ evidenceRelations: state.evidenceRelations.filter((relation) => relation.id !== id) })); persist(get(), (saveStatus) => set({ saveStatus })) },
   updateSettings: (settings) => { set((state) => ({ settings: { ...state.settings, ...settings } })); persist(get(), (saveStatus) => set({ saveStatus })) },
   submit: (answers, note) => {
     const state = get()
     const caseDefinition = getCaseDefinition(state.caseId)
     const contradictionPairs = state.evidenceRelations.filter((relation) => relation.type === '相互矛盾').map((relation) => [relation.from, relation.to] as [string, string])
-    const result = scoreDeduction(caseDefinition, { answers, evidenceIds: state.pinnedClueIds, contradictionPairs, note })
+    const scored = scoreDeduction(caseDefinition, { answers, evidenceIds: state.pinnedClueIds, contradictionPairs, note })
+    const challengeIds = evaluateChallenges(caseDefinition, state, scored)
+    const ending = selectEnding(caseDefinition, state, scored)
+    const result = { ...scored, challengeIds, endingVariantId: ending.id ?? undefined }
     set({
       deductionResult: result,
       bestScore: Math.max(state.bestScore ?? 0, result.score),
+      bestChallengeIds: [...new Set([...state.bestChallengeIds, ...challengeIds])],
       notice: null,
     })
     persist(get(), (saveStatus) => set({ saveStatus }))
@@ -109,9 +149,10 @@ export const useGameStore = create<GameState>((set, get) => ({
     const caseId = get().caseId
     const settings = get().settings
     const bestScore = get().bestScore
+    const bestChallengeIds = get().bestChallengeIds
     const onboardingComplete = get().onboardingComplete || Boolean(storage && loadGlobalPreferences(storage).onboardingComplete)
     if (storage) clearGameSave(storage, caseId)
-    set({ ...createFreshSave(caseId), settings, bestScore, onboardingComplete, notice: '案件已重置。', corruptSave: false })
+    set({ ...createFreshSave(caseId), settings, bestScore, bestChallengeIds, onboardingComplete, notice: '案件已重置。', corruptSave: false })
     persist(get(), (saveStatus) => set({ saveStatus }))
   },
   markCaseStarted: () => {
