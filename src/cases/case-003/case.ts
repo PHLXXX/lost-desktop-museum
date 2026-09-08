@@ -1,0 +1,251 @@
+import accessionVaultImage from '../../assets/illustrations/accession-vault.svg'
+import type { CaseDefinition, ClueDefinition, InvestigationHintDefinition } from '../types'
+
+const clue = (
+  id: string,
+  title: string,
+  summary: string,
+  source: ClueDefinition['source'],
+  type: ClueDefinition['discovery']['type'],
+  itemId: string,
+  people: string[],
+  times: string[],
+  places: string[],
+): ClueDefinition => ({
+  id,
+  title,
+  summary,
+  explanation: summary,
+  source,
+  discovery: { type, itemId },
+  condition: { type: 'event', eventType: type, targetId: itemId },
+  people,
+  times,
+  places,
+  isCore: true,
+  isRedHerring: false,
+})
+
+const hint = (
+  id: string,
+  clueId: string,
+  label: string,
+  direction: string,
+  action: string,
+  location: string,
+): InvestigationHintDefinition => ({
+  id,
+  clueId,
+  label,
+  tiers: [
+    { id: 'direction', label: '调查方向', text: direction, cost: 1 },
+    { id: 'action', label: '操作建议', text: action, cost: 1 },
+    { id: 'location', label: '精确定位', text: location, cost: 1 },
+  ],
+})
+
+const applications = ([
+  ['files', '我的文件'], ['messages', '讯息'], ['mail', '邮件'], ['photos', '照片'], ['browser', '浏览记录'],
+  ['calendar', '日历'], ['recycle', '回收站'], ['logs', '系统日志'], ['evidence', '证据板'], ['settings', '设置'],
+  ['audio', '音频工作台'], ['broadcast', '馆内通告'], ['data', '藏品数据台'], ['terminal', '维护终端'], ['versions', '版本差异'], ['sitemap', '馆区地图'],
+] as const).map(([id, title], index) => ({
+  id,
+  componentKey: id,
+  title,
+  enabled: true,
+  desktopX: 32 + (index % 2) * 210,
+  desktopY: 84 + Math.floor(index / 2) * 74,
+}))
+
+export const caseDefinition: CaseDefinition = {
+  formatVersion: 1,
+  id: 'case-003',
+  title: '编号之外',
+  owner: '苏棠',
+  manifest: {
+    caseId: 'case-003',
+    version: '1.0.0',
+    title: '编号之外',
+    subtitle: '被改写的第七百三十一号藏品',
+    author: 'Lost Desktop Museum',
+    language: 'zh-CN',
+    summary: '盘点前夜，一件原作和它的复制品在数字目录中交换了身份。',
+    estimatedMinutes: 25,
+    difficulty: '普通',
+    tags: ['博物馆', '数据取证', '编号', '时间线'],
+    contentWarnings: ['财产盗取暗示', '职场施压'],
+    builtIn: true,
+    archivedAt: '2032-09-15T10:00:00+08:00',
+  },
+  subject: {
+    name: '苏棠',
+    age: 31,
+    occupation: '东区藏品库登记员',
+    location: '临川市数字遗产馆',
+    lastLoginAt: '2032-09-14T02:17:00+08:00',
+  },
+  entities: [
+    { id: 'person-su-tang', type: 'person', name: '苏棠', summary: '档案电脑主人', description: '负责东区藏品入库、标签与盘点记录。', aliases: ['SUTANG'], tags: ['登记员'] },
+    { id: 'person-qiao-wen', type: 'person', name: '乔文', summary: '修复协调员', description: '持有库房维护权限，负责联络外部修复运输。', aliases: ['QIAO.WEN'], tags: ['同事', '维护权限'] },
+    { id: 'artifact-a731', type: 'custom', name: 'A-731', summary: '原作藏品', description: '计划在年度盘点中重点核验的纸本原作。', aliases: ['第731号原件'], tags: ['原件'] },
+    { id: 'artifact-r731', type: 'custom', name: 'R-731', summary: '教学复制品', description: '用于公共教育活动的复制品，不进入核心馆藏盘点。', aliases: ['第731号复制品'], tags: ['复制品'] },
+    { id: 'location-east-vault', type: 'location', name: '东区藏品库', summary: 'A-731 封存地点', description: '包含 B2-07 库位与通往装卸区的东货梯。', aliases: ['EAST-VAULT'], tags: ['库房'] },
+  ],
+  desktop: {
+    systemName: 'ARCHIVE/OS 3.1',
+    bootMessage: '正在恢复东区藏品目录终端',
+    lastLoginMessage: '2032.09.14 02:17',
+    themeColor: '#718b7d',
+    wallpaperAssetId: 'case-003-cover',
+  },
+  applications,
+  assets: [{ id: 'case-003-cover', kind: 'image', mime: 'image/svg+xml', path: accessionVaultImage, size: 0, sha256: '0'.repeat(64), alt: 'A-731与R-731两张藏品标签在东区库房中错位叠放' }],
+  timeline: [
+    { time: '2032-09-13 18:00', text: 'A-731 原件完成封存复核' },
+    { time: '2032-09-13 21:43', text: 'QIAO.WEN 在 B2 维护终端认证' },
+    { time: '2032-09-13 21:46', text: 'A-731 目录条目被改为 R-731' },
+    { time: '2032-09-13 21:49', text: 'R-731 替换标签进入打印队列' },
+    { time: '2032-09-13 22:30', text: '未签字修复运输计划标注的取件时间' },
+    { time: '2032-09-14 02:17', text: '苏棠账户最后一次打开目录审计页' },
+  ],
+  folders: [
+    { id: 'folder-inventory', name: '盘点' },
+    { id: 'folder-handover', name: '交接' },
+    { id: 'folder-policy', name: '制度' },
+  ],
+  files: [
+    { id: 'file-seal-list', name: 'A-731_封存清单.md', folder: '盘点', content: '18:00 双人复核：A-731 原件封存于东区 B2-07。封签 731-A 完整；下一次开封须登记主管签字。', path: '苏棠/盘点/A-731_封存清单.md', createdAt: '2032-09-13 17:42', modifiedAt: '2032-09-13 18:00', size: 1480, owner: '苏棠', clueAction: 'OPEN_ITEM' },
+    { id: 'file-shift-note', name: '夜班交接说明.txt', folder: '交接', content: '晚间只处理除湿机报警。复制品架可供教育部自行取用，核心馆藏不得离库。', path: '苏棠/交接/夜班交接说明.txt', createdAt: '2032-09-13 17:55', modifiedAt: '2032-09-13 18:04', size: 624, owner: '苏棠' },
+    { id: 'file-policy-copy', name: '临时离库流程.txt', folder: '制度', content: '临时离库单必须包含馆藏主管签字、目的地和运输编号；草稿不得作为放行依据。', path: '苏棠/制度/临时离库流程.txt', createdAt: '2032-08-02 10:10', modifiedAt: '2032-08-02 10:10', size: 890, owner: '档案管理部' },
+    { id: 'file-recovered-note', name: '交接说明_旧版.txt', folder: '回收站', originalFolder: '交接', content: '乔文说东货梯检修时旧维护卡仍能开门，我没有确认。', path: '苏棠/回收站/交接说明_旧版.txt', createdAt: '2032-09-13 17:20', modifiedAt: '2032-09-13 17:22', deletedAt: '2032-09-13 17:31', size: 416, owner: '苏棠' },
+  ],
+  chats: [{ id: 'thread-qiao-wen', title: '乔文', messages: [
+    { id: 'message-maintenance', sender: '乔文', time: '20:58', text: '东货梯今晚维护，22:20 到 22:40 不留监控画面。' },
+    { id: 'message-old-pass', sender: '乔文', time: '21:12', text: '别等新卡了，旧维护卡在检修窗口里还能用。你先把复制品标签放桌上。', clueId: 'C05' },
+    { id: 'message-sutang-reply', sender: '苏棠', time: '21:15', text: '我只负责盘点，任何离库都要主管签字。' },
+  ] }, { id: 'thread-supervisor', title: '馆藏主管罗老师', messages: [
+    { id: 'message-audit-reminder', sender: '馆藏主管罗老师', time: '17:48', text: '明早八点先看 A-731，封存后不要再移动。', unread: true },
+  ] }],
+  emails: [
+    { id: 'mail-audit', folder: '收件箱', from: '馆藏审计系统', subject: '年度盘点顺序确认', time: '17:32', body: '9 月 14 日 08:00 首项核验 A-731 原件，库位 B2-07。' },
+    { id: 'mail-transfer-draft', folder: '草稿', from: '苏棠', subject: '临时离库单 / R-731 / 外部修复', time: '22:02', body: '取件时间：22:30。路线：东货梯至装卸区。运输对象：R-731 教学复制品。馆藏主管签字：____。运输编号：____。', attachmentName: '标签_R-731.pdf', clueId: 'C06' },
+    { id: 'mail-supplies', folder: '收件箱', from: '行政用品站', subject: '无酸纸箱到货通知', time: '16:08', body: '您申请的标准无酸纸箱已经送达一层收货处。' },
+  ],
+  browser: [
+    { id: 'history-temporary-transfer', time: '20:26', title: '临时离库申请撤销与审计留痕', category: '馆内制度' },
+    { id: 'history-label-material', time: '19:41', title: '可移除档案标签的保存期限', category: '材料规范' },
+    { id: 'history-cafe', time: '18:25', title: '临川夜间咖啡配送', category: '生活' },
+  ],
+  calendar: [
+    { id: 'calendar-no-transfer', date: '2032-09-13', title: '运输安排：无', note: '东区藏品库当日无获批离库任务；所有临时运输必须取得馆藏主管签字。', clueId: 'C07' },
+    { id: 'calendar-audit', date: '2032-09-14', title: '年度盘点：A-731', note: '08:00，东区 B2-07，原件为首项核验。' },
+  ],
+  photos: [
+    { id: 'photo-storage-seal', title: 'B2-07_封签.svg', image: accessionVaultImage, metadata: { capturedAt: '2032-09-13 18:00', exportedAt: '2032-09-13 18:03', camera: 'VAULT-CAM-02' } },
+    { id: 'photo-label-overlay', title: 'R-731_标签复核.svg', image: accessionVaultImage, metadata: { capturedAt: '2032-09-13 21:47', exportedAt: '2032-09-13 21:52', camera: 'SUTANG-TAB-04' }, clueId: 'C08' },
+  ],
+  logs: [
+    { id: 'log-sutang-lock', time: '2032-09-13 18:06', user: 'SUTANG', eventType: '目录锁定', detail: 'A-731 封存条目进入只读复核状态' },
+    { id: 'log-qiaowen-auth', time: '2032-09-13 21:43', user: 'QIAO.WEN', eventType: '维护认证', detail: '设备 EAST-B2-MAINT，旧维护凭证通过，本地标签服务权限已启用', clueId: 'C04' },
+    { id: 'log-sutang-final', time: '2032-09-14 02:17', user: 'SUTANG', eventType: '审计查看', detail: '打开 A-731 目录历史后退出，未提交修改' },
+  ],
+  audioTracks: [
+    { id: 'audio-lift-maintenance', title: '东货梯维护通话', assetId: '', transcript: '维护窗口二十分钟，摄像头校准期间没有画面。门禁保持本地模式。' },
+    { id: 'audio-ambient-alarm', title: 'B2 除湿机报警', assetId: '', transcript: '21:08 除湿机短时报警，21:11 自动恢复。' },
+  ],
+  broadcastEvents: [
+    { id: 'broadcast-vault-close', time: '18:30', title: '东区闭馆确认', detail: '东区公共通道关闭，核心库房进入夜间模式。' },
+    { id: 'broadcast-lift-maintenance', time: '22:18', title: '东货梯维护开始', detail: '维护期间请改走西侧人员通道。' },
+  ],
+  dataTables: [{
+    id: 'data-label-jobs',
+    title: '标签打印任务 · 9月13日',
+    columns: ['时间', '任务', '模板来源', '用户', '状态'],
+    rows: [
+      ['18:02', 'A-731 封签', 'A-731', 'SUTANG', '完成'],
+      ['21:49', 'R-731 替换标签', 'A-731', 'QIAO.WEN', '完成'],
+      ['21:51', 'R-731 副本', 'R-731', 'QIAO.WEN', '取消'],
+    ],
+  }],
+  terminalEntries: [
+    { id: 'terminal-print-queue', command: 'queue --inspect A-731', output: 'JOB 21:49\nOUTPUT=R-731\nTEMPLATE=A-731\nUSER=QIAO.WEN\nDEVICE=EAST-B2-MAINT', enabled: true },
+    { id: 'terminal-seal-status', command: 'archive --verify A-731', output: 'SEALED=18:00\nLOCATION=B2-07\nCATALOG_ID=R-731 (changed 21:46)', enabled: true },
+  ],
+  versionDiffs: [
+    { id: 'version-a731', title: 'A-731 条目修订', before: '编号：A-731\n类别：纸本原作\n库位：B2-07\n状态：封存', after: '编号：R-731\n类别：教学复制品\n库位：外部修复\n状态：临时离库' },
+    { id: 'version-transfer-note', title: '修复备注修订', before: '未安排外部修复', after: '复制品例行表面清洁' },
+  ],
+  sitemap: [
+    { id: 'site-east-vault', label: '东区藏品库', detail: '夜间模式下只开放维护与馆藏主管权限。' },
+    { id: 'site-b2-07', label: 'B2-07 库位', parentId: 'site-east-vault', detail: 'A-731 在 18:00 的最后可信封存位置。' },
+    { id: 'site-east-lift', label: '东货梯', parentId: 'site-east-vault', detail: '连接 B2 库房与一层装卸区。22:20—22:40 维护期间相机离线，旧维护卡保持有效。' },
+    { id: 'site-loading-bay', label: '一层装卸区', parentId: 'site-east-lift', detail: '临时修复运输的车辆交接点。' },
+  ],
+  clues: [
+    clue('C01', '封存清单', '18:00 的双人复核确认 A-731 原件仍在 B2-07，封签完整。', 'files', 'OPEN_ITEM', 'file-seal-list', ['苏棠'], ['2032-09-13 18:00'], ['B2-07']),
+    clue('C02', '编号被改写', '目录在 21:46 把 A-731 原作改成了 R-731 教学复制品。', 'versions', 'VIEW_VERSION_DIFF', 'version-a731', ['苏棠', '乔文'], ['2032-09-13 21:46'], ['东区藏品库']),
+    clue('C03', '补打标签记录', '21:49 的替换标签任务以 A-731 为模板，却输出 R-731，执行用户为 QIAO.WEN。', 'data', 'OPEN_ITEM', 'data-label-jobs', ['乔文'], ['2032-09-13 21:49'], ['B2 维护终端']),
+    clue('C04', '维护终端授权', 'QIAO.WEN 在目录改写前三分钟通过旧维护凭证启用了标签服务。', 'logs', 'VIEW_LOG', 'log-qiaowen-auth', ['乔文'], ['2032-09-13 21:43'], ['B2 维护终端']),
+    clue('C05', '旧卡仍可使用', '乔文提前说明货梯维护窗口中旧维护卡仍能开门，并要求准备复制品标签。', 'messages', 'OPEN_ITEM', 'message-old-pass', ['乔文', '苏棠'], ['2032-09-13 21:12'], ['东货梯']),
+    clue('C06', '未签字离库单', '22:30 的 R-731 外部修复草稿缺少主管签字和运输编号，却指定了东货梯路线。', 'mail', 'OPEN_ITEM', 'mail-transfer-draft', ['苏棠', '乔文'], ['2032-09-13 22:30'], ['东货梯', '装卸区']),
+    clue('C07', '空白运输日程', '馆方正式日程明确显示 9 月 13 日没有任何获批离库任务。', 'calendar', 'OPEN_ITEM', 'calendar-no-transfer', ['苏棠'], ['2032-09-13'], ['东区藏品库']),
+    clue('C08', '标签覆盖痕迹', '标签照片在拍摄五分钟后导出，画面显示 R-731 标签覆盖在 A-731 标签边缘之上。', 'photos', 'VIEW_METADATA', 'photo-label-overlay', ['苏棠'], ['2032-09-13 21:47', '2032-09-13 21:52'], ['东区藏品库']),
+    clue('C09', '货梯盲区', '东货梯连接库位和装卸区，22:20—22:40 相机离线且旧维护卡有效。', 'sitemap', 'VIEW_MAP_LOCATION', 'site-east-lift', ['乔文'], ['2032-09-13 22:20', '2032-09-13 22:40'], ['东货梯']),
+    clue('C10', '打印队列残留', '安全查询确认 R-731 标签使用 A-731 模板，由 QIAO.WEN 在 B2 维护终端输出。', 'terminal', 'RUN_COMMAND', 'terminal-print-queue', ['乔文'], ['2032-09-13 21:49'], ['B2 维护终端']),
+  ],
+  triggers: [
+    { id: 'trigger-catalog-three', name: '编号链提示', once: true, condition: { type: 'clue-count', count: 3 }, effects: [{ id: 'effect-catalog-three', type: 'NOTIFICATION', message: '同一个编号正在指向两种不同身份。' }], reducedMotionEffects: [], safeModeEffects: [] },
+    { id: 'trigger-route-seven', name: '离库路径提示', once: true, condition: { type: 'clue-count', count: 7 }, effects: [{ id: 'effect-route-seven', type: 'SYSTEM_MESSAGE', message: '目录改写已经成立，下一步应核验实物可能经过的路线。' }], reducedMotionEffects: [], safeModeEffects: [] },
+  ],
+  questions: [
+    { id: 'question-object', prompt: '编号记录最支持哪一种调换？', options: [{ id: 'original-as-replica', label: 'A-731 原件被标成 R-731 复制品' }, { id: 'replica-as-original', label: 'R-731 复制品被标成 A-731 原件' }, { id: 'no-switch', label: '只是普通录入错误' }], correctId: 'original-as-replica', points: 25 },
+    { id: 'question-purpose', prompt: '编号调换最可能服务于什么目的？', options: [{ id: 'leave-as-replica', label: '让原件以复制品身份通过临时修复运输离馆' }, { id: 'fix-inventory', label: '修正年度盘点顺序' }, { id: 'teaching-label', label: '为教学活动制作普通标签' }], correctId: 'leave-as-replica', points: 20 },
+    { id: 'question-accountability', prompt: '现有材料可以把责任确认到什么程度？', options: [{ id: 'physical-certain', label: '可以确定乔文亲自搬走了原件' }, { id: 'digital-chain-only', label: '乔文账户参与数字操作链，实物搬运者仍需核验' }, { id: 'sutang-only', label: '只能确认苏棠修改了全部记录' }], correctId: 'digital-chain-only', points: 20 },
+  ],
+  resultLevels: [
+    { id: 'catalog-low', label: '编号仍然混乱', minScore: 0, maxScore: 49, description: '原件、复制品与离库记录尚未形成可靠链路。' },
+    { id: 'catalog-mid', label: '调包路径已显现', minScore: 50, maxScore: 84, description: '主要记录已经对应，但仍有关键身份或路径没有核验。' },
+    { id: 'catalog-high', label: '馆藏链已还原', minScore: 85, maxScore: 100, description: '编号、账户、标签与离库路径被分别核验，结论没有越过证据边界。' },
+  ],
+  coreEvidenceIds: ['C01', 'C02', 'C03', 'C04', 'C06', 'C07'],
+  correctContradictions: [['C01', 'C02'], ['C06', 'C07']],
+  ending: '目录可以把原件写成复制品，却不能让封签、打印队列和缺失的签字同时消失。数字操作链指向乔文账户；谁实际把箱子推入货梯，仍需现实调查回答。',
+  gameplay: {
+    initialAnalysisPoints: 3,
+    objectives: [
+      { id: 'rebuild-accession-switch', title: '还原编号调包链', description: '用封存、修订、标签和离库记录确认 A-731 身份如何被替换。', kind: 'primary', condition: { type: 'all', conditions: [{ type: 'clue', clueId: 'C01' }, { type: 'clue', clueId: 'C02' }, { type: 'clue', clueId: 'C03' }, { type: 'clue', clueId: 'C06' }] } },
+      { id: 'verify-last-location', title: '核验最后可信库位', description: '确认原件最后一次可靠封存位置，并检查标签照片。', kind: 'optional', revealWhen: { type: 'clue', clueId: 'C01' }, condition: { type: 'all', conditions: [{ type: 'clue', clueId: 'C01' }, { type: 'clue', clueId: 'C08' }] } },
+      { id: 'trace-digital-operator', title: '串联数字操作链', description: '把认证账户、标签数据与打印队列连接到同一设备。', kind: 'optional', revealWhen: { type: 'clue-count', count: 3 }, condition: { type: 'all', conditions: [{ type: 'clue', clueId: 'C03' }, { type: 'clue', clueId: 'C04' }, { type: 'clue', clueId: 'C10' }] } },
+      { id: 'rebuild-exit-route', title: '还原离库路径', description: '核验未签字计划、正式日程和东货梯维护窗口。', kind: 'optional', revealWhen: { type: 'clue', clueId: 'C06' }, condition: { type: 'all', conditions: [{ type: 'clue', clueId: 'C06' }, { type: 'clue', clueId: 'C07' }, { type: 'clue', clueId: 'C09' }] } },
+      { id: 'complete-catalog-audit', title: '完成目录审计', description: '记录全部线索，并建立两组关键矛盾关系。', kind: 'optional', condition: { type: 'all', conditions: [{ type: 'clue-count', count: 10 }, { type: 'relation', from: 'C01', to: 'C02', relationType: '相互矛盾' }, { type: 'relation', from: 'C06', to: 'C07', relationType: '相互矛盾' }] } },
+    ],
+    hints: [
+      hint('seal-list-hint', 'C01', '最后封存位置', '先找原件最后一次被可靠确认的位置。', '在文件管理器中打开盘点记录。', '查看“盘点/A-731_封存清单.md”。'),
+      hint('accession-diff-hint', 'C02', '目录修改', '编号变化需要比较修改前后的目录版本。', '打开版本差异并主动核验相关修订。', '核验“A-731 条目修订”。'),
+      hint('label-data-hint', 'C03', '标签任务', '数据表能说明谁在何时输出了哪张标签。', '打开藏品数据台并核验当前表格。', '核验“标签打印任务 · 9月13日”。'),
+      hint('maintenance-auth-hint', 'C04', '设备认证', '目录修改前后应存在独立的账户与设备记录。', '在系统日志中筛选并打开维护认证。', '查看 21:43 的 QIAO.WEN 维护认证。'),
+      hint('old-pass-hint', 'C05', '维护权限', '同事对维护窗口和旧门禁卡有过具体说明。', '打开乔文的讯息并按时间阅读。', '查看乔文 21:12 的消息。'),
+      hint('transfer-draft-hint', 'C06', '离库安排', '没有发送的草稿也可能保存路线和缺失字段。', '切换到邮件草稿箱并打开离库单。', '查看“临时离库单 / R-731 / 外部修复”。'),
+      hint('empty-calendar-hint', 'C07', '正式日程', '草稿安排需要和获批运输日程对照。', '打开 9 月 13 日的运输安排详情。', '查看“运输安排：无”。'),
+      hint('overlay-photo-hint', 'C08', '标签画面', '照片正文不直接给出制作时间，需查看元数据。', '选中 R-731 标签照片并查看元数据。', '检查“R-731_标签复核.svg”的拍摄与导出时间。'),
+      hint('east-lift-hint', 'C09', '物理路线', '找出连接库位和装卸区且存在记录盲区的节点。', '打开馆区地图并逐个检查地点。', '查看“东货梯”详情。'),
+      hint('queue-residue-hint', 'C10', '打印残留', '界面记录之外，白名单查询可复核打印模板来源。', '在维护终端运行案件提供的查询按钮。', '运行“queue --inspect A-731”。'),
+    ],
+    challenges: [
+      { id: 'independent-registrar', title: '独立登记员', description: '不使用分析提示完成推理。', requirements: [{ type: 'no-hints' }] },
+      { id: 'complete-accession-record', title: '完整藏品记录', description: '发现全部十条线索。', requirements: [{ type: 'all-clues' }] },
+      { id: 'catalog-crosscheck', title: '目录交叉核验', description: '建立两组案件关键矛盾关系。', requirements: [{ type: 'relation-count-at-least', value: 2 }] },
+      { id: 'precise-custody-report', title: '精确保管链报告', description: '推理可信度达到九十分。', requirements: [{ type: 'score-at-least', value: 90 }] },
+      { id: 'digital-chain-auditor', title: '数字链审计员', description: '完成数字操作链目标。', requirements: [{ type: 'objective', objectiveId: 'trace-digital-operator' }] },
+    ],
+    endingVariants: [
+      { id: 'chief-catalog-note', title: '首席馆藏审计注记', text: '你在没有调用提示的情况下复核了全部记录。报告确认乔文账户完成了认证、改号与标签输出，同时把实物搬运者保留为待查事实，没有让数字身份替代现实证据。', priority: 30, requirements: [{ type: 'all-clues' }, { type: 'no-hints' }, { type: 'score-at-least', value: 90 }, { type: 'relation-count-at-least', value: 2 }] },
+      { id: 'complete-catalog-note', title: '完整馆藏注记', text: '封存清单、目录差异、标签队列和离库盲区构成了一条完整的异常保管链。原件被赋予复制品身份的过程已经还原。', priority: 20, requirements: [{ type: 'all-clues' }, { type: 'score-at-least', value: 85 }, { type: 'relation-count-at-least', value: 2 }] },
+    ],
+    rewards: [
+      { id: 'double-layer-accession-tag', kind: 'artifact', title: '双层藏品标签', description: '揭开上层 R-731 后仍能看见 A-731 压痕的归档标签。', requirements: [] },
+      { id: 'catalog-auditor', kind: 'badge', title: '目录核验员', description: '记录全部线索，并建立两组关键矛盾关系。', requirements: [{ type: 'all-clues' }, { type: 'relation-count-at-least', value: 2 }] },
+      { id: 'silent-reconciliation', kind: 'badge', title: '无痕复核', description: '不使用提示，以至少九十分完成全部线索复核。', requirements: [{ type: 'all-clues' }, { type: 'no-hints' }, { type: 'score-at-least', value: 90 }] },
+    ],
+  },
+}
