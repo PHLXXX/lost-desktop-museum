@@ -283,6 +283,59 @@
 .deduction-questions article > div label.correct { border-color: #617a68; background: #1d2a21; }
 .result-levels > div { display: grid; grid-template-columns: 1fr 90px 20px 90px; gap: 7px; margin-bottom: 6px; }
 .result-levels input { min-height: 29px; padding: 5px; border: 1px solid #414d54; background: #11171b; }
+.gameplay-enable { display: flex; min-height: 34px; align-items: center; gap: 8px; padding: 6px 10px; border: 1px solid #566965; background: #202b29; color: #d8dedb; font-size: 11px; }
+.gameplay-enable input { width: auto; }
+.gameplay-disabled { padding: 28px; border: 1px dashed #465158; background: #171d21; }
+.gameplay-disabled strong { font-size: 14px; }
+.gameplay-disabled p { max-width: 640px; margin: 8px 0 0; color: #879398; line-height: 1.65; }
+.gameplay-general { display: grid; margin-bottom: 12px; border: 1px solid #39444a; background: #39444a; grid-template-columns: 1.4fr repeat(4, 1fr); gap: 1px; }
+.gameplay-general > label, .gameplay-general > div { display: grid; min-height: 58px; align-content: center; padding: 8px 12px; background: #171d21; }
+.gameplay-general label { gap: 5px; color: #8c999c; font-size: 10px; }
+.gameplay-general input { width: 90px; min-height: 28px; padding: 4px 6px; border: 1px solid #465159; background: #11171b; }
+.gameplay-general span { color: #78858a; font-size: 9px; }
+.gameplay-general strong { margin-top: 4px; font: 15px var(--font-data); }
+.gameplay-editor-tabs { display: grid; margin-bottom: 10px; padding: 5px; border: 1px solid #39444a; background: #171d21; grid-template-columns: repeat(3, 1fr); }
+.gameplay-editor-tabs button { min-height: 32px; color: #929da0; border: 1px solid transparent; background: transparent; }
+.gameplay-editor-tabs button[aria-selected='true'] { color: #d9e2df; border-color: #536864; background: #263532; }
+.gameplay-author-grid { display: grid; min-height: 500px; border: 1px solid #374148; background: #171d21; grid-template-columns: 220px minmax(0, 1fr); }
+.gameplay-author-grid > aside { padding: 8px; border-right: 1px solid #374148; }
+.gameplay-author-grid > aside > button { display: grid; width: 100%; gap: 4px; padding: 9px; color: #d4d8d5; border: 1px solid transparent; background: transparent; text-align: left; }
+.gameplay-author-grid > aside > button.selected { border-color: #4e625f; background: #26322f; }
+.gameplay-author-grid > aside > button small { overflow: hidden; color: #758288; font: 9px var(--font-data); text-overflow: ellipsis; }
+.gameplay-author-grid > aside > button.gameplay-add-button { display: block; margin-bottom: 8px; border-color: #526661; background: #222e2b; text-align: center; }
+.gameplay-author-grid > aside > p { color: #7d888c; font-size: 10px; }
+.gameplay-detail { display: grid; min-width: 0; align-content: start; gap: 14px; padding: 16px; }
+.gameplay-detail .editor-form .wide-field { margin: 0; grid-column: 1 / -1; }
+.gameplay-detail > label { display: grid; gap: 5px; color: #aeb7b8; font-size: 11px; }
+.gameplay-detail > label input, .gameplay-detail > label textarea { min-height: 31px; padding: 6px 8px; color: #e1e2dd; border: 1px solid #465159; background: #11171b; }
+.gameplay-detail > label textarea { min-height: 76px; resize: vertical; }
+.gameplay-reveal-toggle { margin-top: 2px; }
+.gameplay-empty { display: grid; min-height: 260px; place-items: center; color: #778388; text-align: center; }
+.hint-tier-editor { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.hint-tier-editor article { min-width: 0; padding: 10px; border: 1px solid #39454a; background: #12181c; }
+.hint-tier-editor article header { display: flex; justify-content: space-between; padding-bottom: 8px; border-bottom: 1px solid #303a3f; }
+.hint-tier-editor article header span { color: #91a5a1; font-size: 10px; }
+.hint-tier-editor article header strong { color: #68767b; font: 9px var(--font-data); }
+.hint-tier-editor label { display: grid; gap: 4px; margin-top: 9px; color: #99a4a6; font-size: 10px; }
+.hint-tier-editor input, .hint-tier-editor textarea { width: 100%; min-height: 29px; padding: 5px 6px; color: #d9ddda; border: 1px solid #414d54; background: #0d1317; }
+.hint-tier-editor textarea { min-height: 86px; resize: vertical; }
+.outcome-editor { display: grid; gap: 14px; }
+.outcome-editor > section { border: 1px solid #374148; background: #171d21; }
+.outcome-editor > section > header { display: flex; min-height: 58px; align-items: center; justify-content: space-between; padding: 9px 12px; border-bottom: 1px solid #374148; background: #20282d; }
+.outcome-editor h2 { margin: 0; font-size: 13px; }
+.outcome-editor header p { margin: 4px 0 0; color: #7e8a8e; font-size: 10px; }
+.outcome-editor header button { min-height: 30px; padding: 5px 10px; border: 1px solid #50625e; background: #263431; }
+.outcome-master { display: grid; min-height: 280px; grid-template-columns: 210px minmax(0, 1fr); }
+.outcome-master > aside { padding: 7px; border-right: 1px solid #374148; }
+.outcome-master > aside button { display: grid; width: 100%; gap: 4px; padding: 8px; color: #d0d5d3; border: 1px solid transparent; background: transparent; text-align: left; }
+.outcome-master > aside button.selected { border-color: #4e625f; background: #26322f; }
+.outcome-master > aside small { color: #748085; font: 9px var(--font-data); }
+.requirement-editor { border: 1px solid #38444a; }
+.requirement-editor > header { display: flex; align-items: center; justify-content: space-between; padding: 8px; background: #20282d; }
+.requirement-editor > header button { min-height: 27px; border: 1px solid #46565b; background: #182025; }
+.requirement-editor > div { display: grid; align-items: center; padding: 7px; border-top: 1px solid #303a3f; grid-template-columns: minmax(160px, 1fr) minmax(110px, .7fr) 30px; gap: 6px; }
+.requirement-editor select, .requirement-editor input { min-width: 0; min-height: 29px; padding: 4px 6px; border: 1px solid #414d54; background: #10161a; }
+.requirement-editor > div > button { width: 28px; height: 28px; border: 0; background: transparent; }
 .validation-summary, .asset-summary { display: grid; margin-bottom: 14px; grid-template-columns: repeat(4,1fr); border: 1px solid #39444a; background: #39444a; gap: 1px; }
 .validation-summary > div, .asset-summary > div { display: grid; min-height: 68px; align-content: center; padding: 10px; background: #171d21; }
 .validation-summary span, .asset-summary span { color: #78868b; font-size: 10px; }
@@ -372,8 +425,10 @@
   .editor-sidebar button { width: auto; white-space: nowrap; }
   .editor-canvas { height: calc(100% - 60px); }
   .editor-document { padding: 18px 14px 50px; }
-  .editor-form, .overview-title-form, .master-detail, .desktop-composer, .file-author-grid, .messenger-author, .mail-author, .clue-author, .trigger-author { grid-template-columns: 1fr; }
-  .master-list, .clue-author > aside, .trigger-author > aside { max-height: 150px; overflow: auto; border-right: 0; border-bottom: 1px solid #374148; }
+  .editor-form, .overview-title-form, .master-detail, .desktop-composer, .file-author-grid, .messenger-author, .mail-author, .clue-author, .trigger-author, .gameplay-author-grid, .outcome-master { grid-template-columns: 1fr; }
+  .master-list, .clue-author > aside, .trigger-author > aside, .gameplay-author-grid > aside, .outcome-master > aside { max-height: 150px; overflow: auto; border-right: 0; border-bottom: 1px solid #374148; }
+  .gameplay-general { grid-template-columns: repeat(2, 1fr); }
+  .hint-tier-editor { grid-template-columns: 1fr; }
   .desktop-preview { min-height: 350px; }
   .overview-ledger { grid-template-columns: repeat(2,1fr); }
   .timeline-editor-list article { grid-template-columns: 32px 1fr 30px; }

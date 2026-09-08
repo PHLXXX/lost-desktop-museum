@@ -15,6 +15,7 @@ import type {
   DesktopDefinition,
   EmailMessage,
   GameTrigger,
+  InvestigationGameplayDefinition,
   PhotoAsset,
   SystemLog,
   SitemapNode,
@@ -56,8 +57,24 @@ export interface CaseDraft {
   sitemap: SitemapNode[]
   clues: ClueDefinition[]
   triggers: GameTrigger[]
+  gameplay?: InvestigationGameplayDefinition
   deduction: DraftDeductionDefinition
   assets: CaseAssetReference[]
+}
+
+export function createInitialGameplayDraft(draft: CaseDraft): InvestigationGameplayDefinition {
+  const clueThreshold = Math.max(1, Math.min(6, draft.clues.length))
+  return {
+    initialAnalysisPoints: 3,
+    objectives: [{ id: 'investigation-basics', title: '建立案件基础', description: `记录至少 ${clueThreshold} 条可验证线索。`, kind: 'primary', condition: { type: 'clue-count', count: clueThreshold } }],
+    hints: [],
+    challenges: [
+      { id: 'independent-analysis', title: '独立分析', description: '不使用分析提示完成推理。', requirements: [{ type: 'no-hints' }] },
+      { id: 'complete-archive', title: '完整归档', description: '发现案件中的全部线索。', requirements: [{ type: 'all-clues' }] },
+      { id: 'precise-conclusion', title: '精准结案', description: '推理可信度达到 90 分。', requirements: [{ type: 'score-at-least', value: 90 }] },
+    ],
+    endingVariants: [],
+  }
 }
 
 const enabledAppEntries = [

@@ -262,33 +262,33 @@ Commit: `feat: add mastery and deep investigation reports`
 - Compilation emits `gameplay` only when custom gameplay is enabled/present.
 - Decompilation retains authored gameplay and initializes an undefined block for legacy cases.
 
-- [ ] **Step 1: Write failing compiler and editor tests**
+- [x] **Step 1: Write failing compiler and editor tests**
 
 Test exact gameplay round-trip, legacy draft compilation, section navigation, objective creation with a real condition, hint clue selection, challenge threshold editing, and ending priority editing.
 
-- [ ] **Step 2: Run focused tests and verify RED**
+- [x] **Step 2: Run focused tests and verify RED**
 
 Run: `npm test -- src/editor/compiler/compiler.test.ts src/editor/features/gameplay-editor/GameplayEditor.test.tsx`  
 Expected: FAIL because draft/editor support is absent.
 
-- [ ] **Step 3: Extend draft, compilation, and decompilation**
+- [x] **Step 3: Extend draft, compilation, and decompilation**
 
 Use structured clones, preserve `undefined` for legacy/custom-disabled gameplay, and do not mutate any content arrays during conversion.
 
-- [ ] **Step 4: Implement the gameplay editor modules**
+- [x] **Step 4: Implement the gameplay editor modules**
 
 Keep each component focused: general/objectives, hints, and challenges/endings. Reuse `ConditionBuilder`; offer only whitelisted requirement types and bounded numeric inputs.
 
-- [ ] **Step 5: Integrate navigation and issue routing**
+- [x] **Step 5: Integrate navigation and issue routing**
 
 Add `玩法设计` beneath triggers, route `gameplay.*` validation paths back to the section, and retain read-only fieldset behavior.
 
-- [ ] **Step 6: Run focused tests and verify GREEN**
+- [x] **Step 6: Run focused tests and verify GREEN**
 
 Run: `npm test -- src/editor/compiler/compiler.test.ts src/editor/features/gameplay-editor/GameplayEditor.test.tsx`  
 Expected: PASS.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 Commit: `feat: author deep investigation gameplay in workshop`
 

@@ -12,6 +12,7 @@ import { OverviewEditor } from '../features/overview/OverviewEditor'
 import { PackagePublisher } from '../features/package-publisher/PackagePublisher'
 import { TimelineEditor } from '../features/timeline-editor/TimelineEditor'
 import { TriggerEditor } from '../features/trigger-editor/TriggerEditor'
+import { GameplayEditor } from '../features/gameplay-editor/GameplayEditor'
 import { ValidationCenter } from '../features/validation-center/ValidationCenter'
 import { useEditorStore } from '../store/editorStore'
 import { EditorSidebar } from './EditorSidebar'
@@ -34,6 +35,7 @@ function EditorContent({ onIssue }: { onIssue: (path: string) => void }) {
   if (section === 'applications') return <AppConfigEditor />
   if (section === 'clues') return <ClueEditor />
   if (section === 'triggers') return <TriggerEditor />
+  if (section === 'gameplay') return <GameplayEditor />
   if (section === 'deduction') return <DeductionEditor />
   if (section === 'assets') return <AssetManager />
   if (section === 'validation') return <ValidationCenter onIssue={onIssue} />
@@ -49,6 +51,7 @@ function sectionForPath(path: string) {
   if (path.startsWith('emails')) return 'mail' as const
   if (path.startsWith('clues')) return 'clues' as const
   if (path.startsWith('triggers')) return 'triggers' as const
+  if (path.startsWith('gameplay')) return 'gameplay' as const
   if (path.startsWith('deduction') || path.startsWith('questions')) return 'deduction' as const
   if (path.startsWith('assets')) return 'assets' as const
   return 'validation' as const
