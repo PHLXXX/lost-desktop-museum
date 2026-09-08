@@ -173,7 +173,7 @@ export interface InvestigationGameplayDefinition {
   rewards?: InvestigationRewardDefinition[]
 }
 export interface DeductionSubmission { answers: string[]; evidenceIds: string[]; contradictionPairs: [string, string][]; note: string }
-export interface DeductionResult { score: number; level: string; answerScore: number; evidenceScore: number; relationScore: number; note: string; challengeIds?: string[]; endingVariantId?: string }
+export interface DeductionResult { score: number; level: string; answerScore: number; evidenceScore: number; relationScore: number; note: string; challengeIds?: string[]; endingVariantId?: string; rewardIds?: string[]; newRewardKeys?: string[] }
 export interface DeductionDraft { answers: Record<string, string>; note: string }
 export interface WindowSnapshot { id: AppId; x: number; y: number; width: number; height: number; minimized: boolean; maximized: boolean }
 export interface GameSave {

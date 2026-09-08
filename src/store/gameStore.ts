@@ -12,6 +12,8 @@ import { evaluateChallenges } from '../gameplay/challengeEngine'
 import { selectEnding } from '../gameplay/endingEngine'
 import { revealNextHint, type HintRevealResult } from '../gameplay/hintEngine'
 import { getObjectiveStates } from '../gameplay/objectiveEngine'
+import { evaluateRewards } from '../gameplay/rewardEngine'
+import { useRewardStore } from '../rewards/rewardStore'
 
 type GameState = ReturnType<typeof createFreshSave> & {
   saveStatus: 'idle' | 'saving' | 'saved' | 'error'
@@ -135,7 +137,9 @@ export const useGameStore = create<GameState>((set, get) => ({
     const scored = scoreDeduction(caseDefinition, { answers, evidenceIds: state.pinnedClueIds, contradictionPairs, note })
     const challengeIds = evaluateChallenges(caseDefinition, state, scored)
     const ending = selectEnding(caseDefinition, state, scored)
-    const result = { ...scored, challengeIds, endingVariantId: ending.id ?? undefined }
+    const rewards = evaluateRewards(caseDefinition, state, scored)
+    const newRewardKeys = useRewardStore.getState().unlock(caseDefinition, rewards)
+    const result = { ...scored, challengeIds, endingVariantId: ending.id ?? undefined, rewardIds: rewards.map((reward) => reward.id), newRewardKeys }
     set({
       deductionResult: result,
       bestScore: Math.max(state.bestScore ?? 0, result.score),

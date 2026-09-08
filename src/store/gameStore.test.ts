@@ -2,11 +2,14 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createFreshSave } from '../engine/persistence'
 import { caseDefinition } from '../cases/case-001/case'
 import { useGameStore } from './gameStore'
+import { defaultRewardProfile } from '../rewards/rewardProfile'
+import { useRewardStore } from '../rewards/rewardStore'
 
 describe('game store persistence and notification policy', () => {
   beforeEach(() => {
     localStorage.clear()
     useGameStore.setState({ ...createFreshSave(), saveStatus: 'idle', notice: null, corruptSave: false })
+    useRewardStore.setState({ ...defaultRewardProfile, unlocks: [] })
   })
 
   afterEach(() => {
@@ -93,6 +96,26 @@ describe('game store persistence and notification policy', () => {
 
     expect(result.challengeIds).toEqual(expect.arrayContaining(caseDefinition.gameplay!.challenges.map((challenge) => challenge.id)))
     expect(useGameStore.getState().bestChallengeIds).toEqual(expect.arrayContaining(result.challengeIds ?? []))
+  })
+
+  it('settles completion rewards once and keeps them when restarting the case', () => {
+    useGameStore.setState({
+      discoveredClueIds: caseDefinition.clues.map((clue) => clue.id),
+      pinnedClueIds: caseDefinition.coreEvidenceIds.slice(0, 6),
+      evidenceRelations: caseDefinition.correctContradictions.map(([from, to], index) => ({ id: `reward-relation-${index}`, from, to, type: '相互矛盾' as const })),
+      hintUsage: {},
+    })
+
+    const first = useGameStore.getState().submit(caseDefinition.questions.map((question) => question.correctId), '完成归档。')
+    const second = useGameStore.getState().submit(caseDefinition.questions.map((question) => question.correctId), '再次归档。')
+
+    expect(first.rewardIds).toEqual(expect.arrayContaining(['default-case-archive', 'default-complete-record']))
+    expect(first.newRewardKeys).toEqual(expect.arrayContaining(['case-001:default-case-archive', 'case-001:default-complete-record']))
+    expect(second.newRewardKeys).toEqual([])
+    expect(useRewardStore.getState().unlocks).toHaveLength(2)
+
+    useGameStore.getState().resetCase()
+    expect(useRewardStore.getState().unlocks.map((reward) => reward.key)).toEqual(expect.arrayContaining(first.newRewardKeys ?? []))
   })
 
   it('clears current hints but retains earned mastery when restarting', () => {

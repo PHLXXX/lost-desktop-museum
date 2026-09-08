@@ -156,7 +156,7 @@ Commit: `feat: persist archive rewards and themes`
 - Produces: optional `rewardIds` and `newRewardKeys` on `DeductionResult`.
 - Consumes: `evaluateRewards()` and `useRewardStore.getState().unlock()`.
 
-- [ ] **Step 1: Write failing submit and restart tests**
+- [x] **Step 1: Write failing submit and restart tests**
 
 ```ts
 const first = useGameStore.getState().submit(correctAnswers, '')
@@ -166,21 +166,21 @@ useGameStore.getState().resetCase()
 expect(useRewardStore.getState().unlocks).toContainEqual(expect.objectContaining({ key: 'case-001:case-complete' }))
 ```
 
-- [ ] **Step 2: Run focused tests and verify RED**
+- [x] **Step 2: Run focused tests and verify RED**
 
 Run: `npm test -- src/store/gameStore.test.ts src/preview/PreviewSession.test.ts`
 
 Expected: FAIL because submission does not evaluate or persist rewards.
 
-- [ ] **Step 3: Integrate reward settlement**
+- [x] **Step 3: Integrate reward settlement**
 
 After scoring and challenge evaluation, evaluate rewards, record profile unlocks, add IDs and newly unlocked keys to the result, then persist the case save. Do not clear the external reward profile in `resetCase()` or preview teardown.
 
-- [ ] **Step 4: Keep preview isolation explicit**
+- [x] **Step 4: Keep preview isolation explicit**
 
 Preview sessions may render reward results but must snapshot and restore the reward profile so Workshop playtests cannot permanently unlock rewards.
 
-- [ ] **Step 5: Run tests and commit**
+- [x] **Step 5: Run tests and commit**
 
 Run: `npm test -- src/store/gameStore.test.ts src/preview/PreviewSession.test.ts`
 

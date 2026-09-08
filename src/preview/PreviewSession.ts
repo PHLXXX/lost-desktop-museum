@@ -3,17 +3,25 @@ import type { CaseDefinition, GameSave } from '../cases/types'
 import { clearGameSave } from '../engine/persistence'
 import { cancelPendingGameSave, useGameStore } from '../store/gameStore'
 import { useWindowStore } from '../store/windowStore'
+import { applyArchiveTheme } from '../rewards/archiveThemes'
+import { REWARD_PROFILE_KEY, type RewardProfile } from '../rewards/rewardProfile'
+import { useRewardStore } from '../rewards/rewardStore'
 
 export class PreviewSession {
   readonly previewCaseId: string
   private gameSnapshot: GameSave & { saveStatus: 'idle' | 'saving' | 'saved' | 'error'; notice: string | null; corruptSave: boolean }
   private windowSnapshot: Pick<ReturnType<typeof useWindowStore.getState>, 'windows' | 'activeWindowId'>
+  private rewardSnapshot: RewardProfile
+  private rewardStorageSnapshot: string | null
   constructor(private projectId: string, definition: CaseDefinition) {
     this.previewCaseId = `preview-${projectId}`
     const game = useGameStore.getState()
     this.gameSnapshot = { saveVersion: game.saveVersion, caseId: game.caseId, caseStarted: game.caseStarted, openedItems: [...game.openedItems], completedEventKeys: [...game.completedEventKeys], discoveredClueIds: [...game.discoveredClueIds], pinnedClueIds: [...game.pinnedClueIds], unlockedItemIds: [...game.unlockedItemIds], restoredItemIds: [...game.restoredItemIds], triggeredEventIds: [...game.triggeredEventIds], evidenceCardPositions: structuredClone(game.evidenceCardPositions), evidenceRelations: structuredClone(game.evidenceRelations), evidenceNotes: { ...game.evidenceNotes }, hintUsage: { ...game.hintUsage }, bestChallengeIds: [...game.bestChallengeIds], currentWindows: structuredClone(game.currentWindows), settings: { ...game.settings }, deductionDraft: structuredClone(game.deductionDraft), deductionResult: game.deductionResult ? { ...game.deductionResult } : null, bestScore: game.bestScore, onboardingComplete: game.onboardingComplete, desktopNote: game.desktopNote, playTime: game.playTime, lastSavedAt: game.lastSavedAt, saveStatus: game.saveStatus, notice: game.notice, corruptSave: game.corruptSave }
     const windows = useWindowStore.getState()
     this.windowSnapshot = { windows: structuredClone(windows.windows), activeWindowId: windows.activeWindowId }
+    const rewards = useRewardStore.getState()
+    this.rewardSnapshot = { version: 1, unlocks: structuredClone(rewards.unlocks), selectedTheme: rewards.selectedTheme }
+    this.rewardStorageSnapshot = typeof window === 'undefined' ? null : window.localStorage.getItem(REWARD_PROFILE_KEY)
     const previewDefinition = structuredClone(definition)
     previewDefinition.id = this.previewCaseId
     previewDefinition.manifest.caseId = this.previewCaseId
@@ -35,5 +43,11 @@ export class PreviewSession {
     if (typeof window !== 'undefined') clearGameSave(window.localStorage, this.previewCaseId)
     useGameStore.setState(this.gameSnapshot)
     useWindowStore.setState(this.windowSnapshot)
+    useRewardStore.setState(this.rewardSnapshot)
+    applyArchiveTheme(this.rewardSnapshot.selectedTheme)
+    if (typeof window !== 'undefined') {
+      if (this.rewardStorageSnapshot === null) window.localStorage.removeItem(REWARD_PROFILE_KEY)
+      else window.localStorage.setItem(REWARD_PROFILE_KEY, this.rewardStorageSnapshot)
+    }
   }
 }
