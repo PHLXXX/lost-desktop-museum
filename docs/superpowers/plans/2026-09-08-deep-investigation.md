@@ -54,7 +54,7 @@ Generate objective IDs under `default-*`, derive clue hint text from source/acti
 Run: `npm test -- src/gameplay/defaultGameplay.test.ts src/cases/runtimeFoundation.test.ts`  
 Expected: PASS.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 Commit: `feat: add compatible deep investigation model`
 
@@ -79,28 +79,28 @@ Commit: `feat: add compatible deep investigation model`
 - Produces: `evaluateChallenges(definition, save, result): string[]`.
 - Produces: `selectEnding(definition, save, result): { id: string | null; title: string; text: string }`.
 
-- [ ] **Step 1: Write failing engine tests**
+- [x] **Step 1: Write failing engine tests**
 
 Cover nested condition completion, hidden-objective reveal, three sequential hint tiers, exact cost deduction, completed-clue rejection, exhausted points, all five requirement variants, and stable ending priority.
 
-- [ ] **Step 2: Run focused tests and verify RED**
+- [x] **Step 2: Run focused tests and verify RED**
 
 Run: `npm test -- src/gameplay`  
 Expected: FAIL on missing engine modules.
 
-- [ ] **Step 3: Implement the pure context and objective engine**
+- [x] **Step 3: Implement the pure context and objective engine**
 
 Build event, clue, relation, and trigger sets from `GameSave`; evaluate completion through the existing condition engine. Return explicit `visible`, `complete`, and `kind` state.
 
-- [ ] **Step 4: Implement the pure hint engine**
+- [x] **Step 4: Implement the pure hint engine**
 
 Calculate points from configured costs and `hintUsage`, reveal only the next tier, return `{ ok: false, reason }` without mutating input, and ignore unknown saved hint IDs.
 
-- [ ] **Step 5: Implement challenge and ending engines**
+- [x] **Step 5: Implement challenge and ending engines**
 
 Evaluate all requirements with AND semantics. Require an existing result for score and no-hint mastery. Sort eligible endings by descending priority then stable ID.
 
-- [ ] **Step 6: Run focused tests and verify GREEN**
+- [x] **Step 6: Run focused tests and verify GREEN**
 
 Run: `npm test -- src/gameplay`  
 Expected: PASS.

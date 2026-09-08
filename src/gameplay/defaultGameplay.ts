@@ -54,8 +54,7 @@ function createDefaultHint(definition: CaseDefinition, clue: ClueDefinition, ind
   }
 }
 
-export function resolveInvestigationGameplay(definition: CaseDefinition): InvestigationGameplayDefinition {
-  if (definition.gameplay) return definition.gameplay
+export function createDefaultInvestigationGameplay(definition: CaseDefinition): InvestigationGameplayDefinition {
   const clueThreshold = Math.min(6, definition.clues.length)
   const relationConditions = definition.correctContradictions.map(([from, to]) => ({ type: 'relation' as const, from, to, relationType: '相互矛盾' as const }))
   return {
@@ -77,5 +76,9 @@ export function resolveInvestigationGameplay(definition: CaseDefinition): Invest
     ],
     endingVariants: [],
   }
+}
+
+export function resolveInvestigationGameplay(definition: CaseDefinition): InvestigationGameplayDefinition {
+  return definition.gameplay ?? createDefaultInvestigationGameplay(definition)
 }
 
