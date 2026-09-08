@@ -9,8 +9,10 @@ import { GameplayEditor } from './GameplayEditor'
 
 describe('GameplayEditor', () => {
   beforeEach(() => {
+    const project = createAuthoringProject('玩法设计测试', createMinimalTemplateDraft())
+    project.draft.gameplay = undefined
     useEditorStore.setState({
-      currentProject: createAuthoringProject('玩法设计测试', createMinimalTemplateDraft()),
+      currentProject: project,
       issues: [],
       saveStatus: 'idle',
       readOnly: false,

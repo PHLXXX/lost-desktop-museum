@@ -42,7 +42,7 @@ describe('community install transaction', () => {
   it('refuses a package that requires a newer client engine', async () => {
     const manager = new CommunityInstallManager({ cases: new InMemoryCaseRepository(), assets: new AssetRepository(new MemoryAdapter()), installations: new CommunityInstallationRepository(new MemoryAdapter()) })
     const detail = parseCommunityCaseDetail(detailJson); const bytes = new Uint8Array(await readFile(resolve('tests/fixtures/community/packages/valid-1.0.0.ldmcase')))
-    await expect(manager.prepare(detail, { ...detail.versions[0]!, engineCompatibility: { minimum: '0.6.0' } }, bytes)).rejects.toThrow(/客户端|引擎/)
+    await expect(manager.prepare(detail, { ...detail.versions[0]!, engineCompatibility: { minimum: '0.7.0' } }, bytes)).rejects.toThrow(/客户端|引擎/)
   })
   it('keeps a progress snapshot with the previous package before an update', async () => {
     const cases = new InMemoryCaseRepository(); const assets = new AssetRepository(new MemoryAdapter<StoredAsset>()); const installations = new CommunityInstallationRepository(new MemoryAdapter<CommunityInstallationRecord>()); const manager = new CommunityInstallManager({ cases, assets, installations })

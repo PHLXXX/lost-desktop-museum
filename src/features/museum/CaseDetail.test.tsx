@@ -15,7 +15,7 @@ describe('CaseDetail deep investigation preview', () => {
 
     expect(screen.getByText('分析额度')).toBeInTheDocument()
     expect(screen.getByText('3 点')).toBeInTheDocument()
-    expect(screen.getByText('独立分析')).toBeInTheDocument()
+    expect(screen.getByText('独立归档员')).toBeInTheDocument()
     expect(screen.getByText('完整归档')).toBeInTheDocument()
   })
 })

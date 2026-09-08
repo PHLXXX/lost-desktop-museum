@@ -15,9 +15,9 @@ describe('ResultScreen', () => {
       discoveredClueIds: case002.clues.map((clue) => clue.id),
       pinnedClueIds: ['C01'],
       evidenceRelations: case002.correctContradictions.map(([from, to], index) => ({ id: `relation-${index}`, from, to, type: '相互矛盾' as const })),
-      hintUsage: { 'default-hint-01': 1 },
+      hintUsage: { 'unsigned-script-hint': 1 },
       playTime: 372,
-      deductionResult: { score: 75, level: '节目源已定位', answerScore: 65, evidenceScore: 5, relationScore: 5, note: '人员轨迹与节目源分离。', challengeIds: ['default-complete-archive'] },
+      deductionResult: { score: 75, level: '节目源已定位', answerScore: 65, evidenceScore: 5, relationScore: 5, note: '人员轨迹与节目源分离。', challengeIds: ['complete-broadcast-log'] },
       saveStatus: 'idle',
       notice: null,
       corruptSave: false,
@@ -33,7 +33,7 @@ describe('ResultScreen', () => {
     expect(result.container).toHaveTextContent(case002.ending)
     expect(result.container).not.toHaveTextContent(/LD-001|LINRAN|\/12/)
     expect(screen.getByText('人员轨迹与节目源分离。')).toBeInTheDocument()
-    expect(result.container).toHaveTextContent('目标完成 3 / 3')
+    expect(result.container).toHaveTextContent('目标完成 5 / 5')
     expect(result.container).toHaveTextContent(`本次挑战 1 / ${resolveInvestigationGameplay(case002).challenges.length}`)
     expect(result.container).toHaveTextContent('使用提示 1 层')
     expect(result.container).toHaveTextContent('调查用时 06:12')

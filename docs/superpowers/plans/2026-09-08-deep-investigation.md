@@ -344,25 +344,25 @@ Commit: `feat: add authored deep investigation content`
 **Interfaces:**
 - Exercises only user-visible routes and controls; no production test hooks.
 
-- [ ] **Step 1: Write the failing Playwright journey**
+- [x] **Step 1: Write the failing Playwright journey**
 
 Cover objectives, one confirmed hint, clue completion, deduction report, mastery persistence, restart clearing hint use, and a legacy no-gameplay package fallback.
 
-- [ ] **Step 2: Run the new E2E and verify RED**
+- [x] **Step 2: Run the new E2E and verify RED**
 
 Run: `npx playwright test e2e/deep-investigation.spec.ts --project=chromium`  
 Expected: FAIL until the complete user flow is wired.
 
-- [ ] **Step 3: Fix integration gaps without weakening assertions**
+- [x] **Step 3: Fix integration gaps without weakening assertions**
 
 Use accessible names and deterministic saved timestamps; do not add hidden DOM state or wait-only sleeps.
 
-- [ ] **Step 4: Run gameplay and regression E2E**
+- [x] **Step 4: Run gameplay and regression E2E**
 
 Run: `npx playwright test e2e/deep-investigation.spec.ts e2e/player-journey.spec.ts e2e/archive-workshop.spec.ts --project=chromium`  
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 Commit: `test: cover deep investigation replay loop`
 
@@ -382,29 +382,29 @@ Commit: `test: cover deep investigation replay loop`
 **Interfaces:**
 - Sets application version to `0.6.0` and documents only verified behavior.
 
-- [ ] **Step 1: Update documentation and version metadata**
+- [x] **Step 1: Update documentation and version metadata**
 
 Document objectives, the three-point hint economy, mastery persistence, conditional archive notes, authoring, keyboard behavior, compatibility, and local-only privacy.
 
-- [ ] **Step 2: Run static verification**
+- [x] **Step 2: Run static verification**
 
 Run: `npm run typecheck && npm run lint && npm run test && npm run test:coverage && npm run validate:cases && npm run validate:editor-examples && npm run build && npm run check`  
 Expected: every command exits 0 with no TypeScript or ESLint errors.
 
-- [ ] **Step 3: Run full browser verification**
+- [x] **Step 3: Run full browser verification**
 
 Run: `npm run e2e`  
 Expected: all required Playwright tests pass; only explicitly documented historical skips may remain.
 
-- [ ] **Step 4: Capture and inspect real 1440×900 screenshots**
+- [x] **Step 4: Capture and inspect real 1440×900 screenshots**
 
 Use the running production preview. Verify no overflow at 1280×720, no full-screen obstruction, readable hint confirmations, correct reduced-motion behavior, and no console errors.
 
-- [ ] **Step 5: Confirm repository hygiene**
+- [x] **Step 5: Confirm repository hygiene**
 
 Run: `git status --short`, inspect the diff, verify no `dist`, Playwright video/trace, credentials, machine paths, or unrelated changes are staged.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 Commit: `chore: prepare v0.6.0 deep investigation release`
 

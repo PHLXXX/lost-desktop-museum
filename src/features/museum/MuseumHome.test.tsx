@@ -64,12 +64,12 @@ describe('MuseumHome case sources', () => {
   })
 
   it('shows the best earned investigation mastery for each case', () => {
-    const challengeCount = resolveInvestigationGameplay(case001).challenges.length
-    useGameStore.setState({ bestChallengeIds: ['default-independent-analysis', 'default-complete-archive'] })
+    const challenges = resolveInvestigationGameplay(case001).challenges
+    useGameStore.setState({ bestChallengeIds: challenges.slice(0, 2).map((challenge) => challenge.id) })
 
     render(<MuseumHome onOpenCase={() => undefined} onContinue={() => undefined} />)
 
     const row = screen.getByRole('region', { name: case001.title })
-    expect(within(row).getByText(`专精 2 / ${challengeCount}`)).toBeInTheDocument()
+    expect(within(row).getByText(`专精 2 / ${challenges.length}`)).toBeInTheDocument()
   })
 })

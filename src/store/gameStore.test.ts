@@ -59,10 +59,10 @@ describe('game store persistence and notification policy', () => {
     vi.useFakeTimers()
     const write = vi.spyOn(Storage.prototype, 'setItem')
 
-    const result = useGameStore.getState().revealHint('default-hint-01')
+    const result = useGameStore.getState().revealHint('flight-status-hint')
 
     expect(result).toMatchObject({ ok: true, remainingPoints: 2 })
-    expect(useGameStore.getState().hintUsage).toEqual({ 'default-hint-01': 1 })
+    expect(useGameStore.getState().hintUsage).toEqual({ 'flight-status-hint': 1 })
     expect(write).not.toHaveBeenCalled()
     vi.advanceTimersByTime(350)
     expect(write).toHaveBeenCalledTimes(1)
@@ -71,12 +71,12 @@ describe('game store persistence and notification policy', () => {
   it('does not mutate or save when a hint reveal fails', () => {
     vi.useFakeTimers()
     const write = vi.spyOn(Storage.prototype, 'setItem')
-    useGameStore.setState({ hintUsage: { 'default-hint-01': 3 } })
+    useGameStore.setState({ hintUsage: { 'flight-status-hint': 3 } })
 
-    const result = useGameStore.getState().revealHint('default-hint-01')
+    const result = useGameStore.getState().revealHint('flight-status-hint')
 
     expect(result).toMatchObject({ ok: false, code: 'fully-revealed' })
-    expect(useGameStore.getState().hintUsage).toEqual({ 'default-hint-01': 3 })
+    expect(useGameStore.getState().hintUsage).toEqual({ 'flight-status-hint': 3 })
     vi.advanceTimersByTime(1000)
     expect(write).not.toHaveBeenCalled()
   })
@@ -91,7 +91,7 @@ describe('game store persistence and notification policy', () => {
 
     const result = useGameStore.getState().submit(caseDefinition.questions.map((question) => question.correctId), '完整证据链。')
 
-    expect(result.challengeIds).toEqual(expect.arrayContaining(['default-independent-analysis', 'default-complete-archive', 'default-relation-specialist', 'default-precise-conclusion']))
+    expect(result.challengeIds).toEqual(expect.arrayContaining(caseDefinition.gameplay!.challenges.map((challenge) => challenge.id)))
     expect(useGameStore.getState().bestChallengeIds).toEqual(expect.arrayContaining(result.challengeIds ?? []))
   })
 
@@ -109,6 +109,6 @@ describe('game store persistence and notification policy', () => {
 
     useGameStore.getState().investigate({ type: 'OPEN_ITEM', itemId: 'flight-cancel' })
 
-    expect(useGameStore.getState().notice).toContain('目标完成：建立案件基础')
+    expect(useGameStore.getState().notice).toContain('目标完成：核对离开叙述')
   })
 })

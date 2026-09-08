@@ -193,8 +193,8 @@ The editor cannot add code or unrestricted expressions.
 ## Error handling
 
 - If an authored gameplay block fails schema validation, package import fails with a field path and corrective message, as other invalid case data does.
-- If a hint references content removed by a compatible update, that hint is omitted and the rest of the case remains playable.
-- If all custom objectives are hidden or invalid at runtime, the deterministic primary objective is shown as a safe fallback.
+- If a hint references content removed by an update, package/update validation rejects that version before installation rather than leaving a broken hint behind.
+- Invalid custom objectives are rejected by schema and semantic validation before export or installation; valid authored reveal conditions remain authoritative at runtime.
 - Exhausted analysis points produce an inline explanation and never change the save.
 - A failed save uses the existing save indicator; the revealed hint remains in memory and can be saved again manually.
 - Gameplay UI failures are contained inside the panel and cannot blank the investigation desktop.
@@ -246,4 +246,3 @@ The editor cannot add code or unrestricted expressions.
 - Main truth remains accessible regardless of challenge completion.
 - No gameplay feature requires network access.
 - TypeScript, ESLint, Vitest, case validation, editor validation, production build, and Playwright all pass.
-

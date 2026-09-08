@@ -16,7 +16,7 @@ describe('investigation panel', () => {
 
     expect(screen.getByRole('dialog', { name: '深度调查' })).toBeInTheDocument()
     expect(screen.getByRole('tab', { name: '调查目标' })).toHaveAttribute('aria-selected', 'true')
-    expect(screen.getByText('建立案件基础')).toBeInTheDocument()
+    expect(screen.getByText('核对离开叙述')).toBeInTheDocument()
     expect(screen.getAllByText('进行中').length).toBeGreaterThan(0)
   })
 
@@ -31,9 +31,9 @@ describe('investigation panel', () => {
     expect(confirmation).toHaveTextContent('使用后剩余 2 点')
     await user.click(screen.getByRole('button', { name: '显示提示' }))
 
-    expect(useGameStore.getState().hintUsage).toEqual({ 'default-hint-01': 1 })
+    expect(useGameStore.getState().hintUsage).toEqual({ 'flight-status-hint': 1 })
     expect(screen.getByText('剩余 2 / 3')).toBeInTheDocument()
-    expect(screen.getByText('留意「邮件」中的可验证记录。')).toBeInTheDocument()
+    expect(screen.getByText('先确认计划中的交通工具是否仍然有效。')).toBeInTheDocument()
   })
 
   it('shows challenge conditions without claiming they are already earned', async () => {
@@ -41,7 +41,7 @@ describe('investigation panel', () => {
     render(<InvestigationPanel open onClose={vi.fn()} />)
     await user.click(screen.getByRole('tab', { name: '调查挑战' }))
 
-    expect(screen.getByText('独立分析')).toBeInTheDocument()
+    expect(screen.getByText('独立归档员')).toBeInTheDocument()
     expect(screen.getByText('未结算')).toBeInTheDocument()
     expect(screen.queryByText('已达成')).not.toBeInTheDocument()
   })

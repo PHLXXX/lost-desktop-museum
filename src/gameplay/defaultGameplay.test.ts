@@ -5,12 +5,14 @@ import { resolveInvestigationGameplay } from './defaultGameplay'
 
 describe('deep investigation gameplay defaults', () => {
   it('creates deterministic objectives, hints, and challenges for a legacy case', () => {
-    const gameplay = resolveInvestigationGameplay(caseDefinition)
+    const legacy = structuredClone(caseDefinition)
+    delete legacy.gameplay
+    const gameplay = resolveInvestigationGameplay(legacy)
 
     expect(gameplay.initialAnalysisPoints).toBe(3)
     expect(gameplay.objectives[0]).toMatchObject({ id: 'default-establish-case', kind: 'primary' })
     expect(gameplay.objectives.some((objective) => objective.id === 'default-complete-archive')).toBe(true)
-    expect(gameplay.hints).toHaveLength(caseDefinition.clues.length)
+    expect(gameplay.hints).toHaveLength(legacy.clues.length)
     expect(gameplay.hints[0]?.tiers).toHaveLength(3)
     expect(gameplay.challenges.map((challenge) => challenge.id)).toEqual([
       'default-independent-analysis',
@@ -71,4 +73,3 @@ describe('deep investigation gameplay defaults', () => {
     if (!result.success) expect(result.error.issues[0]?.path).toEqual(['gameplay', 'hints', 0, 'tiers', 0, 'cost'])
   })
 })
-
