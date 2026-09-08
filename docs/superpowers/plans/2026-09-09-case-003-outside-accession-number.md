@@ -72,7 +72,7 @@ Render `TerminalApp`, `VersionDiffApp`, `SitemapApp`, and `DataDeskApp`; click t
 
 - [ ] **Step 2: Run the focused test and confirm red**
 
-Run: `npm test -- src/features/apps/archiveApplications.test.tsx src/cases/runtimeFoundation.test.ts`  
+Run: `npm test -- src/features/apps/archiveApplications.test.tsx src/cases/runtimeFoundation.test.ts`
 Expected: FAIL because the extended action is rejected by the discovery type/schema and the applications do not dispatch those actions.
 
 - [ ] **Step 3: Expand the action contract without expanding execution authority**
@@ -108,7 +108,7 @@ Hide audio transcript text until the player chooses “查看转写”, and make
 
 - [ ] **Step 5: Run the focused tests and confirm green**
 
-Run: `npm test -- src/features/apps/archiveApplications.test.tsx src/cases/runtimeFoundation.test.ts`  
+Run: `npm test -- src/features/apps/archiveApplications.test.tsx src/cases/runtimeFoundation.test.ts`
 Expected: PASS, including one-time clue notification behavior inherited from `discoverClues`.
 
 - [ ] **Step 6: Commit the engine interaction slice**
@@ -154,7 +154,7 @@ Also update the runtime registry assertion to expect all three IDs and the title
 
 - [ ] **Step 2: Run the case tests and confirm red**
 
-Run: `npm test -- src/cases/case-003/case.test.ts src/cases/runtimeFoundation.test.ts`  
+Run: `npm test -- src/cases/case-003/case.test.ts src/cases/runtimeFoundation.test.ts`
 Expected: FAIL because `case-003/case.ts` and its registry entry do not exist.
 
 - [ ] **Step 3: Create the local case artwork**
@@ -196,7 +196,7 @@ Import `case-003/case` in `src/cases/registry.ts`, append it to the built-in map
 
 - [ ] **Step 6: Run the release gates and confirm green**
 
-Run: `npm test -- src/cases/case-003/case.test.ts src/cases/runtimeFoundation.test.ts src/cases/validateCases.test.ts`  
+Run: `npm test -- src/cases/case-003/case.test.ts src/cases/runtimeFoundation.test.ts src/cases/validateCases.test.ts`
 Expected: PASS for all three built-in definitions with no validation errors.
 
 - [ ] **Step 7: Commit the case content slice**
@@ -234,7 +234,7 @@ Save `C02` into case 003, activate case 001, then reactivate case 003 and assert
 
 - [ ] **Step 2: Run lifecycle tests and confirm red**
 
-Run: `npm test -- src/app/appPhase.test.tsx src/features/museum/MuseumHome.test.tsx src/store/gameStore.test.ts src/features/result/ResultScreen.test.tsx`  
+Run: `npm test -- src/app/appPhase.test.tsx src/features/museum/MuseumHome.test.tsx src/store/gameStore.test.ts src/features/result/ResultScreen.test.tsx`
 Expected: at least one count/content assertion fails before third-case fixtures are updated.
 
 - [ ] **Step 3: Update only count-sensitive fixtures and assertions**
@@ -243,7 +243,7 @@ Change fixed completed-card counts from two to three only where the test intenti
 
 - [ ] **Step 4: Run lifecycle tests and confirm green**
 
-Run the same command.  
+Run the same command.
 Expected: PASS, including independent save and idempotent reward assertions.
 
 - [ ] **Step 5: Commit lifecycle coverage**
@@ -279,7 +279,7 @@ The journey must:
 
 - [ ] **Step 2: Run the journey and confirm red**
 
-Run: `npx playwright test e2e/case-003.spec.ts --project=chromium`  
+Run: `npx playwright test e2e/case-003.spec.ts --project=chromium`
 Expected: FAIL at the first missing or inaccessible case 003 control.
 
 - [ ] **Step 3: Stabilize selectors without weakening assertions**
@@ -288,7 +288,7 @@ Use roles, accessible names and `.exhibit-row` scoping. If a control has no stab
 
 - [ ] **Step 4: Run the journey and confirm green**
 
-Run: `npx playwright test e2e/case-003.spec.ts --project=chromium`  
+Run: `npx playwright test e2e/case-003.spec.ts --project=chromium`
 Expected: PASS with no page errors, uncaught exceptions or failed local asset requests.
 
 - [ ] **Step 5: Commit the browser regression**
@@ -326,7 +326,7 @@ Capture the museum with the third row visible, investigation with a version or t
 
 - [ ] **Step 2: Generate the screenshots**
 
-Run: `npx playwright test e2e/case-003.spec.ts --project=chromium --update-snapshots`  
+Run: `npx playwright test e2e/case-003.spec.ts --project=chromium --update-snapshots`
 Expected: PASS and three non-empty PNG files.
 
 - [ ] **Step 3: Visually inspect all three images**
@@ -365,24 +365,24 @@ Add a v0.6.0 changelog bullet for the third complete case and the safe extended-
 
 - [ ] **Step 2: Run focused content validation**
 
-Run: `npm run validate:cases`  
+Run: `npm run validate:cases`
 Expected: PASS for case 001, case 002 and case 003.
 
 - [ ] **Step 3: Run the complete quality gate**
 
-Run: `npm run check`  
+Run: `npm run check`
 Expected: typecheck, lint, all Vitest suites, case validation, editor example validation and production build PASS.
 
 - [ ] **Step 4: Run coverage and complete browser regression**
 
-Run: `npm run test:coverage`  
-Expected: PASS and a generated local coverage report.  
-Run: `npm run e2e`  
+Run: `npm run test:coverage`
+Expected: PASS and a generated local coverage report.
+Run: `npm run e2e`
 Expected: all Playwright projects PASS with zero failed tests.
 
 - [ ] **Step 5: Review the final diff and repository hygiene**
 
-Run: `git diff --check` and `git status --short`.  
+Run: `git diff --check` and `git status --short`.
 Expected: no whitespace errors; only intended source, tests, docs and screenshots are staged or modified. Confirm `node_modules`, `dist`, coverage output, Playwright videos, traces, tokens and machine-specific paths are not tracked.
 
 - [ ] **Step 6: Commit documentation and release evidence**
