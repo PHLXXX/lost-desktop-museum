@@ -284,10 +284,13 @@
 .audio-runtime p { padding: 12px; color: var(--ink-1); border-left: 2px solid #657d78; background: var(--base-2); line-height: 1.7; }
 .broadcast-runtime > header { display: grid; height: 42px; align-items: center; padding: 0 12px; grid-template-columns: 150px 1fr auto; border-bottom: 1px solid var(--line); background: var(--base-2); font: 10px var(--font-data); }
 .broadcast-runtime > header b { color: #9fbea5; }
-.broadcast-runtime article { display: grid; padding: 14px; grid-template-columns: 90px 1fr; border-bottom: 1px solid var(--line); }
+.broadcast-runtime .broadcast-event { display: grid; width: 100%; padding: 14px; color: inherit; grid-template-columns: 90px 1fr; border: 0; border-bottom: 1px solid var(--line); background: transparent; text-align: left; }
+.broadcast-runtime .broadcast-event:hover, .broadcast-runtime .broadcast-event:focus-visible { background: var(--base-3); }
 .broadcast-runtime time { color: var(--cyan); font: 13px var(--font-data); }
-.broadcast-runtime article p { margin: 5px 0 0; color: var(--ink-2); }
+.broadcast-runtime .broadcast-event small { display: block; margin-top: 5px; color: var(--ink-2); }
 .data-runtime { padding: 16px; }
+.data-runtime > header { display: flex; align-items: center; gap: 12px; }
+.data-runtime > header h2 { flex: 1; }
 .data-runtime table { width: 100%; border-collapse: collapse; }
 .data-runtime th, .data-runtime td { padding: 9px; border: 1px solid var(--line); text-align: left; }
 .data-runtime th { color: var(--ink-2); background: var(--base-3); font: 10px var(--font-data); }
@@ -303,6 +306,7 @@
 .diff-runtime pre { margin: 0; padding: 14px; background: var(--base-0); white-space: pre-wrap; }
 .diff-runtime pre:first-child { border-left: 3px solid #8c5e5b; }
 .diff-runtime pre:last-child { border-left: 3px solid #5f8068; }
+.diff-runtime .diff-verify { margin-top: 10px; }
 .sitemap-runtime { position: relative; padding: 16px; }
 .sitemap-runtime > div { display: grid; max-width: 65%; gap: 12px; padding: 20px; border: 1px solid var(--line); }
 .sitemap-runtime > div button { display: flex; width: 180px; align-items: center; gap: 8px; padding: 8px; border: 1px solid var(--line); background: var(--base-3); text-align: left; }

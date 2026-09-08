@@ -1,14 +1,23 @@
 export type AppId = 'files' | 'messages' | 'mail' | 'photos' | 'browser' | 'calendar' | 'recycle' | 'logs' | 'audio' | 'broadcast' | 'data' | 'terminal' | 'versions' | 'sitemap' | 'evidence' | 'settings'
 
-export type InvestigationAction =
-  | { type: 'OPEN_ITEM'; itemId: string }
-  | { type: 'VIEW_METADATA'; itemId: string }
-  | { type: 'COMPARE_ITEMS'; itemId: string }
-  | { type: 'VIEW_TRANSCRIPT'; itemId: string }
-  | { type: 'UNLOCK_ITEM'; itemId: string }
-  | { type: 'VIEW_LOG'; itemId: string }
+export type FileClueActionType =
+  | 'OPEN_ITEM'
+  | 'VIEW_METADATA'
+  | 'COMPARE_ITEMS'
+  | 'VIEW_TRANSCRIPT'
+  | 'UNLOCK_ITEM'
+  | 'VIEW_LOG'
 
-export type GameEventType = InvestigationAction['type'] | 'VIEW_MAIL_HEADERS' | 'RESTORE_ITEM' | 'RUN_COMMAND' | 'VIEW_AUDIO_MARKER' | 'COMPARE_AUDIO' | 'VIEW_MAP_LOCATION' | 'VIEW_VERSION_DIFF' | 'CREATE_RELATION'
+export type InvestigationActionType =
+  | FileClueActionType
+  | 'RUN_COMMAND'
+  | 'VIEW_AUDIO_MARKER'
+  | 'VIEW_MAP_LOCATION'
+  | 'VIEW_VERSION_DIFF'
+
+export type InvestigationAction = { type: InvestigationActionType; itemId: string }
+
+export type GameEventType = InvestigationActionType | 'VIEW_MAIL_HEADERS' | 'RESTORE_ITEM' | 'COMPARE_AUDIO' | 'CREATE_RELATION'
 
 export type CaseCondition =
   | { type: 'event'; eventType: GameEventType; targetId: string }
@@ -102,7 +111,7 @@ export interface VirtualFile {
   recoveryPath?: string
   desktopShortcut?: boolean
   metadata?: Record<string, string>
-  clueAction?: InvestigationAction['type']
+  clueAction?: FileClueActionType
 }
 export interface VirtualFolder { id: string; name: string }
 export interface ChatMessage { id: string; sender: string; time: string; text: string; attachmentId?: string; unread?: boolean; clueId?: string }

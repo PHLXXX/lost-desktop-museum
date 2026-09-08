@@ -38,6 +38,10 @@ const actionLabels: Record<ClueDefinition['discovery']['type'], string> = {
   VIEW_TRANSCRIPT: '查看转写内容',
   UNLOCK_ITEM: '寻找信息并解锁受保护内容',
   VIEW_LOG: '打开日志行的详细信息',
+  RUN_COMMAND: '运行案件提供的安全查询',
+  VIEW_AUDIO_MARKER: '查看音轨的文字转写',
+  VIEW_MAP_LOCATION: '打开地点并阅读详细说明',
+  VIEW_VERSION_DIFF: '核验记录修改前后的差异',
 }
 
 function resolveTargetLabel(definition: CaseDefinition, targetId: string): string {
@@ -55,6 +59,7 @@ function resolveTargetLabel(definition: CaseDefinition, targetId: string): strin
     ?? definition.audioTracks.find((item) => item.id === targetId)?.title
     ?? definition.broadcastEvents.find((item) => item.id === targetId)?.title
     ?? definition.dataTables.find((item) => item.id === targetId)?.title
+    ?? definition.terminalEntries.find((item) => item.id === targetId)?.command
     ?? definition.versionDiffs.find((item) => item.id === targetId)?.title
     ?? definition.sitemap.find((item) => item.id === targetId)?.label
     ?? '对应记录'
