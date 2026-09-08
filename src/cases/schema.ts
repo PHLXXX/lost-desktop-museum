@@ -53,11 +53,59 @@ const legacyTriggerSchema = z.object({ id: z.string().min(1), kind: z.enum(['clu
 const declarativeTriggerSchema = z.object({ id: z.string().min(1), name: z.string().min(1), once: z.boolean(), condition: conditionSchema, effects: z.array(effectSchema), reducedMotionEffects: z.array(effectSchema), safeModeEffects: z.array(effectSchema) }).strict()
 const questionSchema = z.object({ id: z.string().min(1), prompt: z.string().min(1), options: z.array(z.object({ id: z.string().min(1), label: z.string().min(1) }).strict()).min(2), correctId: z.string().min(1), points: z.number().int().nonnegative() }).strict()
 const resultLevelSchema = z.object({ id: z.string().min(1), label: z.string().min(1), minScore: z.number().int().min(0).max(100), maxScore: z.number().int().min(0).max(100), description: z.string() }).strict()
+const gameplayIdSchema = z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/)
+const gameplayRequirementSchema = z.discriminatedUnion('type', [
+  z.object({ type: z.literal('all-clues') }).strict(),
+  z.object({ type: z.literal('no-hints') }).strict(),
+  z.object({ type: z.literal('score-at-least'), value: z.number().int().min(0).max(100) }).strict(),
+  z.object({ type: z.literal('relation-count-at-least'), value: z.number().int().min(0).max(100) }).strict(),
+  z.object({ type: z.literal('objective'), objectiveId: gameplayIdSchema }).strict(),
+])
+const objectiveSchema = z.object({
+  id: gameplayIdSchema,
+  title: z.string().trim().min(1).max(120),
+  description: z.string().trim().min(1).max(500),
+  kind: z.enum(['primary', 'optional']),
+  condition: conditionSchema,
+  revealWhen: conditionSchema.optional(),
+}).strict()
+const hintTierSchema = z.object({
+  id: gameplayIdSchema,
+  label: z.string().trim().min(1).max(80),
+  text: z.string().trim().min(1).max(500),
+  cost: z.number().int().positive().max(9),
+}).strict()
+const hintSchema = z.object({
+  id: gameplayIdSchema,
+  clueId: z.string().min(1),
+  label: z.string().trim().min(1).max(120),
+  tiers: z.tuple([hintTierSchema, hintTierSchema, hintTierSchema]),
+}).strict()
+const challengeSchema = z.object({
+  id: gameplayIdSchema,
+  title: z.string().trim().min(1).max(120),
+  description: z.string().trim().min(1).max(500),
+  requirements: z.array(gameplayRequirementSchema).min(1).max(12),
+}).strict()
+const endingVariantSchema = z.object({
+  id: gameplayIdSchema,
+  title: z.string().trim().min(1).max(120),
+  text: z.string().trim().min(1).max(2000),
+  priority: z.number().int().min(-100).max(100),
+  requirements: z.array(gameplayRequirementSchema).min(1).max(12),
+}).strict()
+const gameplaySchema = z.object({
+  initialAnalysisPoints: z.number().int().min(0).max(9),
+  objectives: z.array(objectiveSchema).max(24),
+  hints: z.array(hintSchema).max(128),
+  challenges: z.array(challengeSchema).max(24),
+  endingVariants: z.array(endingVariantSchema).max(12),
+}).strict()
 
 export const caseDefinitionSchema = z.object({
   formatVersion: z.literal(1), id: z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/), title: z.string().min(1), owner: z.string().min(1), manifest: manifestSchema, subject: subjectSchema,
   entities: z.array(entitySchema), desktop: desktopSchema, applications: z.array(applicationSchema).min(2), assets: z.array(assetSchema), timeline: z.array(z.object({ time: z.string(), text: z.string() }).strict()),
   folders: z.array(folderSchema), files: z.array(fileSchema), chats: z.array(chatSchema), emails: z.array(emailSchema), browser: z.array(browserSchema), calendar: z.array(calendarSchema), photos: z.array(photoSchema), logs: z.array(logSchema),
   audioTracks: z.array(audioSchema), broadcastEvents: z.array(broadcastSchema), dataTables: z.array(dataTableSchema), terminalEntries: z.array(terminalEntrySchema), versionDiffs: z.array(versionDiffSchema), sitemap: z.array(sitemapNodeSchema),
-  clues: z.array(clueSchema).min(1), triggers: z.array(z.union([legacyTriggerSchema, declarativeTriggerSchema])), questions: z.array(questionSchema).min(1), resultLevels: z.array(resultLevelSchema).min(1), coreEvidenceIds: z.array(z.string()), correctContradictions: z.array(z.tuple([z.string(), z.string()])), ending: z.string(),
+  clues: z.array(clueSchema).min(1), triggers: z.array(z.union([legacyTriggerSchema, declarativeTriggerSchema])), questions: z.array(questionSchema).min(1), resultLevels: z.array(resultLevelSchema).min(1), coreEvidenceIds: z.array(z.string()), correctContradictions: z.array(z.tuple([z.string(), z.string()])), ending: z.string(), gameplay: gameplaySchema.optional(),
 }).strict()

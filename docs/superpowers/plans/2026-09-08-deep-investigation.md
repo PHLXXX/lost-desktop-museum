@@ -32,24 +32,24 @@
 - Produces: `InvestigationGameplayDefinition`, `InvestigationObjectiveDefinition`, `InvestigationHintDefinition`, `InvestigationChallengeDefinition`, `InvestigationEndingVariant`, `GameplayRequirement`.
 - Produces: `resolveInvestigationGameplay(caseDefinition: CaseDefinition): InvestigationGameplayDefinition`.
 
-- [ ] **Step 1: Write failing schema and default-resolution tests**
+- [x] **Step 1: Write failing schema and default-resolution tests**
 
 Assert that a valid optional gameplay block parses, invalid hint costs fail with a field path, and a legacy case resolves a primary objective, per-clue hints, four challenges, and no alternate ending.
 
-- [ ] **Step 2: Run the focused tests and verify RED**
+- [x] **Step 2: Run the focused tests and verify RED**
 
 Run: `npm test -- src/gameplay/defaultGameplay.test.ts src/cases/runtimeFoundation.test.ts`  
 Expected: FAIL because gameplay types/schema and `resolveInvestigationGameplay` do not exist.
 
-- [ ] **Step 3: Add bounded gameplay types and strict Zod schemas**
+- [x] **Step 3: Add bounded gameplay types and strict Zod schemas**
 
 Use kebab-case IDs, `initialAnalysisPoints` from 0 through 9, exactly three tiers per hint with positive integer costs, and bounded arrays. Add `gameplay?: InvestigationGameplayDefinition` to `CaseDefinition`.
 
-- [ ] **Step 4: Implement deterministic defaults**
+- [x] **Step 4: Implement deterministic defaults**
 
 Generate objective IDs under `default-*`, derive clue hint text from source/action/target labels, omit the relationship objective when there are no configured contradictions, and return stable ordering by case definition order.
 
-- [ ] **Step 5: Run focused tests and verify GREEN**
+- [x] **Step 5: Run focused tests and verify GREEN**
 
 Run: `npm test -- src/gameplay/defaultGameplay.test.ts src/cases/runtimeFoundation.test.ts`  
 Expected: PASS.

@@ -51,6 +51,19 @@ describe('strict multi-case runtime foundation', () => {
     expect(validateCaseDefinition(executable).some((issue) => issue.category === 'security' || issue.category === 'schema')).toBe(true)
   })
 
+  it('accepts an optional declarative gameplay layer', () => {
+    const candidate = structuredClone(case001) as CaseDefinition & { gameplay: unknown }
+    candidate.gameplay = {
+      initialAnalysisPoints: 3,
+      objectives: [{ id: 'find-core', title: '形成证据基础', description: '记录关键事实。', kind: 'primary', condition: { type: 'clue-count', count: 3 } }],
+      hints: [],
+      challenges: [{ id: 'all-clues', title: '完整归档', description: '发现全部线索。', requirements: [{ type: 'all-clues' }] }],
+      endingVariants: [],
+    }
+
+    expect(validateCaseDefinition(candidate).filter((issue) => issue.severity === 'error')).toEqual([])
+  })
+
   it.each([
     ['message', (definition: CaseDefinition) => { definition.chats[0]!.messages[0]!.clueId = 'missing-clue' }],
     ['mail', (definition: CaseDefinition) => { definition.emails[0]!.clueId = 'missing-clue' }],

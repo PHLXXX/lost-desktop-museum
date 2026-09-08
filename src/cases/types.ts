@@ -132,6 +132,36 @@ export type GameTrigger =
 export interface EvidenceRelation { id: string; from: string; to: string; type: '相互矛盾' | '相互支持' | '时间先后' | '同一人物' }
 export interface DeductionQuestion { id: string; prompt: string; options: { id: string; label: string }[]; correctId: string; points: number }
 export interface DeductionResultLevel { id: string; label: string; minScore: number; maxScore: number; description: string }
+export interface InvestigationObjectiveDefinition {
+  id: string
+  title: string
+  description: string
+  kind: 'primary' | 'optional'
+  condition: CaseCondition
+  revealWhen?: CaseCondition
+}
+export interface InvestigationHintTier { id: string; label: string; text: string; cost: number }
+export interface InvestigationHintDefinition {
+  id: string
+  clueId: string
+  label: string
+  tiers: [InvestigationHintTier, InvestigationHintTier, InvestigationHintTier]
+}
+export type GameplayRequirement =
+  | { type: 'all-clues' }
+  | { type: 'no-hints' }
+  | { type: 'score-at-least'; value: number }
+  | { type: 'relation-count-at-least'; value: number }
+  | { type: 'objective'; objectiveId: string }
+export interface InvestigationChallengeDefinition { id: string; title: string; description: string; requirements: GameplayRequirement[] }
+export interface InvestigationEndingVariant { id: string; title: string; text: string; priority: number; requirements: GameplayRequirement[] }
+export interface InvestigationGameplayDefinition {
+  initialAnalysisPoints: number
+  objectives: InvestigationObjectiveDefinition[]
+  hints: InvestigationHintDefinition[]
+  challenges: InvestigationChallengeDefinition[]
+  endingVariants: InvestigationEndingVariant[]
+}
 export interface DeductionSubmission { answers: string[]; evidenceIds: string[]; contradictionPairs: [string, string][]; note: string }
 export interface DeductionResult { score: number; level: string; answerScore: number; evidenceScore: number; relationScore: number; note: string }
 export interface DeductionDraft { answers: Record<string, string>; note: string }
@@ -194,4 +224,5 @@ export interface CaseDefinition {
   coreEvidenceIds: string[]
   correctContradictions: [string, string][]
   ending: string
+  gameplay?: InvestigationGameplayDefinition
 }
