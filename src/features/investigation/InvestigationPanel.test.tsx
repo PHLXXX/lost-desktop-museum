@@ -46,4 +46,3 @@ describe('investigation panel', () => {
     expect(screen.queryByText('已达成')).not.toBeInTheDocument()
   })
 })
-

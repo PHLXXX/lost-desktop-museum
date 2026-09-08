@@ -196,7 +196,7 @@ Use a 360 px right panel on desktop and a bounded bottom drawer under 1024 px. R
 Run: `npm test -- src/features/investigation/InvestigationPanel.test.tsx src/features/desktop/Desktop.test.tsx`  
 Expected: PASS.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 Commit: `feat: add investigation objectives and hints panel`
 
@@ -214,29 +214,29 @@ Commit: `feat: add investigation objectives and hints panel`
 - Consumes: `resolveInvestigationGameplay`, `getObjectiveStates`, `evaluateChallenges`, and `selectEnding`.
 - No new route or global navigation state.
 
-- [ ] **Step 1: Write failing presentation tests**
+- [x] **Step 1: Write failing presentation tests**
 
 Assert that case detail shows analysis points/challenge names, museum rows show `专精 x/y`, and the result report shows objective completion, current-run challenge badges, hints used, play time, and selected ending text.
 
-- [ ] **Step 2: Run focused tests and verify RED**
+- [x] **Step 2: Run focused tests and verify RED**
 
 Run: `npm test -- src/features/museum/MuseumHome.test.tsx src/features/result/ResultScreen.test.tsx`  
 Expected: FAIL on missing mastery and report content.
 
-- [ ] **Step 3: Add case preview and museum mastery**
+- [x] **Step 3: Add case preview and museum mastery**
 
 Use derived gameplay data, hide zero-value noise, and preserve existing start/continue/restart actions.
 
-- [ ] **Step 4: Upgrade the result sheet**
+- [x] **Step 4: Upgrade the result sheet**
 
 Keep the current 100-point breakdown, add objective/challenge/stat sections, render the persisted ending choice, and describe incomplete objectives only at their authored summary level.
 
-- [ ] **Step 5: Run focused tests and verify GREEN**
+- [x] **Step 5: Run focused tests and verify GREEN**
 
 Run: `npm test -- src/features/museum/MuseumHome.test.tsx src/features/result/ResultScreen.test.tsx`  
 Expected: PASS.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 Commit: `feat: add mastery and deep investigation reports`
 

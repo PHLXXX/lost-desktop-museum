@@ -1,10 +1,14 @@
 import { render, screen, waitFor, within } from '@testing-library/react'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { caseDefinition as case001 } from '../../cases/case-001/case'
 import { caseDefinition as baseDefinition } from '../../cases/case-002/case'
 import { registerInstalledCase, unregisterInstalledCase } from '../../cases/registry'
 import { communityInstallationRepository } from '../../community/install/communityInstallationRepository'
 import type { CommunityInstallationRecord } from '../../community/types/installedCaseSource'
 import { caseRepository } from '../../storage/caseRepository'
+import { createFreshSave } from '../../engine/persistence'
+import { resolveInvestigationGameplay } from '../../gameplay/defaultGameplay'
+import { useGameStore } from '../../store/gameStore'
 import { MuseumHome } from './MuseumHome'
 
 const caseId = 'case-community-source-test'
@@ -32,6 +36,11 @@ const installation: CommunityInstallationRecord = {
 }
 
 describe('MuseumHome case sources', () => {
+  beforeEach(() => {
+    localStorage.clear()
+    useGameStore.setState({ ...createFreshSave(), saveStatus: 'idle', notice: null, corruptSave: false })
+  })
+
   afterEach(async () => {
     vi.restoreAllMocks()
     unregisterInstalledCase(caseId)
@@ -52,5 +61,15 @@ describe('MuseumHome case sources', () => {
 
     releaseInstallations([installation])
     await waitFor(() => expect(within(row).getByText('社区档案')).toBeInTheDocument())
+  })
+
+  it('shows the best earned investigation mastery for each case', () => {
+    const challengeCount = resolveInvestigationGameplay(case001).challenges.length
+    useGameStore.setState({ bestChallengeIds: ['default-independent-analysis', 'default-complete-archive'] })
+
+    render(<MuseumHome onOpenCase={() => undefined} onContinue={() => undefined} />)
+
+    const row = screen.getByRole('region', { name: case001.title })
+    expect(within(row).getByText(`专精 2 / ${challengeCount}`)).toBeInTheDocument()
   })
 })

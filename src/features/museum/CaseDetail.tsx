@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useActiveCaseDefinition } from '../../cases/useActiveCase'
+import { resolveInvestigationGameplay } from '../../gameplay/defaultGameplay'
 import { useGameStore } from '../../store/gameStore'
 import { useWindowStore } from '../../store/windowStore'
 import { ArchiveDialog } from '../system/ArchiveDialog'
@@ -9,6 +10,7 @@ export function CaseDetail({ onBack, onStart, onContinue }: { onBack: () => void
   const { caseStarted, discoveredClueIds, lastSavedAt, playTime, settings, updateSettings, resetCase } = useGameStore()
   const [restartOpen, setRestartOpen] = useState(false)
   const hasProgress = caseStarted || discoveredClueIds.length > 0 || playTime > 0
+  const gameplay = resolveInvestigationGameplay(caseDefinition)
 
   return (
     <main className="case-detail-shell">
@@ -27,6 +29,15 @@ export function CaseDetail({ onBack, onStart, onContinue }: { onBack: () => void
             <div><dt>当前进度</dt><dd>{discoveredClueIds.length} / {caseDefinition.clues.length}</dd></div>
             <div><dt>最近保存</dt><dd>{hasProgress ? new Date(lastSavedAt).toLocaleString('zh-CN', { hour12: false }) : '—'}</dd></div>
           </dl>
+          <section className="case-gameplay-preview" aria-labelledby="case-gameplay-title">
+            <header>
+              <div><h2 id="case-gameplay-title">深度调查规则</h2><p>目标会随调查推进，挑战在提交推理后结算。</p></div>
+              <dl><dt>分析额度</dt><dd>{gameplay.initialAnalysisPoints} 点</dd></dl>
+            </header>
+            <div className="case-challenge-preview">
+              {gameplay.challenges.map((challenge) => <article key={challenge.id}><strong>{challenge.title}</strong><span>{challenge.description}</span></article>)}
+            </div>
+          </section>
           <section className="case-instructions" aria-labelledby="case-instructions-title">
             <h2 id="case-instructions-title">操作说明</h2>
             <ol><li>双击桌面图标打开应用。</li><li>调查可疑内容并查看属性。</li><li>将重要内容加入证据板。</li><li>发现至少 6 条线索后可以提交推理。</li><li>按 Esc 随时打开系统菜单。</li></ol>

@@ -9,6 +9,7 @@ import { caseRepository } from '../../storage/caseRepository'
 import { assetRepository } from '../../storage/assetRepository'
 import { downloadFile } from '../../editor/utils/downloadFile'
 import { communityInstallationRepository } from '../../community/install/communityInstallationRepository'
+import { resolveInvestigationGameplay } from '../../gameplay/defaultGameplay'
 
 type MuseumDialog = 'about' | 'credits' | 'settings' | null
 type CaseSource = 'built-in' | 'community' | 'local' | 'pending'
@@ -36,6 +37,8 @@ function ExhibitRow({ definition, saveOverride, source, onOpen, onContinue, onRe
   const progress = Math.round((discovered / definition.clues.length) * 100)
   const index = definition.id.replace('case-', '')
   const suffix = definition.id === 'case-001' ? undefined : definition.title
+  const challenges = resolveInvestigationGameplay(definition).challenges
+  const mastery = challenges.filter((challenge) => save.bestChallengeIds.includes(challenge.id)).length
   return (
     <section className="exhibit-row" aria-labelledby={`case-title-${definition.id}`}>
       <div className="exhibit-index"><span>档案</span><strong>{index}</strong><i aria-hidden="true" /></div>
@@ -50,6 +53,7 @@ function ExhibitRow({ definition, saveOverride, source, onOpen, onContinue, onRe
           <div><dt>游玩时长</dt><dd>{formatPlayTime(save.playTime)}</dd></div>
           <div><dt>最后保存</dt><dd>{hasProgress ? new Date(save.lastSavedAt).toLocaleString('zh-CN', { hour12: false }) : '—'}</dd></div>
           <div><dt>最高分</dt><dd>{save.bestScore ?? save.deductionResult?.score ?? '—'}</dd></div>
+          {challenges.length > 0 && <div><dt>案件专精</dt><dd>专精 {mastery} / {challenges.length}</dd></div>}
         </dl>
       </div>
       <div className="exhibit-action">
