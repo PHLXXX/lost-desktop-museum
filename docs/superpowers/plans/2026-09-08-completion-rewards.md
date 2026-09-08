@@ -99,7 +99,7 @@ Commit: `feat: add completion reward model`
 - Produces: `RewardUnlockRecord`, `RewardProfile`, `loadRewardProfile()`, `saveRewardProfile()`, `applyArchiveTheme()`, and `useRewardStore`.
 - Consumes: evaluated reward definitions from Task 1.
 
-- [ ] **Step 1: Write failing storage tests**
+- [x] **Step 1: Write failing storage tests**
 
 ```ts
 expect(recordRewards(emptyProfile, case001, [artifact], now).unlocks).toHaveLength(1)
@@ -108,17 +108,17 @@ expect(loadRewardProfile(corruptStorage)).toEqual(defaultRewardProfile)
 expect(loadRewardProfile(invalidThemeStorage).selectedTheme).toBe('archive-standard')
 ```
 
-- [ ] **Step 2: Run tests and verify RED**
+- [x] **Step 2: Run tests and verify RED**
 
 Run: `npm test -- src/rewards/rewardProfile.test.ts src/rewards/archiveThemes.test.ts`
 
 Expected: FAIL because the profile and theme modules do not exist.
 
-- [ ] **Step 3: Implement versioned storage and allowlisted themes**
+- [x] **Step 3: Implement versioned storage and allowlisted themes**
 
 Use key `archive-os:reward-profile`; normalize unknown data instead of throwing; keep the first `unlockedAt`; namespace record keys as `${caseId}:${rewardId}`; apply only known theme IDs to `document.documentElement.dataset.archiveTheme`.
 
-- [ ] **Step 4: Implement the Zustand facade**
+- [x] **Step 4: Implement the Zustand facade**
 
 ```ts
 type RewardState = RewardProfile & {
@@ -129,11 +129,11 @@ type RewardState = RewardProfile & {
 
 `unlock()` returns only newly created record keys. `selectTheme()` succeeds for the default theme or an unlocked theme reward, persists once, and applies the DOM attribute.
 
-- [ ] **Step 5: Add three token palettes and startup restoration**
+- [x] **Step 5: Add three token palettes and startup restoration**
 
 Keep the default palette unchanged. `departure-night` uses restrained amber/indigo accents; `signal-blueprint` uses cyan/blue accents. Initialize the store before React render so refreshing restores the selected theme without a flash.
 
-- [ ] **Step 6: Run tests and commit**
+- [x] **Step 6: Run tests and commit**
 
 Run: `npm test -- src/rewards`
 

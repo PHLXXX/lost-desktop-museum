@@ -54,10 +54,12 @@ describe('deep investigation gameplay defaults', () => {
   })
 
   it('rejects a reward theme outside the built-in allowlist', () => {
-    const candidate = structuredClone(caseDefinition) as typeof caseDefinition & { gameplay: Record<string, unknown> }
-    candidate.gameplay = {
-      ...candidate.gameplay,
-      rewards: [{ id: 'unsafe-theme', kind: 'theme', title: '远程主题', description: '不应被接受。', themeId: 'remote-css', requirements: [] }],
+    const candidate: unknown = {
+      ...structuredClone(caseDefinition),
+      gameplay: {
+        ...structuredClone(caseDefinition.gameplay!),
+        rewards: [{ id: 'unsafe-theme', kind: 'theme', title: '远程主题', description: '不应被接受。', themeId: 'remote-css', requirements: [] }],
+      },
     }
 
     const parsed = caseDefinitionSchema.safeParse(candidate)

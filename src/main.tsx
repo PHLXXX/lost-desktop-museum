@@ -5,10 +5,14 @@ import './styles/tokens.css'
 import './styles/global.css'
 import './styles/game.css'
 import './styles/evidence.css'
+import { applyArchiveTheme } from './rewards/archiveThemes'
+import { useRewardStore } from './rewards/rewardStore'
 
 const root = document.getElementById('root')
 
 if (!root) throw new Error('Missing #root element')
+
+applyArchiveTheme(useRewardStore.getState().selectedTheme)
 
 createRoot(root).render(
   <StrictMode>
