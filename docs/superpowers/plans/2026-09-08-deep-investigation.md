@@ -308,29 +308,29 @@ Commit: `feat: author deep investigation gameplay in workshop`
 - Produces structured validation codes for duplicate IDs, missing clue/objective references, impossible points, and unreachable objective conditions.
 - Built-in cases expose authored non-spoiler hints and at least one eligible alternate archive note.
 
-- [ ] **Step 1: Write failing validation and built-in content tests**
+- [x] **Step 1: Write failing validation and built-in content tests**
 
 Assert precise error paths/codes, at least three authored hints per built-in case, valid objective references, and a reachable high-mastery ending variant.
 
-- [ ] **Step 2: Run focused tests and verify RED**
+- [x] **Step 2: Run focused tests and verify RED**
 
 Run: `npm test -- src/engine/engine.test.ts src/cases/case-001/case.test.ts src/cases/validateCases.test.ts`  
 Expected: FAIL on missing semantic checks and authored gameplay.
 
-- [ ] **Step 3: Add semantic validation**
+- [x] **Step 3: Add semantic validation**
 
 Reuse existing case target/reference inventories. Validate every gameplay collection independently and return actionable paths such as `gameplay.hints.0.clueId`.
 
-- [ ] **Step 4: Author built-in and template gameplay**
+- [x] **Step 4: Author built-in and template gameplay**
 
 Write non-spoiler objectives/hints tied to real clue IDs, generic mastery challenges, and optional archive-note endings. Update the editor example through its source draft rather than generated package output.
 
-- [ ] **Step 5: Run focused tests and case validation**
+- [x] **Step 5: Run focused tests and case validation**
 
 Run: `npm test -- src/engine/engine.test.ts src/cases/case-001/case.test.ts src/cases/validateCases.test.ts && npm run validate:editor-examples`  
 Expected: PASS.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 Commit: `feat: add authored deep investigation content`
 

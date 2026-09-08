@@ -24,6 +24,8 @@ describe('CaseDraft compiler boundary', () => {
     if (result.ok) {
       expect(result.caseDefinition.clues).toHaveLength(6)
       expect(result.caseDefinition.questions.reduce((sum, question) => sum + question.points, 0)).toBe(100)
+      expect(result.caseDefinition.gameplay?.hints.length).toBe(6)
+      expect(result.caseDefinition.gameplay?.endingVariants.length).toBeGreaterThan(0)
     }
   })
 
@@ -74,6 +76,7 @@ describe('CaseDraft compiler boundary', () => {
 
   it('keeps legacy drafts free of an authored gameplay block', () => {
     const draft = createMinimalTemplateDraft()
+    draft.gameplay = undefined
     expect(draft.gameplay).toBeUndefined()
     const compiled = compileCaseDraft(draft)
     expect(compiled.ok).toBe(true)
