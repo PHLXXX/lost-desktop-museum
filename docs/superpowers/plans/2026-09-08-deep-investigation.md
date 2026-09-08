@@ -149,7 +149,7 @@ Score first, evaluate challenges, select the ending, save current-run IDs in the
 Run: `npm test -- src/engine/persistence.test.ts src/store/gameStore.test.ts`  
 Expected: PASS.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 Commit: `feat: persist hints and case mastery`
 
@@ -170,28 +170,28 @@ Commit: `feat: persist hints and case mastery`
 - `InvestigationPanel({ open, onClose }: { open: boolean; onClose(): void })` reads active definition/store state and owns only tab and confirmation UI state.
 - `SystemMenu` receives `onOpenInvestigationPanel(): void`.
 
-- [ ] **Step 1: Write failing component tests**
+- [x] **Step 1: Write failing component tests**
 
 Test taskbar opening, text states, tab keyboard access, inline hint confirmation and cost, successful reveal, failure text, and Escape priority: confirmation → panel → system menu.
 
-- [ ] **Step 2: Run focused tests and verify RED**
+- [x] **Step 2: Run focused tests and verify RED**
 
 Run: `npm test -- src/features/investigation/InvestigationPanel.test.tsx src/features/desktop/Desktop.test.tsx`  
 Expected: FAIL because the panel and taskbar action do not exist.
 
-- [ ] **Step 3: Implement focused panel components**
+- [x] **Step 3: Implement focused panel components**
 
 Render tabs with `aria-selected`, progress with textual status, no raw IDs in normal copy, and an inline `ArchiveDialog` confirmation before spending a point.
 
-- [ ] **Step 4: Integrate taskbar, system menu, and Escape ordering**
+- [x] **Step 4: Integrate taskbar, system menu, and Escape ordering**
 
 Add `调查目标 n/m`, close the highest-level gameplay dialog first, close the panel second, and only then toggle the system menu. Do not interfere with existing modal handling.
 
-- [ ] **Step 5: Add responsive and reduced-motion styling**
+- [x] **Step 5: Add responsive and reduced-motion styling**
 
 Use a 360 px right panel on desktop and a bounded bottom drawer under 1024 px. Reuse tokens, use 4–8 px radii, and disable transitions under reduced motion.
 
-- [ ] **Step 6: Run focused tests and verify GREEN**
+- [x] **Step 6: Run focused tests and verify GREEN**
 
 Run: `npm test -- src/features/investigation/InvestigationPanel.test.tsx src/features/desktop/Desktop.test.tsx`  
 Expected: PASS.

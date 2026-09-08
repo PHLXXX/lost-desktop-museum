@@ -137,4 +137,30 @@ describe('stage two desktop interactions', () => {
     expect(screen.getByRole('menu', { name: 'A/OS 系统菜单' })).toHaveTextContent('案件快照 002')
     expect(screen.getByRole('menu', { name: 'A/OS 系统菜单' })).not.toHaveTextContent('LD-001')
   })
+
+  it('opens investigation goals from the taskbar and applies Escape priority', async () => {
+    const user = userEvent.setup()
+    render(<Desktop onReturnMuseum={vi.fn()} />)
+
+    await user.click(screen.getByRole('button', { name: /调查目标 0\/3/ }))
+    expect(screen.getByRole('dialog', { name: '深度调查' })).toBeInTheDocument()
+
+    await user.keyboard('{Escape}')
+    expect(screen.queryByRole('dialog', { name: '深度调查' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('menu', { name: 'A/OS 系统菜单' })).not.toBeInTheDocument()
+
+    await user.keyboard('{Escape}')
+    expect(screen.getByRole('menu', { name: 'A/OS 系统菜单' })).toBeInTheDocument()
+  })
+
+  it('opens investigation goals from the system menu', async () => {
+    const user = userEvent.setup()
+    render(<Desktop onReturnMuseum={vi.fn()} />)
+
+    await user.keyboard('{Escape}')
+    await user.click(screen.getByRole('menuitem', { name: /调查目标与提示/ }))
+
+    expect(screen.queryByRole('menu', { name: 'A/OS 系统菜单' })).not.toBeInTheDocument()
+    expect(screen.getByRole('dialog', { name: '深度调查' })).toBeInTheDocument()
+  })
 })
