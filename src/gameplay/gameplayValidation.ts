@@ -58,6 +58,7 @@ export function validateGameplayDefinition(definition: CaseDefinition): Validati
     ...duplicateIds(gameplay.hints, 'gameplay.hints'),
     ...duplicateIds(gameplay.challenges, 'gameplay.challenges'),
     ...duplicateIds(gameplay.endingVariants, 'gameplay.endingVariants'),
+    ...duplicateIds(gameplay.rewards ?? [], 'gameplay.rewards'),
   ]
   gameplay.objectives.forEach((objective, index) => {
     issues.push(...inspectCondition(objective.condition, `gameplay.objectives.${index}.condition`, inventory))
@@ -73,5 +74,6 @@ export function validateGameplayDefinition(definition: CaseDefinition): Validati
   })
   gameplay.challenges.forEach((challenge, index) => issues.push(...inspectRequirements(challenge.requirements, `gameplay.challenges.${index}.requirements`, objectiveIds, definition.correctContradictions.length)))
   gameplay.endingVariants.forEach((ending, index) => issues.push(...inspectRequirements(ending.requirements, `gameplay.endingVariants.${index}.requirements`, objectiveIds, definition.correctContradictions.length)))
+  gameplay.rewards?.forEach((reward, index) => issues.push(...inspectRequirements(reward.requirements, `gameplay.rewards.${index}.requirements`, objectiveIds, definition.correctContradictions.length)))
   return issues
 }

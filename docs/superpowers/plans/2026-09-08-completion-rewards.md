@@ -35,7 +35,7 @@
 - Produces: `ArchiveThemeId`, `InvestigationRewardDefinition`, `resolveInvestigationRewards(definition)`, and `evaluateRewards(definition, save, result)`.
 - Consumes: `GameplayRequirement` and `meetsGameplayRequirements()`.
 
-- [ ] **Step 1: Write failing reward-engine tests**
+- [x] **Step 1: Write failing reward-engine tests**
 
 ```ts
 expect(evaluateRewards(definition, save, undefined)).toEqual([])
@@ -43,13 +43,13 @@ expect(evaluateRewards(definition, save, result).map((item) => item.id)).toEqual
 expect(evaluateRewards(definition, noHintSave, highScoreResult).map((item) => item.id)).toContain('master-theme')
 ```
 
-- [ ] **Step 2: Run the focused tests and verify the missing API failure**
+- [x] **Step 2: Run the focused tests and verify the missing API failure**
 
 Run: `npm test -- src/gameplay/rewardEngine.test.ts`
 
 Expected: FAIL because `rewardEngine.ts` and reward types do not exist.
 
-- [ ] **Step 3: Add the optional model and evaluator**
+- [x] **Step 3: Add the optional model and evaluator**
 
 ```ts
 export type ArchiveThemeId = 'archive-standard' | 'departure-night' | 'signal-blueprint'
@@ -65,15 +65,15 @@ export interface InvestigationRewardDefinition {
 
 `evaluateRewards()` must return an empty array without a deduction result and otherwise filter `resolveInvestigationRewards()` through `meetsGameplayRequirements()`.
 
-- [ ] **Step 4: Add Schema and semantic rules**
+- [x] **Step 4: Add Schema and semantic rules**
 
 Accept at most 24 rewards; require safe IDs and non-empty titles/descriptions; require a valid `themeId` for `kind: 'theme'`; reject `themeId` on other kinds; reuse objective-reference validation.
 
-- [ ] **Step 5: Add deterministic defaults**
+- [x] **Step 5: Add deterministic defaults**
 
 Old cases receive `default-case-archive` with empty requirements and `default-complete-record` with `all-clues` plus `score-at-least: 90`.
 
-- [ ] **Step 6: Run focused tests and commit**
+- [x] **Step 6: Run focused tests and commit**
 
 Run: `npm test -- src/gameplay/rewardEngine.test.ts src/gameplay/defaultGameplay.test.ts src/gameplay/gameplayValidation.test.ts`
 

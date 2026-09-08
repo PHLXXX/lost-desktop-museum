@@ -94,12 +94,25 @@ const endingVariantSchema = z.object({
   priority: z.number().int().min(-100).max(100),
   requirements: z.array(gameplayRequirementSchema).min(1).max(12),
 }).strict()
+const archiveThemeIdSchema = z.enum(['archive-standard', 'departure-night', 'signal-blueprint'])
+const rewardSchema = z.object({
+  id: gameplayIdSchema,
+  kind: z.enum(['artifact', 'badge', 'theme']),
+  title: z.string().trim().min(1).max(120),
+  description: z.string().trim().min(1).max(500),
+  requirements: z.array(gameplayRequirementSchema).max(12),
+  themeId: archiveThemeIdSchema.optional(),
+}).strict().superRefine((reward, context) => {
+  if (reward.kind === 'theme' && !reward.themeId) context.addIssue({ code: 'custom', path: ['themeId'], message: '主题奖励必须选择内置主题。' })
+  if (reward.kind !== 'theme' && reward.themeId) context.addIssue({ code: 'custom', path: ['themeId'], message: '只有主题奖励可以指定主题。' })
+})
 const gameplaySchema = z.object({
   initialAnalysisPoints: z.number().int().min(0).max(9),
   objectives: z.array(objectiveSchema).max(24),
   hints: z.array(hintSchema).max(128),
   challenges: z.array(challengeSchema).max(24),
   endingVariants: z.array(endingVariantSchema).max(12),
+  rewards: z.array(rewardSchema).max(24).optional(),
 }).strict()
 
 export const caseDefinitionSchema = z.object({

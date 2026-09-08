@@ -4,11 +4,31 @@ import type {
   ClueDefinition,
   InvestigationGameplayDefinition,
   InvestigationHintDefinition,
+  InvestigationRewardDefinition,
 } from '../cases/types'
 
 const appLabels: Record<AppId, string> = {
   files: '文件管理器', messages: '讯息', mail: '邮件', photos: '照片', browser: '浏览记录', calendar: '日历', recycle: '回收站', logs: '系统日志',
   audio: '音频工作台', broadcast: '广播控制台', data: '数据台', terminal: '模拟终端', versions: '版本差异', sitemap: '站点地图', evidence: '证据板', settings: '设置',
+}
+
+export function createDefaultInvestigationRewards(definition: CaseDefinition): InvestigationRewardDefinition[] {
+  return [
+    {
+      id: 'default-case-archive',
+      kind: 'artifact',
+      title: `${definition.title} · 结案档案章`,
+      description: '完成一次推理后归入个人馆藏。',
+      requirements: [],
+    },
+    {
+      id: 'default-complete-record',
+      kind: 'badge',
+      title: '完整归档员',
+      description: '发现全部线索并以至少 90 点可信度结案。',
+      requirements: [{ type: 'all-clues' }, { type: 'score-at-least', value: 90 }],
+    },
+  ]
 }
 
 const actionLabels: Record<ClueDefinition['discovery']['type'], string> = {
@@ -75,10 +95,10 @@ export function createDefaultInvestigationGameplay(definition: CaseDefinition): 
       { id: 'default-precise-conclusion', title: '精准结案', description: '推理可信度达到 90 分。', requirements: [{ type: 'score-at-least', value: 90 }] },
     ],
     endingVariants: [],
+    rewards: createDefaultInvestigationRewards(definition),
   }
 }
 
 export function resolveInvestigationGameplay(definition: CaseDefinition): InvestigationGameplayDefinition {
   return definition.gameplay ?? createDefaultInvestigationGameplay(definition)
 }
-

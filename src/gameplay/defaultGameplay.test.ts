@@ -21,6 +21,7 @@ describe('deep investigation gameplay defaults', () => {
       'default-precise-conclusion',
     ])
     expect(gameplay.endingVariants).toEqual([])
+    expect(gameplay.rewards?.map((reward) => reward.id)).toEqual(['default-case-archive', 'default-complete-record'])
   })
 
   it('accepts a strict authored gameplay block', () => {
@@ -46,9 +47,22 @@ describe('deep investigation gameplay defaults', () => {
       }],
       challenges: [{ id: 'complete', title: '完整归档', description: '找到全部线索。', requirements: [{ type: 'all-clues' }] }],
       endingVariants: [{ id: 'master', title: '完整还原', text: '所有记录形成了闭合轨迹。', priority: 10, requirements: [{ type: 'score-at-least', value: 90 }] }],
+      rewards: [{ id: 'archive-token', kind: 'artifact', title: '结案藏品', description: '完成案件的纪念记录。', requirements: [] }],
     }
 
     expect(caseDefinitionSchema.safeParse(candidate).success).toBe(true)
+  })
+
+  it('rejects a reward theme outside the built-in allowlist', () => {
+    const candidate = structuredClone(caseDefinition) as typeof caseDefinition & { gameplay: Record<string, unknown> }
+    candidate.gameplay = {
+      ...candidate.gameplay,
+      rewards: [{ id: 'unsafe-theme', kind: 'theme', title: '远程主题', description: '不应被接受。', themeId: 'remote-css', requirements: [] }],
+    }
+
+    const parsed = caseDefinitionSchema.safeParse(candidate)
+    expect(parsed.success).toBe(false)
+    if (!parsed.success) expect(parsed.error.issues[0]?.path).toEqual(['gameplay', 'rewards', 0, 'themeId'])
   })
 
   it('rejects a zero-cost hint tier with its field path', () => {

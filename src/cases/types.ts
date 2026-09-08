@@ -155,12 +155,22 @@ export type GameplayRequirement =
   | { type: 'objective'; objectiveId: string }
 export interface InvestigationChallengeDefinition { id: string; title: string; description: string; requirements: GameplayRequirement[] }
 export interface InvestigationEndingVariant { id: string; title: string; text: string; priority: number; requirements: GameplayRequirement[] }
+export type ArchiveThemeId = 'archive-standard' | 'departure-night' | 'signal-blueprint'
+export interface InvestigationRewardDefinition {
+  id: string
+  kind: 'artifact' | 'badge' | 'theme'
+  title: string
+  description: string
+  requirements: GameplayRequirement[]
+  themeId?: ArchiveThemeId
+}
 export interface InvestigationGameplayDefinition {
   initialAnalysisPoints: number
   objectives: InvestigationObjectiveDefinition[]
   hints: InvestigationHintDefinition[]
   challenges: InvestigationChallengeDefinition[]
   endingVariants: InvestigationEndingVariant[]
+  rewards?: InvestigationRewardDefinition[]
 }
 export interface DeductionSubmission { answers: string[]; evidenceIds: string[]; contradictionPairs: [string, string][]; note: string }
 export interface DeductionResult { score: number; level: string; answerScore: number; evidenceScore: number; relationScore: number; note: string; challengeIds?: string[]; endingVariantId?: string }
