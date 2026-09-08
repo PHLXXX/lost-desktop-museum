@@ -62,6 +62,10 @@ describe('CaseDraft compiler boundary', () => {
       ] }],
       challenges: [{ id: 'precise-score', title: '精确归档', description: '可信度达到九十分。', requirements: [{ type: 'score-at-least', value: 90 }] }],
       endingVariants: [{ id: 'complete-note', title: '完整记录', text: '每个时间节点都已闭合。', priority: 20, requirements: [{ type: 'all-clues' }] }],
+      rewards: [
+        { id: 'archive-token', kind: 'artifact', title: '档案凭证', description: '完成案件后归档。', requirements: [] },
+        { id: 'blueprint-theme', kind: 'theme', title: '蓝图主题', description: '完整复原案件后解锁。', themeId: 'signal-blueprint', requirements: [{ type: 'all-clues' }] },
+      ],
     } satisfies InvestigationGameplayDefinition
     draft.gameplay = gameplay
 

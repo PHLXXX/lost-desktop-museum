@@ -64,4 +64,21 @@ describe('GameplayEditor', () => {
     await user.type(screen.getByLabelText('结局优先级'), '25')
     expect(useEditorStore.getState().currentProject!.draft.gameplay!.endingVariants.at(-1)?.priority).toBe(25)
   })
+
+  it('creates an allowlisted completion theme reward', async () => {
+    const user = userEvent.setup()
+    render(<GameplayEditor />)
+    await user.click(screen.getByRole('checkbox', { name: '启用自定义玩法' }))
+
+    await user.click(screen.getByRole('tab', { name: '挑战与结局' }))
+    await user.click(screen.getByRole('button', { name: '新建奖励' }))
+    await user.selectOptions(screen.getByLabelText('奖励类型'), 'theme')
+    await user.selectOptions(screen.getByLabelText('奖励主题'), 'signal-blueprint')
+
+    expect(useEditorStore.getState().currentProject!.draft.gameplay!.rewards?.at(-1)).toMatchObject({
+      kind: 'theme',
+      themeId: 'signal-blueprint',
+      requirements: [],
+    })
+  })
 })

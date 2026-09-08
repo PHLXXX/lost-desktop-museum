@@ -75,6 +75,10 @@ export function createInitialGameplayDraft(draft: CaseDraft): InvestigationGamep
       { id: 'precise-conclusion', title: '精准结案', description: '推理可信度达到 90 分。', requirements: [{ type: 'score-at-least', value: 90 }] },
     ],
     endingVariants: [],
+    rewards: [
+      { id: 'completion-record', kind: 'artifact', title: '案件结案记录', description: '完成案件后归入本机馆藏。', requirements: [] },
+      { id: 'complete-archive-badge', kind: 'badge', title: '完整归档徽章', description: '发现全部线索并完成最终推理。', requirements: [{ type: 'all-clues' }] },
+    ],
   }
 }
 
@@ -171,6 +175,10 @@ export function createMinimalTemplateDraft(): CaseDraft {
       { id: 'precise-training-report', title: '精准训练报告', description: '推理可信度达到九十分。', requirements: [{ type: 'score-at-least', value: 90 }] },
     ],
     endingVariants: [{ id: 'complete-training-note', title: '完整训练注记', text: '交接、门禁与补领动作已经形成一条可复核的时间线；备用钥匙的消失不再只是某个人的单方面说法。', priority: 20, requirements: [{ type: 'all-clues' }, { type: 'score-at-least', value: 90 }, { type: 'relation-count-at-least', value: 1 }] }],
+    rewards: [
+      { id: 'spare-key-tag', kind: 'artifact', title: '备用钥匙编号牌', description: '从完成的教学档案中保存下来的金属编号牌。', requirements: [] },
+      { id: 'timeline-trainee-badge', kind: 'badge', title: '时间线受训员', description: '发现全部线索并建立关键矛盾关系。', requirements: [{ type: 'all-clues' }, { type: 'relation-count-at-least', value: 1 }] },
+    ],
   }
   return draft
 }

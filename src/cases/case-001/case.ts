@@ -164,5 +164,10 @@ export const caseDefinition: CaseDefinition = {
       { id: 'independent-complete-note', title: '首席归档注记', text: '没有提示替你决定方向。你让取消的行程、旧照片、住所里的声音和第二个名字彼此作证；档案因此保留了事实之间的距离。', priority: 30, requirements: [{ type: 'all-clues' }, { type: 'no-hints' }, { type: 'score-at-least', value: 90 }, { type: 'relation-count-at-least', value: 2 }] },
       { id: 'complete-note', title: '完整归档注记', text: '所有可读取记录都已归档。它们仍不能替周屿说出唯一动机，却足以说明这场“旅行”从未按公开叙述发生。', priority: 20, requirements: [{ type: 'all-clues' }, { type: 'score-at-least', value: 90 }, { type: 'relation-count-at-least', value: 2 }] },
     ],
+    rewards: [
+      { id: 'unused-boarding-pass', kind: 'artifact', title: '未启程登机牌', description: '一张已经失效，却仍被夹在档案中的 HX217 登机牌。', requirements: [] },
+      { id: 'independent-investigator', kind: 'badge', title: '独立调查员', description: '发现全部线索，并在未使用分析提示的情况下完成调查。', requirements: [{ type: 'all-clues' }, { type: 'no-hints' }] },
+      { id: 'departure-night-theme', kind: 'theme', title: '候机厅夜色', description: '以深夜航站楼信息屏为灵感的档案馆配色。', themeId: 'departure-night', requirements: [{ type: 'score-at-least', value: 90 }, { type: 'no-hints' }, { type: 'relation-count-at-least', value: 2 }] },
+    ],
   },
 }

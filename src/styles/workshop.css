@@ -288,7 +288,7 @@
 .gameplay-disabled { padding: 28px; border: 1px dashed #465158; background: #171d21; }
 .gameplay-disabled strong { font-size: 14px; }
 .gameplay-disabled p { max-width: 640px; margin: 8px 0 0; color: #879398; line-height: 1.65; }
-.gameplay-general { display: grid; margin-bottom: 12px; border: 1px solid #39444a; background: #39444a; grid-template-columns: 1.4fr repeat(4, 1fr); gap: 1px; }
+.gameplay-general { display: grid; margin-bottom: 12px; border: 1px solid #39444a; background: #39444a; grid-template-columns: 1.4fr repeat(5, 1fr); gap: 1px; }
 .gameplay-general > label, .gameplay-general > div { display: grid; min-height: 58px; align-content: center; padding: 8px 12px; background: #171d21; }
 .gameplay-general label { gap: 5px; color: #8c999c; font-size: 10px; }
 .gameplay-general input { width: 90px; min-height: 28px; padding: 4px 6px; border: 1px solid #465159; background: #11171b; }
@@ -307,7 +307,7 @@
 .gameplay-detail { display: grid; min-width: 0; align-content: start; gap: 14px; padding: 16px; }
 .gameplay-detail .editor-form .wide-field { margin: 0; grid-column: 1 / -1; }
 .gameplay-detail > label { display: grid; gap: 5px; color: #aeb7b8; font-size: 11px; }
-.gameplay-detail > label input, .gameplay-detail > label textarea { min-height: 31px; padding: 6px 8px; color: #e1e2dd; border: 1px solid #465159; background: #11171b; }
+.gameplay-detail > label input, .gameplay-detail > label textarea, .gameplay-detail > label select { min-height: 31px; padding: 6px 8px; color: #e1e2dd; border: 1px solid #465159; background: #11171b; }
 .gameplay-detail > label textarea { min-height: 76px; resize: vertical; }
 .gameplay-reveal-toggle { margin-top: 2px; }
 .gameplay-empty { display: grid; min-height: 260px; place-items: center; color: #778388; text-align: center; }
@@ -332,10 +332,13 @@
 .outcome-master > aside small { color: #748085; font: 9px var(--font-data); }
 .requirement-editor { border: 1px solid #38444a; }
 .requirement-editor > header { display: flex; align-items: center; justify-content: space-between; padding: 8px; background: #20282d; }
+.requirement-editor > header > div { display: grid; gap: 2px; }
+.requirement-editor > header small { color: #7e8a8e; font-size: 10px; font-weight: 400; }
 .requirement-editor > header button { min-height: 27px; border: 1px solid #46565b; background: #182025; }
 .requirement-editor > div { display: grid; align-items: center; padding: 7px; border-top: 1px solid #303a3f; grid-template-columns: minmax(160px, 1fr) minmax(110px, .7fr) 30px; gap: 6px; }
 .requirement-editor select, .requirement-editor input { min-width: 0; min-height: 29px; padding: 4px 6px; border: 1px solid #414d54; background: #10161a; }
 .requirement-editor > div > button { width: 28px; height: 28px; border: 0; background: transparent; }
+.gameplay-delete { justify-self: start; min-height: 30px; padding: 5px 10px; border: 1px solid #76504d; background: #342321; color: #e6c4bd; }
 .validation-summary, .asset-summary { display: grid; margin-bottom: 14px; grid-template-columns: repeat(4,1fr); border: 1px solid #39444a; background: #39444a; gap: 1px; }
 .validation-summary > div, .asset-summary > div { display: grid; min-height: 68px; align-content: center; padding: 10px; background: #171d21; }
 .validation-summary span, .asset-summary span { color: #78868b; font-size: 10px; }

@@ -258,25 +258,25 @@ Commit: `feat: add reward collection interface`
 - Produces: reward CRUD inside the existing “挑战与结局” editor and authored built-in reward definitions.
 - Consumes: reward types, `RequirementFields`, and the theme allowlist.
 
-- [ ] **Step 1: Write failing editor and case tests**
+- [x] **Step 1: Write failing editor and case tests**
 
 Verify adding a reward, selecting `theme`, selecting an allowlisted theme ID, compiling it, and confirming every built-in case exposes at least two rewards including an artifact.
 
-- [ ] **Step 2: Run tests and verify RED**
+- [x] **Step 2: Run tests and verify RED**
 
 Run: `npm test -- src/editor/features/gameplay-editor/GameplayEditor.test.tsx src/editor/compiler/compiler.test.ts src/cases/case-001/case.test.ts src/cases/validateCases.test.ts`
 
 Expected: FAIL because rewards are not authorable and built-in definitions are absent.
 
-- [ ] **Step 3: Implement compact reward CRUD**
+- [x] **Step 3: Implement compact reward CRUD**
 
 Add list, title, description, kind, allowlisted theme selector, shared requirement fields, and delete action. Switching away from `theme` removes `themeId`; switching to `theme` assigns `departure-night`.
 
-- [ ] **Step 4: Author concrete rewards**
+- [x] **Step 4: Author concrete rewards**
 
 Case 001: `unused-boarding-pass`, `independent-investigator`, `departure-night-theme`. Case 002: `final-program-sheet`, `complete-broadcast-record`, `signal-blueprint-theme`. Give each reward deterministic requirements from the design.
 
-- [ ] **Step 5: Run tests and commit**
+- [x] **Step 5: Run tests and commit**
 
 Run: `npm test -- src/editor/features/gameplay-editor/GameplayEditor.test.tsx src/editor/compiler/compiler.test.ts src/cases/case-001/case.test.ts src/cases/validateCases.test.ts`
 

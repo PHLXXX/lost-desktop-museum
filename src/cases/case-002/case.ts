@@ -136,5 +136,10 @@ export const caseDefinition: CaseDefinition = {
       { id: 'independent-signal-note', title: '首席信号注记', text: '你没有让熟悉的声音替代在场证明。节目源、排期与门禁记录被分别归档，零点后的回声因此只能证明一段预先安排的播出。', priority: 30, requirements: [{ type: 'all-clues' }, { type: 'no-hints' }, { type: 'score-at-least', value: 90 }, { type: 'relation-count-at-least', value: 2 }] },
       { id: 'complete-signal-note', title: '完整信号注记', text: '完整档案把广播信号和人员轨迹分成了两条时间线：前者按计划抵达零点，后者没有进入 A 演播室。', priority: 20, requirements: [{ type: 'all-clues' }, { type: 'score-at-least', value: 85 }, { type: 'relation-count-at-least', value: 2 }] },
     ],
+    rewards: [
+      { id: 'final-program-sheet', kind: 'artifact', title: '停播节目单', description: '签字栏仍然空白的零点节目单原件。', requirements: [] },
+      { id: 'complete-broadcast-record', kind: 'badge', title: '完整广播记录', description: '发现全部线索，并建立两组关键矛盾关系。', requirements: [{ type: 'all-clues' }, { type: 'relation-count-at-least', value: 2 }] },
+      { id: 'signal-blueprint-theme', kind: 'theme', title: '信号室蓝图', description: '以广播控制室技术图纸为灵感的档案馆配色。', themeId: 'signal-blueprint', requirements: [{ type: 'all-clues' }, { type: 'score-at-least', value: 90 }, { type: 'no-hints' }] },
+    ],
   },
 }
